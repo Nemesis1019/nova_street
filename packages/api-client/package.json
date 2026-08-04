@@ -1,0 +1,38 @@
+{
+  "name": "@ecommerce/api-client",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Typed HTTP client generated from apps/api OpenAPI contract",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "generate": "cp ../../apps/api/swagger.json swagger.json && openapi-typescript swagger.json -o src/api-types.ts",
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "pnpm exec eslint src/**/*.ts",
+    "clean": "rm -rf dist .turbo"
+  },
+  "devDependencies": {
+    "@ecommerce/eslint-config": "workspace:*",
+    "@ecommerce/tsconfig": "workspace:*",
+    "eslint": "^9.20.0",
+    "openapi-typescript": "^7.0.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.0"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.17.0"
+  }
+}

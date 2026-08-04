@@ -1,0 +1,25 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "products": "Produtos",
+    "categories": "Categorias",
+    "inventory": "Estoque",
+    "coupons": "Cupons",
+    "orders": "Pedidos",
+    "production": "Produção",
+    "reviews": "Avaliações",
+    "refunds": "Reembolsos",
+    "users": "Usuários",
+    "designs": "Designs",
+    "audit": "Auditoria",
+    "export": "Exportar",
+    "pages": "Páginas",
+    "templates": "Modelos",
+    "config": "Configuração",
+    "currencies": "Moedas",
+    "logout": "Sair"
+  },
+  "language": {
+    "select": "Idioma"
+  }
+}

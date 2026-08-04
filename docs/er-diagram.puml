@@ -1,0 +1,322 @@
+@startuml
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+entity User {
+  * id : uuid <<PK>>
+  * email : string <<UK>>
+  * passwordHash : string
+  * firstName : string
+  * lastName : string
+  phone : string
+  * isActive : boolean
+  * emailVerified : boolean
+  emailVerifiedAt : datetime
+  acceptedTermsAt : datetime
+  acceptedTermsVersion : string
+  --
+  * roleId : uuid <<FK>>
+}
+
+entity Role {
+  * id : uuid <<PK>>
+  * name : string <<UK>>
+  description : string
+}
+
+entity Address {
+  * id : uuid <<PK>>
+  --
+  * userId : uuid <<FK>>
+  * label : string
+  * line1 : string
+  line2 : string
+  * city : string
+  * state : string
+  * country : string
+  * zipCode : string
+  phone : string
+  * isDefault : boolean
+}
+
+entity RefreshToken {
+  * id : uuid <<PK>>
+  --
+  * userId : uuid <<FK>>
+  * tokenHash : string
+  * expiresAt : datetime
+  revokedAt : datetime
+}
+
+entity EmailVerificationCode {
+  * id : uuid <<PK>>
+  --
+  * userId : uuid <<FK>>
+  * code : string
+  * expiresAt : datetime
+  usedAt : datetime
+}
+
+entity StoreConfig {
+  * id : uuid <<PK>>
+  * name : string
+  description : string
+  logoUrl : string
+  faviconUrl : string
+  * primaryColor : string
+  * secondaryColor : string
+  * backgroundColor : string
+  * textColor : string
+  heroImageUrl : string
+  heroTitle : string
+  heroSubtitle : string
+  contactEmail : string
+  contactPhone : string
+  socialLinks : json
+  * currencyCode : string
+  * isActive : boolean
+  updatedById : uuid
+}
+
+entity StoreSettings {
+  * id : uuid <<PK>>
+  * defaultStockMode : StockMode
+  * productionLeadTimeDaysDefault : int
+  * shippingCostDefault : int
+  updatedById : uuid
+}
+
+entity NewsletterSubscriber {
+  * id : uuid <<PK>>
+  * email : string <<UK>>
+  * source : string
+  * subscribedAt : datetime
+  unsubscribedAt : datetime
+}
+
+entity Category {
+  * id : uuid <<PK>>
+  * name : string
+  * slug : string <<UK>>
+  description : string
+  --
+  parentId : uuid <<FK>>
+  * isActive : boolean
+}
+
+entity Product {
+  * id : uuid <<PK>>
+  * name : string
+  * slug : string <<UK>>
+  description : string
+  --
+  categoryId : uuid <<FK>>
+  * basePrice : int
+  * isActive : boolean
+}
+
+entity ProductVariant {
+  * id : uuid <<PK>>
+  --
+  * productId : uuid <<FK>>
+  * sku : string <<UK>>
+  size : string
+  color : string
+  garmentType : string
+  * stockMode : StockMode
+  * productionLeadTimeDays : int
+  priceAdjustment : int
+  * isActive : boolean
+}
+
+entity Inventory {
+  * id : uuid <<PK>>
+  --
+  * productVariantId : uuid <<FK,UK>>
+  * quantity : int
+  * reservedQuantity : int
+}
+
+entity StockReservation {
+  * id : uuid <<PK>>
+  --
+  * productVariantId : uuid <<FK>>
+  * inventoryId : uuid <<FK>>
+  cartId : uuid <<FK>>
+  orderId : uuid <<FK>>
+  * quantity : int
+  * expiresAt : datetime
+  * status : StockReservationStatus
+}
+
+entity Asset {
+  * id : uuid <<PK>>
+  ownerId : uuid
+  * purpose : AssetPurpose
+  relatedId : uuid
+  * bucket : string
+  * objectKey : string
+  * mimeType : string
+  * size : int
+  uploadedById : uuid
+}
+
+entity ProductImage {
+  * id : uuid <<PK>>
+  --
+  productId : uuid <<FK>>
+  productVariantId : uuid <<FK>>
+  * assetId : uuid <<FK>>
+  * sortOrder : int
+}
+
+entity DesignTemplate {
+  * id : uuid <<PK>>
+  * name : string
+  * garmentType : string
+  * baseImageUrl : string
+  printAreas : json
+  * basePrice : int
+  availableColors : string[]
+  availableSizes : string[]
+  * stockMode : StockMode
+  * productionLeadTimeDays : int
+}
+
+entity CustomDesign {
+  * id : uuid <<PK>>
+  --
+  * userId : uuid <<FK>>
+  * designTemplateId : uuid <<FK>>
+  * status : CustomDesignStatus
+  color : string
+  size : string
+  previewImageUrl : string
+  finalPrintFileUrl : string
+  * surcharge : int
+}
+
+entity CustomDesignElement {
+  * id : uuid <<PK>>
+  --
+  * customDesignId : uuid <<FK>>
+  * type : CustomDesignElementType
+  assetUrl : string
+  textContent : string
+  * fontSize : int
+  * fill : string
+  * positionX : float
+  * positionY : float
+  * scale : float
+  * rotation : float
+  * zIndex : int
+}
+
+entity Cart {
+  * id : uuid <<PK>>
+  --
+  userId : uuid <<FK,UK>>
+}
+
+entity CartItem {
+  * id : uuid <<PK>>
+  --
+  * cartId : uuid <<FK>>
+  * type : CartItemType
+  productVariantId : uuid <<FK>>
+  customDesignId : uuid <<FK>>
+  * quantity : int
+  * unitPrice : int
+}
+
+entity Coupon {
+  * id : uuid <<PK>>
+  * code : string <<UK>>
+  * discountType : DiscountType
+  * discountValue : int
+  * validFrom : datetime
+  validUntil : datetime
+  maxUses : int
+  * usedCount : int
+  * isActive : boolean
+}
+
+entity Order {
+  * id : uuid <<PK>>
+  --
+  * userId : uuid <<FK>>
+  couponId : uuid <<FK>>
+  * status : OrderStatus
+  * subtotal : int
+  * shippingCost : int
+  * discountAmount : int
+  * shippingAddressId : uuid
+  * billingAddressId : uuid
+  * paymentStatus : PaymentStatus
+  trackingNumber : string
+  carrier : string
+  shippedAt : datetime
+}
+
+entity OrderItem {
+  * id : uuid <<PK>>
+  --
+  * orderId : uuid <<FK>>
+  * type : CartItemType
+  productVariantId : uuid <<FK>>
+  customDesignId : uuid <<FK>>
+  * quantity : int
+  * unitPrice : int
+  * productionStatus : OrderItemProductionStatus
+}
+
+entity Payment {
+  * id : uuid <<PK>>
+  --
+  * orderId : uuid <<FK>>
+  * provider : string
+  providerTransactionId : string
+  * amount : int
+  * status : PaymentStatus
+  payload : json
+}
+
+entity AuditLog {
+  * id : uuid <<PK>>
+  userId : uuid
+  * action : string
+  * entity : string
+  * entityId : string
+  before : json
+  after : json
+}
+
+User ||--o{ Address
+User }o--|| Role
+User ||--o{ RefreshToken
+User ||--o{ EmailVerificationCode
+User ||--o| Cart
+User ||--o{ Order
+User ||--o{ CustomDesign
+Category ||--o{ Category : parent
+Category ||--o{ Product
+Product ||--|{ ProductVariant
+Product ||--o{ ProductImage
+ProductVariant ||--o| Inventory
+ProductVariant ||--o{ StockReservation
+Inventory ||--o{ StockReservation
+ProductVariant ||--o{ ProductImage
+Asset ||--o{ ProductImage
+ProductVariant ||--o{ CartItem
+CustomDesign ||--o{ CartItem
+Cart ||--o{ CartItem
+DesignTemplate ||--o{ CustomDesign
+CustomDesign ||--o{ CustomDesignElement
+CustomDesign ||--o{ OrderItem
+ProductVariant ||--o{ OrderItem
+Order ||--|{ OrderItem
+Order ||--o{ Payment
+Order }o--|| Coupon
+
+@enduml

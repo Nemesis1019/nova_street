@@ -1,0 +1,67 @@
+{
+  "nav": {
+    "collections": "Colecciones",
+    "customize": "Personalizar",
+    "about": "Nosotros",
+    "login": "Ingresar",
+    "cart": "Carrito",
+    "wishlist": "Favoritos",
+    "account": "Mi cuenta",
+    "orders": "Mis pedidos",
+    "logout": "Salir"
+  },
+  "product": {
+    "reviews": "Reseñas",
+    "leaveReview": "Dejar una reseña",
+    "noReviews": "Todavía no hay reseñas para este producto.",
+    "reviewSent": "Reseña enviada",
+    "reviewPending": "Será publicada tras aprobación.",
+    "photos": "Fotos",
+    "maxPhotos": "Máximo {count} fotos",
+    "submit": "Enviar reseña",
+    "addToCart": "Añadir al Carrito",
+    "outOfStock": "Sin stock",
+    "madeToOrder": "Bajo pedido",
+    "inStock": "En stock",
+    "productionTime": "Tiempo de producción",
+    "days": "días"
+  },
+  "cart": {
+    "title": "TU CARRITO",
+    "empty": "Tu carrito está vacío.",
+    "browse": "Ver catálogo",
+    "orderSummary": "Resumen de orden",
+    "subtotal": "Subtotal",
+    "shipping": "Envío",
+    "total": "Total",
+    "checkout": "Checkout",
+    "checkoutGuest": "Checkout como invitado",
+    "calculatedAtCheckout": "Calculado al pagar",
+    "freeShipping": "Envío gratis",
+    "freeFrom": "Gratis desde"
+  },
+  "checkout": {
+    "secure": "Checkout seguro",
+    "shippingAddress": "Dirección de envío",
+    "addNewAddress": "Agregar nueva dirección",
+    "paymentMethod": "Método de pago",
+    "card": "Tarjeta de crédito / débito",
+    "bankTransfer": "Transferencia bancaria",
+    "digitalWallet": "Billetera digital",
+    "createOrder": "Crear orden",
+    "order": "Orden",
+    "discount": "Descuento",
+    "coupon": "Código de cupón",
+    "apply": "Aplicar",
+    "confirmAndPay": "Confirmar y pagar"
+  },
+  "language": {
+    "select": "Idioma"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "close": "Cerrar",
+    "save": "Guardar"
+  }
+}

@@ -1,0 +1,18 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+allowBuilds:
+  msgpackr-extract: true
+  unrs-resolver: true
+
+settings:
+  onlyBuiltDependencies:
+    - "@prisma/client"
+    - "@prisma/engines"
+    - "@scarf/scarf"
+    - "argon2"
+    - "esbuild"
+    - "prisma"
+    - "sharp"
+    - "unrs-resolver"

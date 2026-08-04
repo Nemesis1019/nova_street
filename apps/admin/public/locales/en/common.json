@@ -1,0 +1,25 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "categories": "Categories",
+    "inventory": "Inventory",
+    "coupons": "Coupons",
+    "orders": "Orders",
+    "production": "Production",
+    "reviews": "Reviews",
+    "refunds": "Refunds",
+    "users": "Users",
+    "designs": "Designs",
+    "audit": "Audit",
+    "export": "Export",
+    "pages": "Pages",
+    "templates": "Templates",
+    "config": "Settings",
+    "currencies": "Currencies",
+    "logout": "Logout"
+  },
+  "language": {
+    "select": "Language"
+  }
+}

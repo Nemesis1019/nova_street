@@ -1,0 +1,25 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "products": "Productos",
+    "categories": "Categorías",
+    "inventory": "Stock",
+    "coupons": "Cupones",
+    "orders": "Órdenes",
+    "production": "Producción",
+    "reviews": "Reseñas",
+    "refunds": "Reembolsos",
+    "users": "Usuarios",
+    "designs": "Diseños",
+    "audit": "Auditoría",
+    "export": "Exportar",
+    "pages": "Páginas",
+    "templates": "Plantillas",
+    "config": "Configuración",
+    "currencies": "Monedas",
+    "logout": "Salir"
+  },
+  "language": {
+    "select": "Idioma"
+  }
+}

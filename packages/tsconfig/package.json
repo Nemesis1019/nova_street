@@ -1,0 +1,15 @@
+{
+  "name": "@ecommerce/tsconfig",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shared TypeScript configurations",
+  "files": [
+    "base.json",
+    "nextjs.json",
+    "react.json",
+    "node.json"
+  ],
+  "publishConfig": {
+    "access": "restricted"
+  }
+}

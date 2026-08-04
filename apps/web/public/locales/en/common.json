@@ -1,0 +1,67 @@
+{
+  "nav": {
+    "collections": "Collections",
+    "customize": "Customize",
+    "about": "About us",
+    "login": "Login",
+    "cart": "Cart",
+    "wishlist": "Wishlist",
+    "account": "Account",
+    "orders": "My orders",
+    "logout": "Logout"
+  },
+  "product": {
+    "reviews": "Reviews",
+    "leaveReview": "Leave a review",
+    "noReviews": "No reviews yet for this product.",
+    "reviewSent": "Review submitted",
+    "reviewPending": "It will be published after approval.",
+    "photos": "Photos",
+    "maxPhotos": "Max {count} photos",
+    "submit": "Submit review",
+    "addToCart": "Add to Cart",
+    "outOfStock": "Out of stock",
+    "madeToOrder": "Made to order",
+    "inStock": "In stock",
+    "productionTime": "Production time",
+    "days": "days"
+  },
+  "cart": {
+    "title": "YOUR CART",
+    "empty": "Your cart is empty.",
+    "browse": "Browse catalog",
+    "orderSummary": "Order summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "total": "Total",
+    "checkout": "Checkout",
+    "checkoutGuest": "Guest checkout",
+    "calculatedAtCheckout": "Calculated at checkout",
+    "freeShipping": "Free shipping",
+    "freeFrom": "Free from"
+  },
+  "checkout": {
+    "secure": "Secure checkout",
+    "shippingAddress": "Shipping address",
+    "addNewAddress": "Add new address",
+    "paymentMethod": "Payment method",
+    "card": "Credit / debit card",
+    "bankTransfer": "Bank transfer",
+    "digitalWallet": "Digital wallet",
+    "createOrder": "Create order",
+    "order": "Order",
+    "discount": "Discount",
+    "coupon": "Coupon code",
+    "apply": "Apply",
+    "confirmAndPay": "Confirm and pay"
+  },
+  "language": {
+    "select": "Language"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "close": "Close",
+    "save": "Save"
+  }
+}
