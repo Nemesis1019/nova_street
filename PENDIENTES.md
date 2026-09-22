@@ -1,6 +1,6 @@
 # Mejoras pendientes — API y Web
 
-> Lista de ajustes en `apps/api` y `apps/web`. Las tareas de alta y media prioridad ya están resueltas. Quedan items de pulido y mejoras futuras de administración.
+> Lista de ajustes en `apps/api`, `apps/web` y `apps/admin`. Las tareas de alta y media prioridad ya están resueltas. Quedan items de pulido y mejoras futuras de administración.
 
 ---
 
@@ -13,6 +13,17 @@
 - ✅ Aislamiento de tests e2e con `maxWorkers: 1`.
 - ✅ Endpoint `GET /admin/users/{id}/orders` y consumo desde el admin.
 - ✅ Normalización explícita de fechas con `@Transform` en DTOs de admin.
+
+### Admin — Notificaciones y productividad
+
+- ✅ Notificaciones en tiempo real vía SSE (`GET /admin/notifications/stream`) para compras, stock bajo y reseñas pendientes.
+- ✅ Búsqueda global (`GET /admin/search?q=...`) con `CommandPalette` (`Ctrl+K`/`Cmd+K`).
+- ✅ Acciones masivas en productos (activar/desactivar/eliminar) y órdenes (cambiar estado).
+- ✅ Columnas personalizables en tablas de productos y órdenes.
+- ✅ Filtros guardados en `/orders`.
+- ✅ Vista previa del storefront desde el header del admin.
+- ✅ Autosave/borradores en formularios de productos y páginas.
+- ✅ Importador CSV de productos con plantilla descargable.
 
 ### API — Baja prioridad
 

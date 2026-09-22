@@ -1,5 +1,6 @@
 'use client';
 
+import type { components } from '@ecommerce/api-client';
 import {
   Button,
   Container,
@@ -48,7 +49,8 @@ export default function CheckoutPage() {
   const [couponCode, setCouponCode] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [orderNotes, setOrderNotes] = useState('');
-  const [shippingPreview, setShippingPreview] = useState<{ shippingCost: number; freeShippingThreshold?: number | null } | null>(null);
+  const [shippingOptions, setShippingOptions] = useState<components['schemas']['EstimatedShippingOptionResponseDto'][]>([]);
+  const [selectedShippingOptionId, setSelectedShippingOptionId] = useState<string | null>(null);
 
   const { data: addresses } = useQuery({
     queryKey: ['addresses'],
@@ -116,12 +118,21 @@ export default function CheckoutPage() {
 
   const initCheckout = useMutation({
     mutationFn: async ({ shippingAddressId, billingAddressId }: { shippingAddressId: string; billingAddressId: string }) => {
-      const body: { shippingAddressId: string; billingAddressId: string; couponCode?: string; orderNotes?: string } = {
+      const body: {
+        shippingAddressId: string;
+        billingAddressId: string;
+        couponCode?: string;
+        orderNotes?: string;
+        shippingOptionId?: string;
+      } = {
         shippingAddressId,
         billingAddressId,
       };
       if (orderNotes.trim()) {
         body.orderNotes = orderNotes.trim();
+      }
+      if (selectedShippingOptionId) {
+        body.shippingOptionId = selectedShippingOptionId;
       }
       const { data, error } = await apiClient.POST('/checkout/init', { body: body as never });
       if (error || !data) throw error ?? new Error('Checkout failed');
@@ -212,19 +223,25 @@ export default function CheckoutPage() {
 
   const defaultAddress = addresses?.find((a) => a.isDefault) ?? addresses?.[0];
   const activeAddressId = selectedAddressId ?? defaultAddress?.id;
+  const cartItems = cart?.items ?? [];
+  const cartTotal = cart?.total ?? 0;
 
   useQuery({
-    queryKey: ['shipping-cost', activeAddressId],
+    queryKey: ['shipping-options-estimate', cartTotal],
     queryFn: async () => {
-      if (!activeAddressId) return null;
-      const { data, error } = await apiClient.POST('/checkout/shipping-cost', {
-        body: { shippingAddressId: activeAddressId } as never,
+      const { data, error } = await apiClient.GET('/shipping-options/estimate', {
+        params: { query: { subtotal: cartTotal.toString() } },
       });
       if (error) throw error;
-      setShippingPreview(data ?? null);
+      const options = data ?? [];
+      setShippingOptions(options);
+      const defaultOption = options.find((o) => o.isDefault) ?? options[0];
+      if (defaultOption && !selectedShippingOptionId) {
+        setSelectedShippingOptionId(defaultOption.id);
+      }
       return data;
     },
-    enabled: !!activeAddressId && !order,
+    enabled: cartTotal > 0 && !order,
   });
 
   const handleInitCheckout = () => {
@@ -234,9 +251,6 @@ export default function CheckoutPage() {
     }
     initCheckout.mutate({ shippingAddressId: activeAddressId, billingAddressId: activeAddressId });
   };
-
-  const cartItems = cart?.items ?? [];
-  const cartTotal = cart?.total ?? 0;
 
   return (
     <>
@@ -332,6 +346,27 @@ export default function CheckoutPage() {
 
                   <section>
                     <Title order={3} mb="md" style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+                      Opciones de envío
+                    </Title>
+                    {shippingOptions.length > 0 ? (
+                      <Radio.Group value={selectedShippingOptionId} onChange={setSelectedShippingOptionId}>
+                        <Stack>
+                          {shippingOptions.map((option) => (
+                            <ShippingOptionRadio
+                              key={option.id}
+                              option={option}
+                              selected={selectedShippingOptionId === option.id}
+                            />
+                          ))}
+                        </Stack>
+                      </Radio.Group>
+                    ) : (
+                      <Text size="sm" c="dimmed">No hay opciones de envío disponibles.</Text>
+                    )}
+                  </section>
+
+                  <section>
+                    <Title order={3} mb="md" style={{ fontFamily: 'var(--font-bebas-neue)' }}>
                       Método de pago
                     </Title>
                     <Radio.Group value={paymentMethod} onChange={setPaymentMethod}>
@@ -350,8 +385,8 @@ export default function CheckoutPage() {
                   items={cartItems}
                   localItems={localItems}
                   total={cartTotal}
-                  shippingCost={shippingPreview?.shippingCost}
-                  freeShippingThreshold={shippingPreview?.freeShippingThreshold}
+                  shippingOptions={shippingOptions}
+                  selectedShippingOptionId={selectedShippingOptionId}
                   onCreateOrder={handleInitCheckout}
                   loading={initCheckout.isPending}
                   disabled={!defaultAddress && !selectedAddressId}
@@ -484,12 +519,63 @@ function PaymentOption({
   );
 }
 
+function ShippingOptionRadio({
+  option,
+  selected,
+}: {
+  option: components['schemas']['EstimatedShippingOptionResponseDto'];
+  selected: boolean;
+}) {
+  const { format } = useCurrency();
+  const delivery =
+    option.estimatedDaysMin && option.estimatedDaysMax
+      ? `Entrega estimada: ${option.estimatedDaysMin}-${option.estimatedDaysMax} días`
+      : option.estimatedDaysMin || option.estimatedDaysMax
+        ? `Entrega estimada: ${option.estimatedDaysMin ?? option.estimatedDaysMax} días`
+        : null;
+  return (
+    <Radio
+      value={option.id}
+      label={
+        <Stack gap={0}>
+          <Group justify="space-between" w="100%">
+            <Text size="sm" fw={500}>
+              {option.name}
+            </Text>
+            <Text size="sm" fw={600} style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>
+              {option.isFree ? 'Gratis' : format(option.price)}
+            </Text>
+          </Group>
+          {option.description && (
+            <Text size="xs" c="dimmed">
+              {option.description}
+            </Text>
+          )}
+          {delivery && (
+            <Text size="xs" c="dimmed">
+              {delivery}
+            </Text>
+          )}
+        </Stack>
+      }
+      styles={{
+        radio: { borderRadius: 0, borderColor: '#0d0d0d' },
+        body: {
+          padding: '16px',
+          border: '1px solid #0d0d0d',
+          backgroundColor: selected ? '#f6f3f2' : 'transparent',
+        },
+      }}
+    />
+  );
+}
+
 function OrderSummaryPanel({
   items,
   localItems,
   total,
-  shippingCost,
-  freeShippingThreshold,
+  shippingOptions,
+  selectedShippingOptionId,
   onCreateOrder,
   loading,
   disabled,
@@ -497,13 +583,16 @@ function OrderSummaryPanel({
   items: { id: string; productVariantId: string | null; quantity: number; unitPrice: number; name?: string; type?: string }[];
   localItems: { productVariantId: string; quantity: number; price?: number; name?: string }[];
   total: number;
-  shippingCost?: number;
-  freeShippingThreshold?: number | null;
+  shippingOptions: components['schemas']['EstimatedShippingOptionResponseDto'][];
+  selectedShippingOptionId: string | null;
   onCreateOrder: () => void;
   loading: boolean;
   disabled: boolean;
 }) {
   const { format } = useCurrency();
+  const selectedOption = shippingOptions.find((o) => o.id === selectedShippingOptionId);
+  const shippingCost = selectedOption?.price;
+  const freeShippingThreshold = selectedOption?.isFree ? 0 : null;
   return (
     <div style={{ padding: '32px', border: '1px solid #0d0d0d', backgroundColor: '#f6f3f2' }}>
       <Stack gap="lg">
@@ -567,7 +656,7 @@ function OrderSummaryPanel({
             Total
           </Text>
           <Text size="xl" fw={700} style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>
-            {format(total)}
+            {format(total + (shippingCost ?? 0))}
           </Text>
         </Group>
 

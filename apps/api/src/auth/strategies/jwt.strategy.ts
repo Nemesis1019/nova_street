@@ -4,11 +4,21 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import { UsersService } from '../../users/users.service';
+import { Permission } from '../permissions';
 
 export interface JwtPayload {
   sub: string;
   email: string;
   role: string;
+  permissions?: Permission[];
+}
+
+export interface AuthenticatedUser {
+  userId: string;
+  email: string;
+  role: string;
+  permissions: Permission[];
+  emailVerified: boolean;
 }
 
 @Injectable()
@@ -24,17 +34,23 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: JwtPayload) {
+  async validate(payload: JwtPayload): Promise<AuthenticatedUser> {
     const user = await this.usersService.findById(payload.sub);
 
     if (!user || !user.isActive) {
       throw new UnauthorizedException();
     }
 
+    const allPermissions = new Set([
+      ...(user.role.permissions ?? []),
+      ...(user.permissions ?? []),
+    ]);
+
     return {
       userId: payload.sub,
       email: payload.email,
       role: user.role.name,
+      permissions: Array.from(allPermissions) as Permission[],
       emailVerified: user.emailVerified,
     };
   }

@@ -3,9 +3,10 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { OrderItemProductionStatus } from '@prisma/client';
 import { Request } from 'express';
 
-import { Roles } from '../auth/decorators/roles.decorator';
+import { RequirePermission } from '../auth/decorators/require-permission.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { Permission } from '../auth/permissions';
 import { AssignProductionItemDto } from './dto/assign-production-item.dto';
 import { ProductionItemListResponseDto, ProductionItemResponseDto } from './dto/production-item-response.dto';
 import { UpdateProductionStatusDto } from './dto/update-production-status.dto';
@@ -14,12 +15,12 @@ import { ProductionService } from './production.service';
 @ApiTags('admin-production')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
 @Controller('admin/production')
 export class ProductionController {
   constructor(private readonly productionService: ProductionService) {}
 
   @Get()
+  @RequirePermission(Permission.PRODUCTION_READ)
   @ApiOkResponse({ description: 'Paginated production queue', type: ProductionItemListResponseDto })
   findAll(
     @Query('page') page?: string,
@@ -38,18 +39,21 @@ export class ProductionController {
   }
 
   @Get('items/:id')
+  @RequirePermission(Permission.PRODUCTION_READ)
   @ApiOkResponse({ description: 'Production item details', type: ProductionItemResponseDto })
   findOne(@Param('id') id: string) {
     return this.productionService.findOne(id);
   }
 
   @Patch('items/:id/status')
+  @RequirePermission(Permission.PRODUCTION_WRITE)
   @ApiOkResponse({ description: 'Production status updated', type: ProductionItemResponseDto })
   updateStatus(@Req() req: Request, @Param('id') id: string, @Body() dto: UpdateProductionStatusDto) {
     return this.productionService.updateStatus(id, dto.status, this.extractUserId(req));
   }
 
   @Patch('items/:id/assign')
+  @RequirePermission(Permission.PRODUCTION_WRITE)
   @ApiOkResponse({ description: 'Production item assigned', type: ProductionItemResponseDto })
   assign(@Req() req: Request, @Param('id') id: string, @Body() dto: AssignProductionItemDto) {
     return this.productionService.assign(id, dto, this.extractUserId(req));

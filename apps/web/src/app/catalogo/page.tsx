@@ -8,6 +8,7 @@ import { StoreFooter } from '../../components/store-footer';
 import { StoreHeader } from '../../components/store-header';
 import { UiButton } from '../../components/ui/button';
 import { apiClient } from '../../lib/api';
+import { buildCategorySeoMetadata, buildSeoMetadata } from '../../lib/seo';
 import { parseStorefrontConfig } from '../../lib/storefront-config';
 import type { StoreConfig } from '../../providers/config-provider';
 import { CatalogFilters } from './catalog-filters';
@@ -23,23 +24,18 @@ export async function generateMetadata({
 
   try {
     const { data: config } = await apiClient.GET('/store-config');
-    const storeName = config?.name ?? 'NÖVA';
+    const storeConfig = config as StoreConfig | undefined;
 
     if (categorySlug) {
       const { data: category } = await apiClient.GET('/catalog/categories/{slug}', {
         params: { path: { slug: categorySlug } },
       });
       if (category) {
-        return {
-          title: category.metaTitle || `${category.name} — ${storeName}`,
-          description: category.metaDescription || category.description || `Productos de ${category.name}`,
-        };
+        return buildCategorySeoMetadata(storeConfig, category);
       }
     }
 
-    return {
-      title: `Colecciones — ${storeName}`,
-    };
+    return buildSeoMetadata(storeConfig, { title: 'Colecciones', template: 'default' });
   } catch {
     return { title: 'Colecciones' };
   }

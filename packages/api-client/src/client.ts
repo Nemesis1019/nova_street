@@ -8,7 +8,8 @@ export interface ApiClientOptions {
   baseUrl: string;
   token?: string;
   getRefreshToken?: () => string | null | undefined;
-  onTokenRefreshed?: (accessToken: string, refreshToken: string) => void;
+  /** @deprecated refresh tokens are now sent in HTTP-only cookies; this is kept for compatibility */
+  onTokenRefreshed?: (accessToken: string, refreshToken?: string) => void;
   onRefreshFailed?: () => void;
 }
 
@@ -29,7 +30,7 @@ export function createApiClient(options: ApiClientOptions) {
 
   const refreshMiddleware: Middleware = {
     async onResponse({ request, response }) {
-      if (response.status !== 401 || !options.getRefreshToken) {
+      if (response.status !== 401) {
         return response;
       }
 
@@ -40,20 +41,17 @@ export function createApiClient(options: ApiClientOptions) {
 
       if (!refreshPromise) {
         refreshPromise = (async () => {
-          const refreshToken = options.getRefreshToken?.();
-          if (!refreshToken) return null;
           try {
             const refreshResponse = await fetch(`${options.baseUrl}/auth/refresh`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ refreshToken }),
+              credentials: 'include',
             });
             if (!refreshResponse.ok) return null;
             const data = (await refreshResponse.json()) as {
               accessToken: string;
-              refreshToken: string;
             };
-            options.onTokenRefreshed?.(data.accessToken, data.refreshToken);
+            options.onTokenRefreshed?.(data.accessToken);
             return data.accessToken;
           } catch {
             return null;

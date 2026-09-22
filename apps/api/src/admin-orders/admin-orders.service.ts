@@ -133,6 +133,28 @@ export class AdminOrdersService {
     return order;
   }
 
+  async bulkUpdateStatus(ids: string[], status: OrderStatus, adminUserId?: string) {
+    const data: Prisma.OrderUpdateManyMutationInput = { status };
+    if (status === OrderStatus.SHIPPED) {
+      data.shippedAt = new Date();
+    }
+
+    await this.prisma.order.updateMany({
+      where: { id: { in: ids } },
+      data,
+    });
+
+    await this.auditService.log({
+      userId: adminUserId,
+      action: 'BULK_UPDATE_STATUS',
+      entity: 'Order',
+      entityId: ids.join(','),
+      after: { ids, status },
+    });
+
+    return { status, count: ids.length };
+  }
+
   async updatePaymentStatus(id: string, paymentStatus: PaymentStatus, adminUserId?: string) {
     const existing = await this.findOne(id);
 

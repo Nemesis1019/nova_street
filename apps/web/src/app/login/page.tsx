@@ -32,10 +32,10 @@ export default function LoginPage() {
         body: values as never,
       });
       if (error || !data) throw error ?? new Error('Login failed');
-      return data as { accessToken: string; refreshToken: string; user: { emailVerified: boolean } };
+      return data as { accessToken: string; user: { emailVerified: boolean } };
     },
     onSuccess: async (data) => {
-      setAuth(data.accessToken, data.refreshToken, form.values.email, data.user.emailVerified, form.values.remember);
+      setAuth(data.accessToken, form.values.email, data.user.emailVerified, form.values.remember);
       if (cartItems.length > 0) {
         const anonymousItems = cartItems.map((item) => ({
           type: item.type as 'STANDARD' | 'CUSTOM',

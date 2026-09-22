@@ -83,18 +83,19 @@ export default async function CustomizePage() {
                           Desde ${template.basePrice.toLocaleString()}
                         </Text>
                       </div>
-                      <Button
-                        component={Link}
-                        href={`/personalizar/${template.id}`}
-                        fullWidth
-                        style={{
-                          backgroundColor: '#0d0d0d',
-                          color: '#fcf9f8',
-                          fontFamily: 'var(--font-bebas-neue)',
-                        }}
-                      >
-                        Personalizar
-                      </Button>
+                      <Link href={`/personalizar/${template.id}`} passHref legacyBehavior>
+                        <Button
+                          component="a"
+                          fullWidth
+                          style={{
+                            backgroundColor: '#0d0d0d',
+                            color: '#fcf9f8',
+                            fontFamily: 'var(--font-bebas-neue)',
+                          }}
+                        >
+                          Personalizar
+                        </Button>
+                      </Link>
                     </Stack>
                   </div>
                 </GridCol>

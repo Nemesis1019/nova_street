@@ -1,5 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { randomUUID } from 'crypto';
 import request from 'supertest';
 
 import { AppModule } from './../src/app.module';
@@ -210,5 +211,59 @@ describe('Permissions (e2e)', () => {
       .expect(200);
 
     expect(unRes.body.isSuspended).toBe(false);
+  });
+
+  it('allows user with direct permissions to access only allowed admin endpoints', async () => {
+    const adminToken = await getAdminToken(app);
+    const { token: userToken, userId } = await createVerifiedUserAndGetToken(app);
+
+    // Assign a subset of granular permissions to the user.
+    await request(app.getHttpServer())
+      .patch(`/admin/users/${userId}/permissions`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ permissions: ['products:read', 'categories:read'] })
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .get('/admin/products')
+      .set('Authorization', `Bearer ${userToken}`)
+      .expect(200)
+      .expect((res) => {
+        expect(Array.isArray(res.body.data)).toBe(true);
+      });
+
+    await request(app.getHttpServer())
+      .get('/admin/categories')
+      .set('Authorization', `Bearer ${userToken}`)
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .post('/admin/products')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ name: 'Test', slug: `test-${randomUUID()}`, basePrice: 10000 })
+      .expect(403);
+
+    await request(app.getHttpServer())
+      .get('/admin/orders')
+      .set('Authorization', `Bearer ${userToken}`)
+      .expect(403);
+
+    // Add an additional permission and verify access is granted immediately.
+    await request(app.getHttpServer())
+      .patch(`/admin/users/${userId}/permissions`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ permissions: ['products:read', 'products:write', 'categories:read'] })
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .post('/admin/products')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ name: 'Test', slug: `test-${randomUUID()}`, basePrice: 10000 })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .get('/admin/categories')
+      .set('Authorization', `Bearer ${userToken}`)
+      .expect(200);
   });
 });

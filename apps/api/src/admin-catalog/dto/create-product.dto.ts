@@ -20,6 +20,10 @@ export class CreateProductDto {
   @IsOptional()
   categoryId?: string;
 
+  @IsUUID()
+  @IsOptional()
+  imageAssetId?: string;
+
   @IsInt()
   @Min(0)
   basePrice!: number;

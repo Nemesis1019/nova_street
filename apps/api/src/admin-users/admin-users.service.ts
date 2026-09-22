@@ -1,6 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import * as argon2 from 'argon2';
 
 import { AuditService } from '../audit/audit.service';
+import { DEFAULT_NEW_USER_PERMISSIONS, Permission } from '../auth/permissions';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -9,6 +11,63 @@ export class AdminUsersService {
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
   ) {}
+
+  async createUser(
+    input: {
+      email: string;
+      password: string;
+      firstName: string;
+      lastName: string;
+      roleName?: string;
+      permissions?: Permission[];
+    },
+    adminUserId?: string,
+  ) {
+    const existing = await this.prisma.user.findUnique({ where: { email: input.email } });
+    if (existing) {
+      throw new ConflictException('Email already registered');
+    }
+
+    const roleName = input.roleName ?? 'CUSTOMER';
+    const role = await this.prisma.role.findUnique({ where: { name: roleName } });
+    if (!role) {
+      throw new NotFoundException('Role not found');
+    }
+
+    const passwordHash = await argon2.hash(input.password);
+    const permissions = input.permissions ?? DEFAULT_NEW_USER_PERMISSIONS;
+
+    const user = await this.prisma.user.create({
+      data: {
+        email: input.email,
+        passwordHash,
+        firstName: input.firstName,
+        lastName: input.lastName,
+        roleId: role.id,
+        permissions: permissions as string[],
+        emailVerified: true,
+      },
+      include: { role: { select: { name: true, permissions: true } } },
+    });
+
+    await this.auditService.log({
+      userId: adminUserId,
+      action: 'CREATE_USER',
+      entity: 'User',
+      entityId: user.id,
+      after: {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        roleName: role.name,
+        permissions: user.permissions,
+      },
+    });
+
+     
+    const { passwordHash: _, ...rest } = user;
+    return rest;
+  }
 
   async findAll(query: { page: number; limit: number; search?: string; role?: string }) {
     const page = query.page ?? 1;
@@ -36,7 +95,7 @@ export class AdminUsersService {
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
-        include: { role: { select: { name: true } } },
+        include: { role: { select: { name: true, permissions: true } } },
       }),
       this.prisma.user.count({ where }),
     ]);
@@ -54,7 +113,7 @@ export class AdminUsersService {
   async findOne(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      include: { role: { select: { name: true } } },
+      include: { role: { select: { name: true, permissions: true } } },
     });
 
     if (!user) {
@@ -75,7 +134,7 @@ export class AdminUsersService {
     const user = await this.prisma.user.update({
       where: { id },
       data: { roleId: role.id },
-      include: { role: { select: { name: true } } },
+      include: { role: { select: { name: true, permissions: true } } },
     });
 
     await this.auditService.log({
@@ -99,7 +158,7 @@ export class AdminUsersService {
         suspendedAt: new Date(),
         suspendedReason: reason ?? null,
       },
-      include: { role: { select: { name: true } } },
+      include: { role: { select: { name: true, permissions: true } } },
     });
 
     await this.auditService.log({
@@ -129,7 +188,7 @@ export class AdminUsersService {
         suspendedAt: null,
         suspendedReason: null,
       },
-      include: { role: { select: { name: true } } },
+      include: { role: { select: { name: true, permissions: true } } },
     });
 
     await this.auditService.log({
@@ -179,6 +238,114 @@ export class AdminUsersService {
               : item.customDesign?.designTemplate?.name ?? 'Diseño personalizado',
         })),
       })),
+    };
+  }
+
+  async createRole(input: { name: string; description?: string; permissions: Permission[] }, adminUserId?: string) {
+    const existing = await this.prisma.role.findUnique({ where: { name: input.name } });
+    if (existing) {
+      throw new NotFoundException('Role name already exists');
+    }
+
+    const role = await this.prisma.role.create({
+      data: {
+        name: input.name,
+        description: input.description,
+        permissions: input.permissions as string[],
+      },
+    });
+
+    await this.auditService.log({
+      userId: adminUserId,
+      action: 'CREATE_ROLE',
+      entity: 'Role',
+      entityId: role.id,
+      after: { name: role.name, description: role.description, permissions: role.permissions },
+    });
+
+    return {
+      id: role.id,
+      name: role.name,
+      description: role.description,
+      permissions: role.permissions,
+    };
+  }
+
+  async findRoles() {
+    const roles = await this.prisma.role.findMany({
+      orderBy: { name: 'asc' },
+    });
+    return {
+      data: roles.map((role) => ({
+        id: role.id,
+        name: role.name,
+        description: role.description,
+        permissions: role.permissions,
+      })),
+    };
+  }
+
+  async updateUserPermissions(
+    id: string,
+    permissions: Permission[],
+    adminUserId?: string,
+  ) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const previousPermissions = user.permissions;
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: { permissions: permissions as string[] },
+      include: { role: { select: { name: true, permissions: true } } },
+    });
+
+    await this.auditService.log({
+      userId: adminUserId,
+      action: 'UPDATE_USER_PERMISSIONS',
+      entity: 'User',
+      entityId: id,
+      before: { permissions: previousPermissions },
+      after: { permissions: updated.permissions },
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { passwordHash, ...rest } = updated;
+    return rest;
+  }
+
+  async updateRolePermissions(
+    id: string,
+    permissions: Permission[],
+    adminUserId?: string,
+  ) {
+    const role = await this.prisma.role.findUnique({ where: { id } });
+    if (!role) {
+      throw new NotFoundException('Role not found');
+    }
+
+    const previousPermissions = role.permissions;
+    const updatedRole = await this.prisma.role.update({
+      where: { id },
+      data: { permissions: permissions as string[] },
+    });
+
+    await this.auditService.log({
+      userId: adminUserId,
+      action: 'UPDATE_ROLE_PERMISSIONS',
+      entity: 'Role',
+      entityId: id,
+      before: { permissions: previousPermissions },
+      after: { permissions: updatedRole.permissions },
+    });
+
+    return {
+      id: updatedRole.id,
+      name: updatedRole.name,
+      description: updatedRole.description,
+      permissions: updatedRole.permissions,
     };
   }
 }

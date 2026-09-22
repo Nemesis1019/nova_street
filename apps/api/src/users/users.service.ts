@@ -4,7 +4,7 @@ import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 export type SanitizedUser = Omit<User, 'passwordHash'> & {
-  role: { name: string };
+  role: { name: string; permissions: string[] };
 };
 
 @Injectable()
@@ -27,7 +27,9 @@ export class UsersService {
     return user ? this.sanitizeUser(user) : null;
   }
 
-  sanitizeUser(user: User & { role: { name: string } }): SanitizedUser {
+  sanitizeUser(
+    user: User & { role: { name: string; permissions: string[] } },
+  ): SanitizedUser {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { passwordHash, ...rest } = user;
     return rest as SanitizedUser;

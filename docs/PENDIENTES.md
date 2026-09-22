@@ -17,8 +17,8 @@ Lista de funcionalidades y mejoras planificadas, priorizadas por valor para el n
 - [x] Cálculo de costo de envío según políticas configurables (tarifa plana, envío gratis, descuentos).
 - [x] URL de rastreo de courier asociada al pedido y a cada envío (panel admin + storefront + email).
 - [x] Generación automática de URL de rastreo a partir de transportista + número de seguimiento.
+- [x] Múltiples opciones de envío configurables desde el admin y seleccionables en checkout.
 - Integración con APIs de couriers para cálculo de costo por dirección/peso.
-- Múltiples opciones de envío elegibles por el cliente.
 
 ### Reviews de producto
 - [x] Mostrar promedio de rating en listado de catálogo.
@@ -28,7 +28,7 @@ Lista de funcionalidades y mejoras planificadas, priorizadas por valor para el n
 
 ### Tema y branding
 - [x] **Paleta de colores completa + modo oscuro/claro** configurable desde `store-config`.
-- [ ] Tipografías y fuentes del storefront seleccionables desde el admin.
+- [x] Tipografías y fuentes del storefront seleccionables desde el admin.
 - [x] Logo configurable vía URL de imagen.
 - [x] CSS personalizado inyectable desde el admin.
 
@@ -52,10 +52,10 @@ Lista de funcionalidades y mejoras planificadas, priorizadas por valor para el n
 - [x] Mensaje de agradecimiento personalizado post-compra.
 
 ### Marketing y SEO
-- [ ] SEO por defecto (templates de meta título, descripción e imagen OG).
-- [ ] Popups configurables (newsletter, descuento primer compra, avisos legales).
-- [ ] Scripts externos en `<head>` / `<body>` (Analytics, Pixel, chat).
-- [ ] Botón flotante de WhatsApp configurable.
+- [x] SEO por defecto (templates de meta título, descripción e imagen OG).
+- [x] Popups configurables (newsletter, descuento primer compra, avisos legales).
+- [x] Scripts externos en `<head>` / `<body>` (Analytics, Pixel, chat).
+- [x] Botón flotante de WhatsApp configurable.
 - [ ] Notificaciones sociales (ultimas compras, stock bajo, etc.).
 
 ### Feature flags
@@ -102,6 +102,34 @@ Lista de funcionalidades y mejoras planificadas, priorizadas por valor para el n
 - [x] CDN para assets e imágenes.
 - [x] Monitoreo y alertas (errores, pagos fallidos).
 - [x] Backups automatizados de base de datos.
+
+## Robustez del admin
+
+### Autorización y seguridad
+- [x] Permisos granulares por rol (PRODUCTS_WRITE, ORDERS_WRITE, COUPONS_WRITE, etc.).
+- [x] Audit trail completo con diff de valores antes/después de cada cambio.
+- [ ] 2FA / MFA para admins.
+- [ ] Sesiones activas y cierre de sesiones remotas.
+- [ ] Soft deletes y papelera para productos, categorías, cupones y páginas.
+
+### UX y productividad
+- [ ] Búsqueda global (Command + K) entre productos, órdenes, usuarios y páginas.
+- [ ] Acciones masivas en tablas (activar/desactivar, exportar, cambiar stock).
+- [ ] Filtros y columnas personalizables en tablas de productos/órdenes.
+- [ ] Vista previa en vivo del storefront antes de publicar cambios.
+- [ ] Autosave / borradores para productos y páginas.
+- [ ] Importador masivo de productos desde CSV/Excel.
+
+### Operaciones y soporte
+- [ ] Dashboard de alertas (pedidos pendientes, stock bajo, pagos fallidos, reseñas por moderar).
+- [ ] Timeline de orden con pagos, envíos, reembolsos y notas internas.
+- [ ] Reembolsos parciales desde el detalle de orden.
+- [ ] Historial de precios de productos/variantes.
+
+### Performance y monitoreo
+- [ ] Cache por rol en admin y dashboards.
+- [ ] Paginación y virtualización para tablas grandes.
+- [ ] Sentry / logs centralizados con contexto de usuario.
 
 ## Reglas de trabajo
 

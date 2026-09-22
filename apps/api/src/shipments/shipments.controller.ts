@@ -2,9 +2,10 @@ import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nest
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 
-import { Roles } from '../auth/decorators/roles.decorator';
+import { RequirePermission } from '../auth/decorators/require-permission.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { Permission } from '../auth/permissions';
 import { CreateShipmentDto } from './dto/create-shipment.dto';
 import { AdminShipmentListResponseDto, AdminShipmentResponseDto } from './dto/shipment-response.dto';
 import { UpdateShipmentStatusDto } from './dto/update-shipment-status.dto';
@@ -13,18 +14,19 @@ import { ShipmentsService } from './shipments.service';
 @ApiTags('admin-shipments')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
 @Controller('admin/orders/:orderId/shipments')
 export class AdminShipmentsController {
   constructor(private readonly shipmentsService: ShipmentsService) {}
 
   @Get()
+  @RequirePermission(Permission.SHIPMENTS_READ)
   @ApiOkResponse({ description: 'Order shipments', type: AdminShipmentListResponseDto })
   findByOrder(@Param('orderId') orderId: string) {
     return this.shipmentsService.findByOrder(orderId);
   }
 
   @Post()
+  @RequirePermission(Permission.SHIPMENTS_WRITE)
   @ApiOkResponse({ description: 'Shipment created', type: AdminShipmentResponseDto })
   create(
     @Req() req: Request,
@@ -42,12 +44,12 @@ export class AdminShipmentsController {
 @ApiTags('admin-shipments')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
 @Controller('admin/shipments/:id')
 export class AdminShipmentStatusController {
   constructor(private readonly shipmentsService: ShipmentsService) {}
 
   @Patch('status')
+  @RequirePermission(Permission.SHIPMENTS_WRITE)
   @ApiOkResponse({ description: 'Shipment status updated', type: AdminShipmentResponseDto })
   updateStatus(
     @Req() req: Request,

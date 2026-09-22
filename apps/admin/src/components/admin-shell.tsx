@@ -9,6 +9,15 @@ import { ReactNode } from 'react';
 import { logout } from '../lib/auth';
 import { useStoreConfig } from '../providers/config-provider';
 import { useTranslation } from '../providers/i18n-provider';
+import { CommandPalette } from './command-palette';
+import { NotificationsBell } from './notifications-bell';
+
+function getStoreUrl() {
+  const raw = process.env.NEXT_PUBLIC_WEB_URL;
+  if (!raw) return 'http://localhost:3000';
+  const cleaned = raw.replace(/^\[|\]$/g, '').split(',')[0].trim();
+  return cleaned || 'http://localhost:3000';
+}
 
 function useNavItems() {
   const { t } = useTranslation();
@@ -18,11 +27,13 @@ function useNavItems() {
     { href: '/categories', label: t('nav.categories') },
     { href: '/inventory', label: t('nav.inventory') },
     { href: '/coupons', label: t('nav.coupons') },
+    { href: '/shipping-options', label: 'Envíos' },
     { href: '/orders', label: t('nav.orders') },
     { href: '/production', label: t('nav.production') },
     { href: '/reviews', label: t('nav.reviews') },
     { href: '/refunds', label: t('nav.refunds') },
     { href: '/users', label: t('nav.users') },
+    { href: '/roles', label: 'Roles' },
     { href: '/custom-designs', label: t('nav.designs') },
     { href: '/audit-logs', label: t('nav.audit') },
     { href: '/export', label: t('nav.export') },
@@ -69,6 +80,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
               </Title>
             </Link>
           </Group>
+          <CommandPalette />
+          <NotificationsBell />
           <Select
             value={locale}
             onChange={(value) => value && setLocale(value as 'es' | 'en' | 'pt')}
@@ -84,6 +97,16 @@ export function AdminShell({ children }: { children: ReactNode }) {
               dropdown: { borderRadius: 0, border: '1px solid #0d0d0d' },
             }}
           />
+          <Button
+            component={Link}
+            href={getStoreUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="light"
+            c="dark"
+          >
+            Vista previa
+          </Button>
           <Button variant="subtle" c="dark" onClick={logout}>
             {t('nav.logout')}
           </Button>

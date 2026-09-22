@@ -170,6 +170,60 @@ export const StorefrontConfigSchema = z.object({
       customCss: z.string().default(''),
     })
     .default({}),
+  seo: z
+    .object({
+      defaultTitleTemplate: z.string().default('{title} | {storeName}'),
+      defaultDescription: z.string().default(''),
+      ogImageUrl: z.string().optional(),
+      productTitleTemplate: z.string().default('{productName} — {storeName}'),
+      categoryTitleTemplate: z.string().default('{categoryName} — {storeName}'),
+      pageTitleTemplate: z.string().default('{pageTitle} — {storeName}'),
+    })
+    .default({}),
+  externalScripts: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        name: z.string().min(1),
+        placement: z.enum(['head', 'body']),
+        code: z.string().default(''),
+      }),
+    )
+    .default([]),
+  whatsappButton: z
+    .object({
+      enabled: z.boolean().default(false),
+      phone: z.string().default(''),
+      message: z.string().default(''),
+      position: z.enum(['bottomRight', 'bottomLeft']).default('bottomRight'),
+    })
+    .default({}),
+  fonts: z
+    .object({
+      heading: z.string().default('Bebas Neue'),
+      body: z.string().default('Inter'),
+      mono: z.string().default('JetBrains Mono'),
+    })
+    .default({}),
+  popups: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        name: z.string().min(1),
+        enabled: z.boolean().default(true),
+        trigger: z.enum(['immediate', 'exitIntent', 'afterDelay', 'scroll']).default('immediate'),
+        delaySeconds: z.number().int().min(0).default(0),
+        scrollPercent: z.number().int().min(0).max(100).default(50),
+        title: z.string().default(''),
+        content: z.string().default(''),
+        buttonText: z.string().default(''),
+        buttonLink: z.string().default(''),
+        backgroundColor: z.string().default('#ffffff'),
+        textColor: z.string().default('#0d0d0d'),
+        showOnce: z.boolean().default(true),
+      }),
+    )
+    .default([]),
 });
 
 export type StorefrontConfig = z.infer<typeof StorefrontConfigSchema>;

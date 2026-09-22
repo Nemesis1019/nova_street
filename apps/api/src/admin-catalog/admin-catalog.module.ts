@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { AssetsModule } from '../assets/assets.module';
+import { AuditModule } from '../audit/audit.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AdminCategoryController } from './admin-category.controller';
 import { AdminCategoryService } from './admin-category.service';
@@ -12,7 +13,7 @@ import { AdminStockController } from './admin-stock.controller';
 import { AdminStockService } from './admin-stock.service';
 
 @Module({
-  imports: [PrismaModule, AssetsModule],
+  imports: [PrismaModule, AssetsModule, AuditModule],
   controllers: [
     AdminCategoryController,
     AdminProductController,

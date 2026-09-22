@@ -25,9 +25,6 @@ export class LoginResponseDto {
   accessToken!: string;
 
   @ApiProperty()
-  refreshToken!: string;
-
-  @ApiProperty()
   user!: AuthUserDto;
 }
 
@@ -36,7 +33,4 @@ export class RegisterResponseDto extends LoginResponseDto {}
 export class RefreshResponseDto {
   @ApiProperty()
   accessToken!: string;
-
-  @ApiProperty()
-  refreshToken!: string;
 }

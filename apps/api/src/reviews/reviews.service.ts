@@ -5,6 +5,7 @@ import { Cache } from 'cache-manager';
 
 import { buildAssetUrl, buildImageVariantUrl } from '../assets/asset-url.util';
 import { AuditService } from '../audit/audit.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 const MAX_REVIEW_ASSETS = 4;
@@ -32,6 +33,7 @@ export class ReviewsService {
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   private async invalidateCatalogCache() {
@@ -209,6 +211,17 @@ export class ReviewsService {
           orderBy: { sortOrder: 'asc' },
           include: { asset: { select: { bucket: true, objectKey: true, mimeType: true } } },
         },
+      },
+    });
+
+    this.notificationsService.emit({
+      type: 'review.pending',
+      payload: {
+        reviewId: review.id,
+        productId: review.productId,
+        productName: review.product.name,
+        rating: review.rating,
+        userName: [review.user.firstName, review.user.lastName].filter(Boolean).join(' ') || 'Usuario',
       },
     });
 

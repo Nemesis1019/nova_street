@@ -6,7 +6,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 
 import { apiClient, setAuthToken } from '../lib/api';
-import { setTokens } from '../lib/auth';
+import { setAccessToken } from '../lib/auth';
 import { getApiErrorMessage, notifyError } from '../lib/notifications';
 
 interface LoginFormProps {
@@ -29,10 +29,10 @@ export function LoginForm({ onLogin }: LoginFormProps) {
         body: values as never,
       });
       if (error || !data) throw new Error('Login failed');
-      return data as { accessToken: string; refreshToken: string };
+      return data as { accessToken: string };
     },
     onSuccess: (data) => {
-      setTokens(data.accessToken, data.refreshToken);
+      setAccessToken(data.accessToken);
       setAuthToken(data.accessToken);
       onLogin?.();
       router.push('/');

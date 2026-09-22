@@ -14,4 +14,8 @@ export class InitCheckoutDto {
   @IsString()
   @IsOptional()
   orderNotes?: string;
+
+  @IsUUID()
+  @IsOptional()
+  shippingOptionId?: string;
 }

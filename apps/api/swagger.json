@@ -169,16 +169,6 @@
       "post": {
         "operationId": "AuthController_refresh",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshDto"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "",
@@ -200,16 +190,6 @@
       "post": {
         "operationId": "AuthController_logout",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshDto"
-              }
-            }
-          }
-        },
         "responses": {
           "204": {
             "description": ""
@@ -1004,6 +984,78 @@
         ]
       }
     },
+    "/admin/products/bulk": {
+      "post": {
+        "operationId": "AdminProductController_bulk",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkProductActionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-catalog"
+        ]
+      }
+    },
+    "/admin/products/import": {
+      "post": {
+        "operationId": "AdminProductController_importCsv",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-catalog"
+        ]
+      }
+    },
     "/admin/products/{id}/images": {
       "post": {
         "operationId": "AdminProductController_addImage",
@@ -1513,6 +1565,114 @@
         ]
       }
     },
+    "/admin/assets/external": {
+      "post": {
+        "operationId": "AssetsController_createExternal",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateExternalAssetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-assets"
+        ]
+      }
+    },
+    "/admin/assets/presign": {
+      "post": {
+        "operationId": "AssetsController_presign",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PresignAssetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresignAssetResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-assets"
+        ]
+      }
+    },
+    "/assets/presign": {
+      "post": {
+        "operationId": "CustomerAssetsController_presign",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PresignAssetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresignAssetResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "assets"
+        ]
+      }
+    },
     "/assets/upload-custom": {
       "post": {
         "operationId": "CustomerAssetsController_uploadCustom",
@@ -1636,6 +1796,97 @@
         },
         "tags": [
           "images"
+        ]
+      }
+    },
+    "/admin/audit-logs": {
+      "get": {
+        "operationId": "AuditController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "entity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "entityId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "action",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Filtered audit logs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditLogListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-audit"
         ]
       }
     },
@@ -2315,82 +2566,27 @@
         ]
       }
     },
-    "/admin/audit-logs": {
-      "get": {
-        "operationId": "AuditController_findAll",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "entity",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "entityId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "action",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "userId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "from",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "to",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
+    "/admin/orders/bulk/status": {
+      "post": {
+        "operationId": "AdminOrdersController_bulkUpdateStatus",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkOrderStatusDto"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
-            "description": "Filtered audit logs",
+            "description": "Bulk status updated",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuditLogListResponseDto"
+                  "type": "object"
                 }
               }
             }
@@ -2402,7 +2598,7 @@
           }
         ],
         "tags": [
-          "admin-audit"
+          "admin-orders"
         ]
       }
     },
@@ -2711,6 +2907,197 @@
         ]
       }
     },
+    "/shipping-options": {
+      "get": {
+        "operationId": "ShippingOptionsController_findActive",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ShippingOptionResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "shipping-options"
+        ]
+      }
+    },
+    "/shipping-options/estimate": {
+      "get": {
+        "operationId": "ShippingOptionsController_estimate",
+        "parameters": [
+          {
+            "name": "subtotal",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EstimatedShippingOptionResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "shipping-options"
+        ]
+      }
+    },
+    "/shipping-options/admin": {
+      "get": {
+        "operationId": "ShippingOptionsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ShippingOptionResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "shipping-options"
+        ]
+      },
+      "post": {
+        "operationId": "ShippingOptionsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateShippingOptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShippingOptionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "shipping-options"
+        ]
+      }
+    },
+    "/shipping-options/admin/{id}": {
+      "patch": {
+        "operationId": "ShippingOptionsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateShippingOptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShippingOptionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "shipping-options"
+        ]
+      },
+      "delete": {
+        "operationId": "ShippingOptionsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "shipping-options"
+        ]
+      }
+    },
     "/orders": {
       "get": {
         "operationId": "OrdersController_findAll",
@@ -2810,7 +3197,76 @@
         ]
       }
     },
+    "/admin/search": {
+      "get": {
+        "operationId": "AdminSearchController_search",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-search"
+        ]
+      }
+    },
     "/admin/users": {
+      "post": {
+        "operationId": "AdminUsersController_createUser",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-users"
+        ]
+      },
       "get": {
         "operationId": "AdminUsersController_findAll",
         "parameters": [
@@ -2854,6 +3310,111 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminUserListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-users"
+        ]
+      }
+    },
+    "/admin/users/roles": {
+      "get": {
+        "operationId": "AdminUsersController_findRoles",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List of roles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRoleListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-users"
+        ]
+      },
+      "post": {
+        "operationId": "AdminUsersController_createRole",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRoleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRoleResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-users"
+        ]
+      }
+    },
+    "/admin/users/roles/{id}/permissions": {
+      "patch": {
+        "operationId": "AdminUsersController_updateRolePermissions",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRolePermissionsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role permissions updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRoleResponseDto"
                 }
               }
             }
@@ -2965,6 +3526,51 @@
         "responses": {
           "200": {
             "description": "User role updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-users"
+        ]
+      }
+    },
+    "/admin/users/{id}/permissions": {
+      "patch": {
+        "operationId": "AdminUsersController_updateUserPermissions",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserPermissionsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User permissions updated",
             "content": {
               "application/json": {
                 "schema": {
@@ -3868,10 +4474,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/CustomDesignResponseDto"
-                  }
+                  "$ref": "#/components/schemas/CustomDesignListResponseDto"
                 }
               }
             }
@@ -4938,6 +5541,32 @@
         ]
       }
     },
+    "/admin/notifications/stream": {
+      "get": {
+        "operationId": "NotificationsController_stream",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-notifications"
+        ]
+      }
+    },
     "/pages": {
       "get": {
         "operationId": "PagesController_findVisible",
@@ -5303,16 +5932,12 @@
           "accessToken": {
             "type": "string"
           },
-          "refreshToken": {
-            "type": "string"
-          },
           "user": {
             "$ref": "#/components/schemas/AuthUserDto"
           }
         },
         "required": [
           "accessToken",
-          "refreshToken",
           "user"
         ]
       },
@@ -5338,28 +5963,13 @@
           "accessToken": {
             "type": "string"
           },
-          "refreshToken": {
-            "type": "string"
-          },
           "user": {
             "$ref": "#/components/schemas/AuthUserDto"
           }
         },
         "required": [
           "accessToken",
-          "refreshToken",
           "user"
-        ]
-      },
-      "RefreshDto": {
-        "type": "object",
-        "properties": {
-          "refreshToken": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "refreshToken"
         ]
       },
       "RefreshResponseDto": {
@@ -5367,14 +5977,10 @@
         "properties": {
           "accessToken": {
             "type": "string"
-          },
-          "refreshToken": {
-            "type": "string"
           }
         },
         "required": [
-          "accessToken",
-          "refreshToken"
+          "accessToken"
         ]
       },
       "VerifyEmailDto": {
@@ -5951,6 +6557,10 @@
             "type": "string",
             "format": "uuid"
           },
+          "imageAssetId": {
+            "type": "string",
+            "format": "uuid"
+          },
           "basePrice": {
             "type": "number",
             "minimum": 0
@@ -6240,6 +6850,42 @@
             "maxLength": 500
           }
         }
+      },
+      "BulkProductActionDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "delete",
+              "activate",
+              "deactivate"
+            ]
+          },
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "action",
+          "ids"
+        ]
+      },
+      "ImportProductDto": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary"
+          }
+        },
+        "required": [
+          "file"
+        ]
       },
       "AddProductImageDto": {
         "type": "object",
@@ -6553,6 +7199,165 @@
           "url",
           "mimeType",
           "size"
+        ]
+      },
+      "CreateExternalAssetDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "PresignAssetDto": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "purpose": {
+            "enum": [
+              "CATALOG_IMAGE",
+              "CUSTOM_DESIGN_ASSET",
+              "PRINT_FILE",
+              "REVIEW_IMAGE"
+            ],
+            "type": "string"
+          },
+          "size": {
+            "type": "number",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "filename",
+          "mimeType"
+        ]
+      },
+      "PresignAssetResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "uploadUrl": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "uploadUrl",
+          "url",
+          "mimeType",
+          "size"
+        ]
+      },
+      "AuditLogUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email"
+        ]
+      },
+      "AuditLogEntryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "entity": {
+            "type": "string"
+          },
+          "entityId": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/AuditLogUserDto"
+          },
+          "before": {
+            "type": "object"
+          },
+          "after": {
+            "type": "object"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "action",
+          "entity",
+          "entityId",
+          "createdAt"
+        ]
+      },
+      "AuditLogListResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditLogEntryDto"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number"
+              },
+              "limit": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "page",
+              "limit",
+              "total"
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "meta"
         ]
       },
       "CreateCouponDto": {
@@ -7220,97 +8025,6 @@
           "payments"
         ]
       },
-      "AuditLogUserDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "email"
-        ]
-      },
-      "AuditLogEntryDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "action": {
-            "type": "string"
-          },
-          "entity": {
-            "type": "string"
-          },
-          "entityId": {
-            "type": "string"
-          },
-          "user": {
-            "$ref": "#/components/schemas/AuditLogUserDto"
-          },
-          "before": {
-            "type": "object"
-          },
-          "after": {
-            "type": "object"
-          },
-          "createdAt": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "action",
-          "entity",
-          "entityId",
-          "createdAt"
-        ]
-      },
-      "AuditLogListResponseDto": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AuditLogEntryDto"
-            }
-          },
-          "meta": {
-            "type": "object",
-            "properties": {
-              "page": {
-                "type": "number"
-              },
-              "limit": {
-                "type": "number"
-              },
-              "total": {
-                "type": "number"
-              }
-            },
-            "required": [
-              "page",
-              "limit",
-              "total"
-            ]
-          }
-        },
-        "required": [
-          "data",
-          "meta"
-        ]
-      },
       "UpdateOrderStatusDto": {
         "type": "object",
         "properties": {
@@ -7338,10 +8052,10 @@
           "paymentStatus": {
             "type": "string",
             "enum": [
+              "FAILED",
               "PENDING",
               "AUTHORIZED",
               "PAID",
-              "FAILED",
               "REFUNDED"
             ]
           }
@@ -7408,6 +8122,35 @@
           "reason"
         ]
       },
+      "BulkOrderStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "PAID",
+              "REFUNDED",
+              "PENDING_PAYMENT",
+              "IN_PRODUCTION",
+              "READY_TO_SHIP",
+              "SHIPPED",
+              "DELIVERED",
+              "CANCELLED"
+            ]
+          },
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "ids"
+        ]
+      },
       "CheckoutSessionResponseDto": {
         "type": "object",
         "properties": {
@@ -7431,6 +8174,45 @@
           "shippingAddressId"
         ]
       },
+      "EstimatedShippingOptionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "price": {
+            "type": "number"
+          },
+          "estimatedDaysMin": {
+            "type": "number",
+            "nullable": true
+          },
+          "estimatedDaysMax": {
+            "type": "number",
+            "nullable": true
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isFree": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "price",
+          "isDefault",
+          "isFree"
+        ]
+      },
       "ShippingCostResponseDto": {
         "type": "object",
         "properties": {
@@ -7443,6 +8225,12 @@
           "freeShippingThreshold": {
             "type": "number",
             "nullable": true
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EstimatedShippingOptionResponseDto"
+            }
           }
         },
         "required": [
@@ -7465,6 +8253,10 @@
           },
           "orderNotes": {
             "type": "string"
+          },
+          "shippingOptionId": {
+            "type": "string",
+            "format": "uuid"
           }
         },
         "required": [
@@ -7818,6 +8610,133 @@
           "createdAt"
         ]
       },
+      "ShippingOptionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "price": {
+            "type": "number"
+          },
+          "estimatedDaysMin": {
+            "type": "number",
+            "nullable": true
+          },
+          "estimatedDaysMax": {
+            "type": "number",
+            "nullable": true
+          },
+          "freeShippingThreshold": {
+            "type": "number",
+            "nullable": true
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "number"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "price",
+          "isDefault",
+          "isActive",
+          "sortOrder",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateShippingOptionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0
+          },
+          "estimatedDaysMin": {
+            "type": "number"
+          },
+          "estimatedDaysMax": {
+            "type": "number"
+          },
+          "freeShippingThreshold": {
+            "type": "number"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "price"
+        ]
+      },
+      "UpdateShippingOptionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0
+          },
+          "estimatedDaysMin": {
+            "type": "number"
+          },
+          "estimatedDaysMax": {
+            "type": "number"
+          },
+          "freeShippingThreshold": {
+            "type": "number"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "number"
+          }
+        }
+      },
       "RetryPaymentResponseDto": {
         "type": "object",
         "properties": {
@@ -7831,6 +8750,44 @@
         "required": [
           "orderId",
           "paymentUrl"
+        ]
+      },
+      "SearchResponseDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "roleName": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "firstName",
+          "lastName"
         ]
       },
       "AdminUserResponseDto": {
@@ -7874,11 +8831,24 @@
             "properties": {
               "name": {
                 "type": "string"
+              },
+              "permissions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
               }
             },
             "required": [
-              "name"
+              "name",
+              "permissions"
             ]
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -7889,7 +8859,8 @@
           "isActive",
           "isSuspended",
           "createdAt",
-          "role"
+          "role",
+          "permissions"
         ]
       },
       "AdminUserListResponseDto": {
@@ -7924,6 +8895,83 @@
         "required": [
           "data",
           "meta"
+        ]
+      },
+      "AdminRoleResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "permissions"
+        ]
+      },
+      "AdminRoleListResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminRoleResponseDto"
+            }
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "CreateRoleDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "permissions"
+        ]
+      },
+      "UpdateRolePermissionsDto": {
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "permissions"
         ]
       },
       "UserOrderItemDto": {
@@ -8015,6 +9063,21 @@
         },
         "required": [
           "roleName"
+        ]
+      },
+      "UpdateUserPermissionsDto": {
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "permissions"
         ]
       },
       "SuspendUserDto": {
@@ -8713,6 +9776,40 @@
         },
         "required": [
           "quantity"
+        ]
+      },
+      "CustomDesignListResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomDesignResponseDto"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number"
+              },
+              "limit": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "page",
+              "limit",
+              "total"
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "meta"
         ]
       },
       "UpdateStatusDto": {

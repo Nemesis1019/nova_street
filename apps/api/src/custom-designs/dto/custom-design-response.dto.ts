@@ -81,3 +81,11 @@ export class CustomDesignResponseDto {
   @ApiProperty()
   updatedAt!: string;
 }
+
+export class CustomDesignListResponseDto {
+  @ApiProperty({ type: () => [CustomDesignResponseDto] })
+  data!: CustomDesignResponseDto[];
+
+  @ApiProperty()
+  meta!: { page: number; limit: number; total: number };
+}

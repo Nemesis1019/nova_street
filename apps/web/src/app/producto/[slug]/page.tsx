@@ -11,6 +11,7 @@ import { StoreFooter } from '../../../components/store-footer';
 import { StoreHeader } from '../../../components/store-header';
 import { WishlistButton } from '../../../components/wishlist-button';
 import { apiClient } from '../../../lib/api';
+import { buildProductSeoMetadata } from '../../../lib/seo';
 import { parseStorefrontConfig } from '../../../lib/storefront-config';
 import type { StoreConfig } from '../../../providers/config-provider';
 import { ProductReviews } from './product-reviews';
@@ -28,27 +29,15 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   ]);
 
   if (!product) {
-    return {
-      title: 'Producto no encontrado',
-    };
+    return { title: 'Producto no encontrado' };
   }
 
-  const price = product.displayPrice ?? product.basePrice;
-  const title = product.metaTitle || `${product.name} — ${config?.name ?? 'NÖVA'}`;
-  const description =
-    product.metaDescription ||
-    product.description?.slice(0, 160) ||
-    `${product.name} por ${config?.currencyCode ?? 'COP'} ${price.toLocaleString()}`;
-
-  return {
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      images: product.images?.[0]?.url ? [{ url: product.images[0].url }] : undefined,
-    },
-  };
+  return buildProductSeoMetadata(config as StoreConfig | undefined, {
+    name: product.name,
+    metaTitle: product.metaTitle,
+    metaDescription: product.metaDescription,
+    images: product.images,
+  });
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {

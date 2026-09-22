@@ -11,17 +11,16 @@ vi.mock('next/navigation', () => ({
 }));
 
 vi.mock('../lib/auth', () => ({
-  setTokens: vi.fn(),
+  setAccessToken: vi.fn(),
   getAccessToken: vi.fn(),
-  getRefreshToken: vi.fn(),
-  setAuthToken: vi.fn(),
+  clearTokens: vi.fn(),
   logout: vi.fn(),
 }));
 
 vi.mock('../lib/api', () => ({
   apiClient: {
     POST: vi.fn().mockResolvedValue({
-      data: { accessToken: 'access-token', refreshToken: 'refresh-token' },
+      data: { accessToken: 'access-token' },
       error: null,
     }),
   },

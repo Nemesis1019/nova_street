@@ -15,9 +15,9 @@ import {
   Title,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useDisclosure } from '@mantine/hooks';
+import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { AdminShell } from '../../components/admin-shell';
 import { EmptyState } from '../../components/empty-state';
@@ -40,6 +40,7 @@ export default function PagesPage() {
   const queryClient = useQueryClient();
   const [opened, { open, close }] = useDisclosure(false);
   const [editing, setEditing] = useState<string | null>(null);
+  const [hasDraft, setHasDraft] = useState(false);
 
   const form = useForm<PageFormValues>({
     initialValues: {
@@ -52,6 +53,34 @@ export default function PagesPage() {
       sortOrder: 0,
     },
   });
+
+  const draftKey = editing ? `page-draft-${editing}` : 'page-draft-new';
+
+  useEffect(() => {
+    setHasDraft(Boolean(localStorage.getItem(draftKey)));
+  }, [draftKey, opened]);
+
+  const [debouncedValues] = useDebouncedValue(form.values, 1000);
+
+  useEffect(() => {
+    if (opened) {
+      localStorage.setItem(draftKey, JSON.stringify(debouncedValues));
+    }
+  }, [debouncedValues, draftKey, opened]);
+
+  const restoreDraft = () => {
+    const saved = localStorage.getItem(draftKey);
+    if (saved) {
+      form.setValues(JSON.parse(saved) as PageFormValues);
+      notifySuccess({ title: 'Borrador restaurado' });
+    }
+    setHasDraft(false);
+  };
+
+  const discardDraft = () => {
+    localStorage.removeItem(draftKey);
+    setHasDraft(false);
+  };
 
   const { data: pagesResponse, isLoading } = useQuery({
     queryKey: ['admin-pages'],
@@ -79,6 +108,8 @@ export default function PagesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-pages'] });
+      localStorage.removeItem('page-draft-new');
+      setHasDraft(false);
       notifySuccess({ title: 'Página creada' });
       close();
       form.reset();
@@ -98,6 +129,10 @@ export default function PagesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-pages'] });
+      if (editing) {
+        localStorage.removeItem(`page-draft-${editing}`);
+      }
+      setHasDraft(false);
       notifySuccess({ title: 'Página actualizada' });
       close();
       setEditing(null);
@@ -223,6 +258,16 @@ export default function PagesPage() {
             <TextInput label="Meta descripción" {...form.getInputProps('metaDescription')} />
             <NumberInput label="Orden" min={0} {...form.getInputProps('sortOrder')} />
             <Switch label="Visible" {...form.getInputProps('isVisible', { type: 'checkbox' })} />
+            {hasDraft && (
+              <Group gap="xs">
+                <Button size="xs" variant="light" onClick={restoreDraft}>
+                  Restaurar borrador
+                </Button>
+                <Button size="xs" variant="subtle" color="red" onClick={discardDraft}>
+                  Descartar borrador
+                </Button>
+              </Group>
+            )}
             <Button type="submit" loading={create.isPending || update.isPending}>
               Guardar
             </Button>

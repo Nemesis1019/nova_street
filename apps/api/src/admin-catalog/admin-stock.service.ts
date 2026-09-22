@@ -3,6 +3,7 @@ import { BadRequestException, Inject, Injectable, NotFoundException } from '@nes
 import { StockMode } from '@prisma/client';
 import { Cache } from 'cache-manager';
 
+import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -10,10 +11,29 @@ export class AdminStockService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   private async invalidateCatalogCache() {
     await this.cacheManager.clear();
+  }
+
+  private emitLowStockIfNeeded(
+    variant: { id: string; sku: string; lowStockThreshold: number; product: { name: string } | null },
+    quantity: number,
+  ) {
+    if (quantity <= variant.lowStockThreshold) {
+      this.notificationsService.emit({
+        type: 'stock.low',
+        payload: {
+          variantId: variant.id,
+          sku: variant.sku,
+          productName: variant.product?.name ?? 'Producto sin nombre',
+          quantity,
+          threshold: variant.lowStockThreshold,
+        },
+      });
+    }
   }
 
   async updateStockMode(variantId: string, stockMode: StockMode, adminUserId: string) {
@@ -67,7 +87,7 @@ export class AdminStockService {
   async updateInventory(variantId: string, quantity: number, adminUserId: string) {
     const variant = await this.prisma.productVariant.findUnique({
       where: { id: variantId },
-      include: { inventory: true },
+      include: { inventory: true, product: { select: { name: true } } },
     });
 
     if (!variant) {
@@ -85,6 +105,8 @@ export class AdminStockService {
         reservedQuantity: 0,
       },
     });
+
+    this.emitLowStockIfNeeded(variant, inventory.quantity);
 
     await this.prisma.auditLog.create({
       data: {
@@ -104,7 +126,7 @@ export class AdminStockService {
   async addStock(variantId: string, quantity: number, adminUserId: string) {
     const variant = await this.prisma.productVariant.findUnique({
       where: { id: variantId },
-      include: { inventory: true },
+      include: { inventory: true, product: { select: { name: true } } },
     });
 
     if (!variant) {
@@ -126,6 +148,8 @@ export class AdminStockService {
         reservedQuantity: 0,
       },
     });
+
+    this.emitLowStockIfNeeded(variant, inventory.quantity);
 
     await this.prisma.auditLog.create({
       data: {

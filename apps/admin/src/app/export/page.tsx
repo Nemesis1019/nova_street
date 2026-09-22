@@ -17,19 +17,17 @@ function downloadBlob(blob: Blob, filename: string) {
 }
 
 async function exportOrders() {
-  const { response } = await apiClient.GET("/admin/export/orders", { parseAs: "blob" });
-  if (!response.ok) throw new Error("Export failed");
-  const blob = await response.blob();
+  const { data, response } = await apiClient.GET("/admin/export/orders", { parseAs: "blob" });
+  if (!response.ok || !data) throw new Error("Export failed");
   const filename = response.headers.get("content-disposition")?.split('filename="')[1]?.replace('"', '') ?? "orders.csv";
-  downloadBlob(blob, filename);
+  downloadBlob(data, filename);
 }
 
 async function exportProducts() {
-  const { response } = await apiClient.GET("/admin/export/products", { parseAs: "blob" });
-  if (!response.ok) throw new Error("Export failed");
-  const blob = await response.blob();
+  const { data, response } = await apiClient.GET("/admin/export/products", { parseAs: "blob" });
+  if (!response.ok || !data) throw new Error("Export failed");
   const filename = response.headers.get("content-disposition")?.split('filename="')[1]?.replace('"', '') ?? "products.csv";
-  downloadBlob(blob, filename);
+  downloadBlob(data, filename);
 }
 
 export default function ExportPage() {

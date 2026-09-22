@@ -1,28 +1,25 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { clearTokens, getAccessToken, getRefreshToken, setTokens } from './auth';
+import { clearTokens, getAccessToken, setAccessToken } from './auth';
 
 describe('auth utilities', () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
-  it('returns null when tokens are not set', () => {
+  it('returns null when token is not set', () => {
     expect(getAccessToken()).toBeNull();
-    expect(getRefreshToken()).toBeNull();
   });
 
-  it('stores and retrieves tokens', () => {
-    setTokens('access-123', 'refresh-456');
+  it('stores and retrieves access token', () => {
+    setAccessToken('access-123');
     expect(getAccessToken()).toBe('access-123');
-    expect(getRefreshToken()).toBe('refresh-456');
   });
 
   it('clears tokens', () => {
-    setTokens('access-123', 'refresh-456');
+    setAccessToken('access-123');
     clearTokens();
     expect(getAccessToken()).toBeNull();
-    expect(getRefreshToken()).toBeNull();
   });
 
   it('does not break when not in a browser environment', () => {
@@ -31,7 +28,7 @@ describe('auth utilities', () => {
     delete globalThis.window;
 
     expect(getAccessToken()).toBeNull();
-    setTokens('a', 'b');
+    setAccessToken('a');
     expect(getAccessToken()).toBeNull();
 
     globalThis.window = originalWindow;

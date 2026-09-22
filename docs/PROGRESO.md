@@ -1,7 +1,7 @@
 # Progreso del proyecto
 
 ## Última actualización
-2026-07-27
+2026-08-05
 
 
 ## Estado general
@@ -14,7 +14,9 @@
 
 ### Backend (`apps/api`)
 - Autenticación JWT (login, registro, refresh, verificación de email, logout).
-- Roles y permisos (CUSTOMER, ADMIN).
+- Roles con permisos granulares; `@RequirePermission` en endpoints admin; `ADMIN` tiene todos los permisos; `CUSTOMER` no tiene permisos.
+- Permisos directos por usuario, combinados con los de su rol. El admin puede asignar y quitar permisos individuales a un usuario desde `/users`.
+- Creación de usuarios desde el admin con rol y permisos iniciales configurables; por defecto se asignan permisos mínimos de solo lectura.
 - CRUD de usuarios y direcciones.
 - Catálogo público (`/catalog`) con filtros, paginación y rating promedio por producto.
 - CRUD de productos, variantes, categorías e imágenes (`admin-catalog`).
@@ -32,10 +34,11 @@
 - Newsletter y emails transaccionales (`email`) con proveedores agnósticos (SMTP / Resend).
 - Pasarela de pagos con proveedor agnóstico (`payment`) — Stripe implementado.
 - Reembolsos (`refunds`) con registro en base de datos y proveedor.
-- Auditoría (`audit`).
+- Auditoría (`audit`) con logs de `before`/`after` para productos, categorías, opciones de envío, config de tienda, usuarios/roles y permisos.
 - Cola de producción (`production`) con asignación de responsables y filtro por asignado.
 - Estimación de fecha de entrega calculada desde el lead time de los ítems de la orden.
 - Envíos (`shipments`) con URL de rastreo por courier y generación automática del link.
+- Opciones de envío (`shipping-options`) configurables desde admin, con selección en checkout y fallback a la política de envío anterior.
 - Cache de catálogo con Redis (`CacheModule` + `RedisCacheStore`), con invalidación en mutaciones de admin, productos, stock y reviews.
 - Optimización de imágenes (`GET /images/:filename`) con transformaciones `sharp` y variantes `thumbnail/small/medium` en el cliente.
 - Reseñas de producto (`reviews`) con fotos adjuntas (`ReviewAsset`, `AssetPurpose.REVIEW_IMAGE`).
@@ -50,7 +53,7 @@
 - Jobs con BullMQ (`queues`).
 - Health checks (`health`).
 - Backups manuales de base de datos (`backup`).
-- Seeds de roles, admins, catálogo, dataset completo de demo y moneda base `MXN`.
+- Seeds de roles, admins, catálogo, dataset completo de demo y moneda base `COP`.
 
 ### Storefront (`apps/web`)
 - Home con sistema de plantillas (`storefront` implementada).
@@ -87,6 +90,12 @@
   - Feature flags globales: wishlist, comparador, reseñas, personalizador, guest checkout, vista rápida.
   - Cross-sell / upsell en página de producto y carrito.
   - Logo vía URL y CSS personalizado inyectado en el storefront.
+  - SEO por defecto configurable: templates de meta título, descripción e imagen OG para productos, categorías y páginas.
+  - Scripts externos configurables en `<head>` y `<body>`.
+  - Botón flotante de WhatsApp configurable.
+  - Tipografías configurables desde el admin (títulos, cuerpo y monoespaciada) con carga de Google Fonts.
+  - Popups configurables con disparadores inmediato, delay, scroll e intento de salida.
+  - Múltiples opciones de envío configurables desde el admin y seleccionables en el checkout, con fallback a la configuración histórica de envío.
 
 ### Admin (`apps/admin`)
 - Dashboard con métricas.
@@ -106,6 +115,8 @@
 - Moderación de reseñas (`/reviews`) con miniaturas de fotos.
 - Reembolsos desde detalle de orden y listado (`/refunds`).
 - Configuración de proveedores de email, pagos y políticas de envío en `/store-config`.
+- Gestión de opciones de envío en `/shipping-options`.
+- Configuración de popups, scripts externos, WhatsApp, SEO, tipografías y más en `/store-config`.
 - Dashboard con gráficos de analytics (`/admin`).
 - Exportación de pedidos y productos a CSV (`/export`).
 - Gestión de colas de jobs BullMQ.
@@ -127,12 +138,12 @@
 - CORS explícito usando `FRONTEND_URL` en el backend.
 
 ## Métricas de verificación (último barrido)
-- `apps/api`: 21 suites, 86 tests OK (se ejecuta con `--runInBand --forceExit` para evitar handles abiertos en teardown).
+- `apps/api`: 21 suites, 87 tests OK.
 - `apps/admin`: 4 test files, 10 tests OK.
 - `apps/web`: 6 test files, 17 tests OK.
 - `lint`, `typecheck` y `build` pasan en `@ecommerce/api`, `@ecommerce/web` y `@ecommerce/admin`.
 - `packages/api-client` regenerado desde `apps/api/swagger.json`.
-- Migraciones aplicadas: `20260726164423_add_review_assets_and_currencies`, `20260726181247_set_default_currency_cop`, `20260726182840_add_theme_tokens_and_appearance_mode`, `20260726185140_add_storefront_config`, `20260726214220_add_address_company_and_order_customer_notes` (más migraciones anteriores).
+- Migraciones aplicadas: `20260726164423_add_review_assets_and_currencies`, `20260726181247_set_default_currency_cop`, `20260726182840_add_theme_tokens_and_appearance_mode`, `20260726185140_add_storefront_config`, `20260726214220_add_address_company_and_order_customer_notes`, `20260805013254_add_shipping_options`, `20260805021245_add_role_permissions`, `20260805025851_add_user_permissions` (más migraciones anteriores).
 - Specs creadas: `specs/SPEC-017-estimacion-entrega.md`, `specs/SPEC-018-asignacion-responsables-produccion.md`, `specs/SPEC-019-analytics-reportes.md`, `specs/SPEC-020-dashboard-graficos.md`, `specs/SPEC-021-export-csv.md`, `specs/SPEC-022-guest-checkout.md`, `specs/SPEC-023-wishlist.md`, `specs/SPEC-024-busqueda-predictiva.md`, `specs/SPEC-025-comparador-productos.md`, `specs/SPEC-026-bullmq-jobs.md`, `specs/SPEC-027-cdn-assets.md`, `specs/SPEC-028-monitoreo-alertas.md`, `specs/SPEC-029-backups-base-datos.md`, `specs/SPEC-030-url-rastreo-couriers.md`, `specs/SPEC-031-url-rastreo-automatica.md`, `specs/SPEC-032-cache-catalogo-redis.md`, `specs/SPEC-033-paginacion-catalogo.md`, `specs/SPEC-034-lazy-loading-editor.md`, `specs/SPEC-035-optimizacion-imagenes.md`, `specs/SPEC-036-tests-flujos-criticos.md`, `specs/SPEC-037-tests-permisos.md`, `specs/SPEC-038-tests-stock-policy.md`, `specs/SPEC-039-tests-frontends.md`, `specs/SPEC-040-reviews-fotos.md`, `specs/SPEC-041-multi-moneda.md`, `specs/SPEC-042-i18n.md`, `specs/SPEC-043-tema-colores-modo-oscuro.md`, `specs/SPEC-045-storefront-personalizacion-avanzada.md`.
 
 ## Documentación actualizada
@@ -141,6 +152,7 @@
 - `docs/decisions/ADR-001-payment-provider.md`: abstracción de pasarela de pagos con Stripe.
 - `docs/decisions/ADR-002-storage-cloudflare-r2.md`: subida vía backend con fallback local.
 - `docs/decisions/ADR-003-email-provider.md`: proveedores de email configurables (SMTP / Resend).
+- `docs/decisions/ADR-004-permissions.md`: permisos granulares y audit trail en el admin.
 - `docs/ER_MODEL.md` y `docs/er-diagram.png`: modelo de datos.
 - `docs/PENDIENTES.md`: prioridades y estado de funcionalidades.
 

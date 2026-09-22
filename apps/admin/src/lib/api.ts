@@ -1,7 +1,7 @@
 import { createApiClient } from '@ecommerce/api-client';
 import type { Middleware } from 'openapi-fetch';
 
-import { clearTokens, getAccessToken, getRefreshToken } from './auth';
+import { clearTokens, getAccessToken, setAccessToken } from './auth';
 
 let authToken: string | undefined = getAccessToken() ?? undefined;
 
@@ -15,12 +15,8 @@ export function getAuthToken(): string | undefined {
 
 export const apiClient = createApiClient({
   baseUrl: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000',
-  getRefreshToken,
-  onTokenRefreshed: (accessToken, refreshToken) => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('admin_access_token', accessToken);
-      localStorage.setItem('admin_refresh_token', refreshToken);
-    }
+  onTokenRefreshed: (accessToken) => {
+    setAccessToken(accessToken);
     authToken = accessToken;
   },
   onRefreshFailed: () => {
@@ -32,12 +28,20 @@ export const apiClient = createApiClient({
   },
 });
 
+const STORAGE_KEY = 'nova-admin-locale';
+
+function getLocale(): string {
+  if (typeof window === 'undefined') return 'es';
+  return window.localStorage.getItem(STORAGE_KEY) || 'es';
+}
+
 const authMiddleware: Middleware = {
   onRequest({ request }) {
     if (authToken) {
       request.headers.set('Authorization', `Bearer ${authToken}`);
     }
-    return request;
+    request.headers.set('Accept-Language', getLocale());
+    return new Request(request, { credentials: 'include' });
   },
 };
 

@@ -38,7 +38,10 @@ export class AdminUserResponseDto {
   createdAt!: string;
 
   @ApiProperty()
-  role!: { name: string };
+  role!: { name: string; permissions: string[] };
+
+  @ApiProperty({ type: [String] })
+  permissions!: string[];
 }
 
 export class AdminUserListResponseDto {

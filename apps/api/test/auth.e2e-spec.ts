@@ -21,7 +21,7 @@ describe('AuthController (e2e)', () => {
     await app.close();
   });
 
-  it('/auth/register (POST) creates a user and returns tokens', () => {
+  it('/auth/register (POST) creates a user and returns access token in body and refresh token in HTTP-only cookie', () => {
     return request(app.getHttpServer())
       .post('/auth/register')
       .send({
@@ -35,11 +35,15 @@ describe('AuthController (e2e)', () => {
       .expect((res) => {
         expect(res.body.user).toBeDefined();
         expect(res.body.accessToken).toBeDefined();
-        expect(res.body.refreshToken).toBeDefined();
+        expect(res.body.refreshToken).toBeUndefined();
+        const cookies = res.headers['set-cookie'];
+        expect(cookies).toBeDefined();
+        const cookieArray = Array.isArray(cookies) ? cookies : [cookies];
+        expect(cookieArray.some((c: string) => c.includes('refresh_token'))).toBe(true);
       });
   });
 
-  it('/auth/login (POST) returns tokens for valid credentials', async () => {
+  it('/auth/login (POST) returns access token in body and refresh token in HTTP-only cookie', async () => {
     const email = `login-test-${Date.now()}@example.com`;
     const password = 'Secure1234';
 
@@ -57,7 +61,11 @@ describe('AuthController (e2e)', () => {
       .expect(200)
       .expect((res) => {
         expect(res.body.accessToken).toBeDefined();
-        expect(res.body.refreshToken).toBeDefined();
+        expect(res.body.refreshToken).toBeUndefined();
+        const cookies = res.headers['set-cookie'];
+        expect(cookies).toBeDefined();
+        const cookieArray = Array.isArray(cookies) ? cookies : [cookies];
+        expect(cookieArray.some((c: string) => c.includes('refresh_token'))).toBe(true);
       });
   });
 

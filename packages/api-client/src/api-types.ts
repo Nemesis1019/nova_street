@@ -340,6 +340,38 @@ export interface paths {
         patch: operations["AdminProductController_toggleActive"];
         trace?: never;
     };
+    "/admin/products/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminProductController_bulk"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/products/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminProductController_importCsv"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/products/{id}/images": {
         parameters: {
             query?: never;
@@ -500,6 +532,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/assets/external": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AssetsController_createExternal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/assets/presign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AssetsController_presign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/assets/presign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CustomerAssetsController_presign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/assets/upload-custom": {
         parameters: {
             query?: never;
@@ -540,6 +620,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["ImageController_serve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AuditController_findAll"];
         put?: never;
         post?: never;
         delete?: never;
@@ -756,16 +852,16 @@ export interface paths {
         patch: operations["AdminOrdersController_refundOrder"];
         trace?: never;
     };
-    "/admin/audit-logs": {
+    "/admin/orders/bulk/status": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["AuditController_findAll"];
+        get?: never;
         put?: never;
-        post?: never;
+        post: operations["AdminOrdersController_bulkUpdateStatus"];
         delete?: never;
         options?: never;
         head?: never;
@@ -918,6 +1014,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/shipping-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ShippingOptionsController_findActive"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/shipping-options/estimate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ShippingOptionsController_estimate"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/shipping-options/admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ShippingOptionsController_findAll"];
+        put?: never;
+        post: operations["ShippingOptionsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/shipping-options/admin/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["ShippingOptionsController_remove"];
+        options?: never;
+        head?: never;
+        patch: operations["ShippingOptionsController_update"];
+        trace?: never;
+    };
     "/orders": {
         parameters: {
             query?: never;
@@ -966,6 +1126,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminSearchController_search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/users": {
         parameters: {
             query?: never;
@@ -975,11 +1151,43 @@ export interface paths {
         };
         get: operations["AdminUsersController_findAll"];
         put?: never;
-        post?: never;
+        post: operations["AdminUsersController_createUser"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/admin/users/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminUsersController_findRoles"];
+        put?: never;
+        post: operations["AdminUsersController_createRole"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/roles/{id}/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["AdminUsersController_updateRolePermissions"];
         trace?: never;
     };
     "/admin/users/{id}": {
@@ -1028,6 +1236,22 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["AdminUsersController_updateRole"];
+        trace?: never;
+    };
+    "/admin/users/{id}/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["AdminUsersController_updateUserPermissions"];
         trace?: never;
     };
     "/admin/users/{id}/suspend": {
@@ -1745,6 +1969,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/notifications/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["NotificationsController_stream"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/pages": {
         parameters: {
             query?: never;
@@ -1849,7 +2089,6 @@ export interface components {
         };
         RegisterResponseDto: {
             accessToken: string;
-            refreshToken: string;
             user: components["schemas"]["AuthUserDto"];
         };
         LoginDto: {
@@ -1859,15 +2098,10 @@ export interface components {
         };
         LoginResponseDto: {
             accessToken: string;
-            refreshToken: string;
             user: components["schemas"]["AuthUserDto"];
-        };
-        RefreshDto: {
-            refreshToken: string;
         };
         RefreshResponseDto: {
             accessToken: string;
-            refreshToken: string;
         };
         VerifyEmailDto: {
             code: string;
@@ -2039,6 +2273,8 @@ export interface components {
             description?: string;
             /** Format: uuid */
             categoryId?: string;
+            /** Format: uuid */
+            imageAssetId?: string;
             basePrice: number;
             isActive?: boolean;
             metaTitle?: string;
@@ -2123,6 +2359,15 @@ export interface components {
             isActive?: boolean;
             metaTitle?: string;
             metaDescription?: string;
+        };
+        BulkProductActionDto: {
+            /** @enum {string} */
+            action: "delete" | "activate" | "deactivate";
+            ids: string[];
+        };
+        ImportProductDto: {
+            /** Format: binary */
+            file: string;
         };
         AddProductImageDto: {
             /** Format: uuid */
@@ -2214,6 +2459,48 @@ export interface components {
             url: string;
             mimeType: string;
             size: number;
+        };
+        CreateExternalAssetDto: {
+            /** Format: uri */
+            url: string;
+        };
+        PresignAssetDto: {
+            filename: string;
+            mimeType: string;
+            /** @enum {string} */
+            purpose?: "CATALOG_IMAGE" | "CUSTOM_DESIGN_ASSET" | "PRINT_FILE" | "REVIEW_IMAGE";
+            size?: number;
+        };
+        PresignAssetResponseDto: {
+            id: string;
+            uploadUrl: string;
+            url: string;
+            mimeType: string;
+            size: number;
+        };
+        AuditLogUserDto: {
+            id: string;
+            email: string;
+            firstName?: string;
+            lastName?: string;
+        };
+        AuditLogEntryDto: {
+            id: string;
+            action: string;
+            entity: string;
+            entityId: string;
+            user?: components["schemas"]["AuditLogUserDto"];
+            before?: Record<string, never>;
+            after?: Record<string, never>;
+            createdAt: string;
+        };
+        AuditLogListResponseDto: {
+            data: components["schemas"]["AuditLogEntryDto"][];
+            meta: {
+                page: number;
+                limit: number;
+                total: number;
+            };
         };
         CreateCouponDto: {
             code: string;
@@ -2399,37 +2686,13 @@ export interface components {
             refundReason?: string;
             refundedAt?: string;
         };
-        AuditLogUserDto: {
-            id: string;
-            email: string;
-            firstName?: string;
-            lastName?: string;
-        };
-        AuditLogEntryDto: {
-            id: string;
-            action: string;
-            entity: string;
-            entityId: string;
-            user?: components["schemas"]["AuditLogUserDto"];
-            before?: Record<string, never>;
-            after?: Record<string, never>;
-            createdAt: string;
-        };
-        AuditLogListResponseDto: {
-            data: components["schemas"]["AuditLogEntryDto"][];
-            meta: {
-                page: number;
-                limit: number;
-                total: number;
-            };
-        };
         UpdateOrderStatusDto: {
             /** @enum {string} */
             status: "PAID" | "REFUNDED" | "PENDING_PAYMENT" | "IN_PRODUCTION" | "READY_TO_SHIP" | "SHIPPED" | "DELIVERED" | "CANCELLED";
         };
         UpdatePaymentStatusDto: {
             /** @enum {string} */
-            paymentStatus: "PENDING" | "AUTHORIZED" | "PAID" | "FAILED" | "REFUNDED";
+            paymentStatus: "FAILED" | "PENDING" | "AUTHORIZED" | "PAID" | "REFUNDED";
         };
         UpdateTrackingDto: {
             trackingNumber?: string;
@@ -2451,6 +2714,11 @@ export interface components {
             reason: string;
             amount?: number;
         };
+        BulkOrderStatusDto: {
+            /** @enum {string} */
+            status: "PAID" | "REFUNDED" | "PENDING_PAYMENT" | "IN_PRODUCTION" | "READY_TO_SHIP" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+            ids: string[];
+        };
         CheckoutSessionResponseDto: {
             url: string;
         };
@@ -2458,10 +2726,21 @@ export interface components {
             /** Format: uuid */
             shippingAddressId: string;
         };
+        EstimatedShippingOptionResponseDto: {
+            id: string;
+            name: string;
+            description?: string | null;
+            price: number;
+            estimatedDaysMin?: number | null;
+            estimatedDaysMax?: number | null;
+            isDefault: boolean;
+            isFree: boolean;
+        };
         ShippingCostResponseDto: {
             shippingCost: number;
             baseCost?: number;
             freeShippingThreshold?: number | null;
+            options?: components["schemas"]["EstimatedShippingOptionResponseDto"][];
         };
         InitCheckoutDto: {
             /** Format: uuid */
@@ -2470,6 +2749,8 @@ export interface components {
             billingAddressId: string;
             couponCode?: string;
             orderNotes?: string;
+            /** Format: uuid */
+            shippingOptionId?: string;
         };
         CheckoutSummaryResponseDto: {
             orderId: string;
@@ -2566,9 +2847,57 @@ export interface components {
             createdAt: string;
             estimatedDeliveryDate?: string;
         };
+        ShippingOptionResponseDto: {
+            id: string;
+            name: string;
+            description?: string | null;
+            price: number;
+            estimatedDaysMin?: number | null;
+            estimatedDaysMax?: number | null;
+            freeShippingThreshold?: number | null;
+            isDefault: boolean;
+            isActive: boolean;
+            sortOrder: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CreateShippingOptionDto: {
+            name: string;
+            description?: string;
+            price: number;
+            estimatedDaysMin?: number;
+            estimatedDaysMax?: number;
+            freeShippingThreshold?: number;
+            isDefault?: boolean;
+            isActive?: boolean;
+            sortOrder?: number;
+        };
+        UpdateShippingOptionDto: {
+            name?: string;
+            description?: string;
+            price?: number;
+            estimatedDaysMin?: number;
+            estimatedDaysMax?: number;
+            freeShippingThreshold?: number;
+            isDefault?: boolean;
+            isActive?: boolean;
+            sortOrder?: number;
+        };
         RetryPaymentResponseDto: {
             orderId: string;
             paymentUrl: string;
+        };
+        SearchResponseDto: Record<string, never>;
+        CreateUserDto: {
+            /** Format: email */
+            email: string;
+            password: string;
+            firstName: string;
+            lastName: string;
+            roleName?: string;
+            permissions?: string[];
         };
         AdminUserResponseDto: {
             id: string;
@@ -2584,7 +2913,9 @@ export interface components {
             createdAt: string;
             role: {
                 name: string;
+                permissions: string[];
             };
+            permissions: string[];
         };
         AdminUserListResponseDto: {
             data: components["schemas"]["AdminUserResponseDto"][];
@@ -2593,6 +2924,23 @@ export interface components {
                 limit: number;
                 total: number;
             };
+        };
+        AdminRoleResponseDto: {
+            id: string;
+            name: string;
+            description: string | null;
+            permissions: string[];
+        };
+        AdminRoleListResponseDto: {
+            data: components["schemas"]["AdminRoleResponseDto"][];
+        };
+        CreateRoleDto: {
+            name: string;
+            description?: string;
+            permissions: string[];
+        };
+        UpdateRolePermissionsDto: {
+            permissions: string[];
         };
         UserOrderItemDto: {
             id: string;
@@ -2616,6 +2964,9 @@ export interface components {
         };
         UpdateRoleDto: {
             roleName: string;
+        };
+        UpdateUserPermissionsDto: {
+            permissions: string[];
         };
         SuspendUserDto: {
             reason?: string;
@@ -2808,6 +3159,14 @@ export interface components {
         };
         AddToCartDto: {
             quantity: number;
+        };
+        CustomDesignListResponseDto: {
+            data: components["schemas"]["CustomDesignResponseDto"][];
+            meta: {
+                page: number;
+                limit: number;
+                total: number;
+            };
         };
         UpdateStatusDto: {
             /** @enum {string} */
@@ -3294,11 +3653,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RefreshDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
@@ -3317,11 +3672,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RefreshDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             204: {
                 headers: {
@@ -3770,6 +4121,52 @@ export interface operations {
             };
         };
     };
+    AdminProductController_bulk: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkProductActionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    AdminProductController_importCsv: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["ImportProductDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
     AdminProductController_addImage: {
         parameters: {
             query?: never;
@@ -4043,6 +4440,75 @@ export interface operations {
             };
         };
     };
+    AssetsController_createExternal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateExternalAssetDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetResponseDto"];
+                };
+            };
+        };
+    };
+    AssetsController_presign: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PresignAssetDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PresignAssetResponseDto"];
+                };
+            };
+        };
+    };
+    CustomerAssetsController_presign: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PresignAssetDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PresignAssetResponseDto"];
+                };
+            };
+        };
+    };
     CustomerAssetsController_uploadCustom: {
         parameters: {
             query?: never;
@@ -4115,6 +4581,35 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    AuditController_findAll: {
+        parameters: {
+            query?: {
+                page?: string;
+                limit?: string;
+                entity?: string;
+                entityId?: string;
+                action?: string;
+                userId?: string;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Filtered audit logs */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditLogListResponseDto"];
+                };
             };
         };
     };
@@ -4502,31 +4997,26 @@ export interface operations {
             };
         };
     };
-    AuditController_findAll: {
+    AdminOrdersController_bulkUpdateStatus: {
         parameters: {
-            query?: {
-                page?: string;
-                limit?: string;
-                entity?: string;
-                entityId?: string;
-                action?: string;
-                userId?: string;
-                from?: string;
-                to?: string;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkOrderStatusDto"];
+            };
+        };
         responses: {
-            /** @description Filtered audit logs */
+            /** @description Bulk status updated */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AuditLogListResponseDto"];
+                    "application/json": Record<string, never>;
                 };
             };
         };
@@ -4730,6 +5220,132 @@ export interface operations {
             };
         };
     };
+    ShippingOptionsController_findActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShippingOptionResponseDto"][];
+                };
+            };
+        };
+    };
+    ShippingOptionsController_estimate: {
+        parameters: {
+            query: {
+                subtotal: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EstimatedShippingOptionResponseDto"][];
+                };
+            };
+        };
+    };
+    ShippingOptionsController_findAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShippingOptionResponseDto"][];
+                };
+            };
+        };
+    };
+    ShippingOptionsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateShippingOptionDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShippingOptionResponseDto"];
+                };
+            };
+        };
+    };
+    ShippingOptionsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ShippingOptionsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateShippingOptionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShippingOptionResponseDto"];
+                };
+            };
+        };
+    };
     OrdersController_findAll: {
         parameters: {
             query?: never;
@@ -4791,6 +5407,27 @@ export interface operations {
             };
         };
     };
+    AdminSearchController_search: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResponseDto"];
+                };
+            };
+        };
+    };
     AdminUsersController_findAll: {
         parameters: {
             query?: {
@@ -4812,6 +5449,100 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminUserListResponseDto"];
+                };
+            };
+        };
+    };
+    AdminUsersController_createUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUserDto"];
+            };
+        };
+        responses: {
+            /** @description User created */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserResponseDto"];
+                };
+            };
+        };
+    };
+    AdminUsersController_findRoles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of roles */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRoleListResponseDto"];
+                };
+            };
+        };
+    };
+    AdminUsersController_createRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRoleDto"];
+            };
+        };
+        responses: {
+            /** @description Role created */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRoleResponseDto"];
+                };
+            };
+        };
+    };
+    AdminUsersController_updateRolePermissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateRolePermissionsDto"];
+            };
+        };
+        responses: {
+            /** @description Role permissions updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRoleResponseDto"];
                 };
             };
         };
@@ -4876,6 +5607,32 @@ export interface operations {
         };
         responses: {
             /** @description User role updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserResponseDto"];
+                };
+            };
+        };
+    };
+    AdminUsersController_updateUserPermissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserPermissionsDto"];
+            };
+        };
+        responses: {
+            /** @description User permissions updated */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -5433,7 +6190,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CustomDesignResponseDto"][];
+                    "application/json": components["schemas"]["CustomDesignListResponseDto"];
                 };
             };
         };
@@ -6068,6 +6825,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    NotificationsController_stream: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
             };
         };
     };

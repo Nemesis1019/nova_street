@@ -24,6 +24,7 @@ model User {
   acceptedTermsVersion String?
   roleId          String    @db.Uuid
   role            Role      @relation(fields: [roleId], references: [id])
+  permissions     String[]  @default([])
   addresses       Address[]
   refreshTokens   RefreshToken[]
   carts           Cart[]
@@ -62,6 +63,7 @@ model Role {
   id          String   @id @default(uuid()) @db.Uuid
   name        String   @unique
   description String?
+  permissions String[] @default([])
   users       User[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -228,6 +230,7 @@ model ProductVariant {
   stockMode              StockMode @default(MADE_TO_ORDER)
   productionLeadTimeDays Int       @default(7)
   priceAdjustment        Int?
+  lowStockThreshold      Int       @default(5)
   isActive               Boolean   @default(true)
   inventory              Inventory?
   stockReservations      StockReservation[]
@@ -416,6 +419,8 @@ model Order {
   assignedTo          User?       @relation("AssignedOrders", fields: [assignedToId], references: [id], onDelete: SetNull)
   adminNotes          String?
   customerNotes       String?
+  shippingOptionId    String?     @db.Uuid
+  shippingOption      ShippingOption? @relation(fields: [shippingOptionId], references: [id], onDelete: SetNull)
   cancellationReason  String?
   cancelledAt         DateTime?
   refundReason        String?
@@ -725,4 +730,22 @@ model NewsletterSubscriber {
   updatedAt     DateTime @updatedAt
 
   @@map("newsletter_subscribers")
+}
+
+model ShippingOption {
+  id                    String   @id @default(uuid()) @db.Uuid
+  name                  String
+  description           String?
+  price                 Int
+  estimatedDaysMin      Int?
+  estimatedDaysMax      Int?
+  freeShippingThreshold Int?
+  isDefault             Boolean  @default(false)
+  isActive              Boolean  @default(true)
+  sortOrder             Int      @default(0)
+  orders                Order[]
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("shipping_options")
 }

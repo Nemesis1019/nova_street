@@ -1,4 +1,5 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
@@ -22,6 +23,7 @@ export class R2StorageService {
   private readonly bucket: string;
   private readonly publicUrl: string;
   private readonly enabled: boolean;
+  private readonly presignExpiresIn: number;
 
   constructor(private readonly configService: ConfigService) {
     const accessKeyId = this.configService.get<string>('R2_ACCESS_KEY_ID');
@@ -29,6 +31,7 @@ export class R2StorageService {
     const endpoint = this.configService.get<string>('R2_ENDPOINT');
     this.bucket = this.configService.get<string>('R2_BUCKET') ?? 'ecommerce';
     this.publicUrl = this.configService.get<string>('R2_PUBLIC_URL') ?? '';
+    this.presignExpiresIn = Number(this.configService.get<string>('PRESIGN_URL_EXPIRATION_SECONDS') ?? '300');
 
     this.enabled = !!(accessKeyId && secretAccessKey && endpoint);
 
@@ -74,5 +77,25 @@ export class R2StorageService {
     if (!this.publicUrl) return key;
     if (key.startsWith('http://') || key.startsWith('https://')) return key;
     return `${this.publicUrl.replace(/\/$/, '')}/${key}`;
+  }
+
+  async presignUpload(originalname: string, mimetype: string, folder = 'assets') {
+    if (!this.client) {
+      throw new Error('R2 storage is not configured');
+    }
+
+    const ext = extname(originalname) || '.bin';
+    const key = `${folder}/${randomUUID()}${ext}`;
+
+    const command = new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+      ContentType: mimetype,
+    });
+
+    const uploadUrl = await getSignedUrl(this.client, command, { expiresIn: this.presignExpiresIn });
+    const publicUrl = this.getPublicUrl(key);
+
+    return { key, uploadUrl, publicUrl };
   }
 }

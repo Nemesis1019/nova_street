@@ -1,21 +1,22 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
-import { Roles } from '../auth/decorators/roles.decorator';
+import { RequirePermission } from '../auth/decorators/require-permission.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { Permission } from '../auth/permissions';
 import { AuditService } from './audit.service';
 import { AuditLogListResponseDto } from './dto/audit-log-response.dto';
 
 @ApiTags('admin-audit')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
 @Controller('admin/audit-logs')
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
   @Get()
+  @RequirePermission(Permission.AUDIT_LOGS_READ)
   @ApiOkResponse({ description: 'Filtered audit logs', type: AuditLogListResponseDto })
   findAll(
     @Query('page') page?: string,

@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { apiClient } from '../../lib/api';
+import { uploadAsset } from '../../lib/assets';
 import type { CustomDesign, CustomDesignElement, DesignTemplate } from '../../lib/customizer-types';
 import { getApiErrorMessage, notifyError, notifySuccess } from '../../lib/notifications';
 import { useCurrency } from '../../providers/currency-provider';
@@ -108,13 +109,8 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
 
   const uploadFile = useMutation({
     mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      const { data, error } = await apiClient.POST('/assets/upload-custom', {
-        body: formData as never,
-      });
-      if (error || !data) throw error ?? new Error('Upload failed');
-      return data as { url: string };
+      const asset = await uploadAsset(file, 'CUSTOM_DESIGN_ASSET');
+      return asset;
     },
     onSuccess: (data) => {
       addImageElement(data.url);
@@ -127,13 +123,8 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
       const response = await fetch(dataUrl);
       const blob = await response.blob();
       const file = new File([blob], 'preview.png', { type: 'image/png' });
-      const formData = new FormData();
-      formData.append('file', file);
-      const { data, error } = await apiClient.POST('/assets/upload-custom', {
-        body: formData as never,
-      });
-      if (error || !data) throw error ?? new Error('Preview upload failed');
-      return data as { url: string };
+      const asset = await uploadAsset(file, 'CUSTOM_DESIGN_ASSET');
+      return asset;
     },
     onError: (error) => notifyError({ title: 'Error al subir preview', message: getApiErrorMessage(error) }),
   });

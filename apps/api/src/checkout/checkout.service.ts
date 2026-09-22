@@ -15,8 +15,9 @@ import * as argon2 from 'argon2';
 import { randomUUID } from 'crypto';
 
 import { EmailService } from '../email/email.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { ShippingCostCalculator } from '../shipping/shipping-cost.calculator';
+import { ShippingOptionsService } from '../shipping/shipping-options.service';
 import { StockPolicyResolver } from '../stock/stock-policy.resolver';
 import { ApplyCouponDto } from './dto/apply-coupon.dto';
 import { CalculateShippingCostDto } from './dto/calculate-shipping-cost.dto';
@@ -46,7 +47,8 @@ export class CheckoutService {
     private readonly prisma: PrismaService,
     private readonly stockPolicyResolver: StockPolicyResolver,
     private readonly emailService: EmailService,
-    private readonly shippingCalculator: ShippingCostCalculator,
+    private readonly shippingOptionsService: ShippingOptionsService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async calculateShippingCost(userId: string, dto: CalculateShippingCostDto) {
@@ -64,13 +66,14 @@ export class CheckoutService {
     });
 
     const subtotal = cart?.items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0) ?? 0;
-    const shippingCost = await this.shippingCalculator.calculate(subtotal);
-    const config = await this.prisma.storeConfig.findFirst({ where: { isActive: true } });
+    const options = await this.shippingOptionsService.calculateEstimatedOptions(subtotal);
+    const defaultOption = options.find((o) => o.isDefault) ?? options[0];
 
     return {
-      shippingCost,
-      baseCost: config?.shippingBaseCost ?? 10_000,
-      freeShippingThreshold: config?.freeShippingThreshold ?? null,
+      shippingCost: defaultOption?.price ?? 0,
+      options,
+      baseCost: defaultOption?.price ?? 0,
+      freeShippingThreshold: defaultOption?.isFree ? 0 : null,
     };
   }
 
@@ -94,7 +97,14 @@ export class CheckoutService {
     }
 
     const subtotal = cart.items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
-    const shippingCost = await this.shippingCalculator.calculate(subtotal);
+    const estimatedOptions = await this.shippingOptionsService.calculateEstimatedOptions(subtotal);
+    const selectedOption = dto.shippingOptionId
+      ? estimatedOptions.find((o) => o.id === dto.shippingOptionId)
+      : undefined;
+    const defaultOption = estimatedOptions.find((o) => o.isDefault) ?? estimatedOptions[0];
+    const shippingOption = selectedOption ?? defaultOption;
+    const shippingCost = shippingOption?.price ?? 0;
+    const shippingOptionId = shippingOption && shippingOption.id !== 'fallback' ? shippingOption.id : null;
 
     const order = await this.prisma.$transaction(async (tx) => {
       const createdOrder = await tx.order.create({
@@ -109,6 +119,7 @@ export class CheckoutService {
           billingAddressId: dto.billingAddressId,
           paymentStatus: PaymentStatus.PENDING,
           customerNotes: dto.orderNotes,
+          shippingOptionId,
         },
       });
 
@@ -134,6 +145,20 @@ export class CheckoutService {
     }
 
     await this.reserveStockForOrder(updatedOrder.id, cart.items);
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+
+    this.notificationsService.emit({
+      type: 'order.created',
+      payload: {
+        orderId: updatedOrder.id,
+        totalAmount: updatedOrder.totalAmount,
+        email: user?.email ?? null,
+      },
+    });
 
     const paymentIntent = await this.paymentProvider.createPaymentIntent(
       updatedOrder.id,

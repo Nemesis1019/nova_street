@@ -17,9 +17,10 @@ import { AssetPurpose, StockMode } from '@prisma/client';
 import { Request } from 'express';
 
 import { AssetsService } from '../assets/assets.service';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { RequirePermission } from '../auth/decorators/require-permission.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { Permission } from '../auth/permissions';
 import { PrismaService } from '../prisma/prisma.service';
 import { AdminStockService } from './admin-stock.service';
 import { AddStockDto } from './dto/add-stock.dto';
@@ -30,7 +31,6 @@ import { UpdateStockModeDto } from './dto/update-stock-mode.dto';
 @ApiTags('admin-stock')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
 @Controller('admin')
 export class AdminStockController {
   constructor(
@@ -40,6 +40,7 @@ export class AdminStockController {
   ) {}
 
   @Patch('variants/:id/stock-mode')
+  @RequirePermission(Permission.STOCK_WRITE)
   @ApiOkResponse({ type: ProductVariantResponseDto })
   updateStockMode(
     @Req() req: Request,
@@ -51,6 +52,7 @@ export class AdminStockController {
   }
 
   @Patch('variants/:id/inventory')
+  @RequirePermission(Permission.STOCK_WRITE)
   @ApiOkResponse({ type: Object })
   updateInventory(
     @Req() req: Request,
@@ -62,6 +64,7 @@ export class AdminStockController {
   }
 
   @Post('variants/:id/add-stock')
+  @RequirePermission(Permission.STOCK_WRITE)
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -116,6 +119,7 @@ export class AdminStockController {
   }
 
   @Get('inventory')
+  @RequirePermission(Permission.STOCK_READ)
   @ApiOkResponse({ type: InventoryListResponseDto })
   findInventory(
     @Query('page') page?: string,

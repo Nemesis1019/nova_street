@@ -786,6 +786,198 @@ Funcionalidades identificadas para próximas sesiones, en orden de impacto/técn
 
 ---
 
+## Sesión 2026-08-05 — Notificaciones en tiempo real y productividad del admin
+
+### Tareas en curso
+- Implementar notificaciones en tiempo real para eventos de compras, stock bajo y reseñas pendientes.
+- Agregar mejoras de UX/productividad: búsqueda global, acciones masivas, columnas personalizables, filtros guardados, vista previa del storefront, autosave/borradores e importador CSV.
+
+### Decisiones tomadas
+- `NotificationsModule` es global y expone un `Subject` que cualquier servicio puede usar para emitir eventos.
+- El endpoint `GET /admin/notifications/stream` usa SSE con autenticación vía query token (`?token=`) porque `EventSource` no soporta headers personalizados (`SseAuthGuard`).
+- Eventos emitidos: `order.created` (checkout), `stock.low` (inventario), `review.pending` (reseñas no aprobadas).
+- Se agregó `lowStockThreshold` a `ProductVariant` para detectar stock bajo de forma configurable.
+- `AdminSearchModule` permite buscar productos, órdenes, usuarios y páginas desde `GET /admin/search?q=...`.
+- El admin tiene un `CommandPalette` (`Ctrl+K`/`Cmd+K`) y una campana de notificaciones en el header.
+- Se implementaron acciones masivas en productos (activar/desactivar/eliminar) y órdenes (cambiar estado en lote).
+- Se agregó visibilidad configurable de columnas en `/products` y `/orders`, y filtros guardados en `/orders`.
+- Se agregó botón de "Vista previa" del storefront en el header del admin.
+- Se implementó autosave local de borradores en `/products/[id]` y `/pages` (restaurar/descartar).
+- Se agregó importador CSV de productos (`POST /admin/products/import`) con plantilla descargable en `/products`.
+- La dependencia `csv-parse` se agregó a `apps/api` para parsear CSV.
+
+### Registro de cambios
+- [08:00] Backend:
+  - Migración `20260805131035_add_low_stock_threshold`.
+  - Creado `NotificationsModule` con `NotificationsService`, `NotificationsController` y `SseAuthGuard`.
+  - Emisiones desde `CheckoutService`, `AdminStockService` y `ReviewsService`.
+  - Creado `AdminSearchModule` con `GET /admin/search?q=...`.
+  - Bulk endpoints: `POST /admin/products/bulk`, `POST /admin/orders/bulk/status`.
+  - Endpoint `POST /admin/products/import` usando `csv-parse` para crear productos.
+  - Regenerados `swagger.json` y `@ecommerce/api-client`.
+- [08:30] Frontend admin:
+  - `CommandPalette` con búsqueda global y shortcut `Ctrl+K`/`Cmd+K`.
+  - `NotificationsBell` con SSE y dropdown de eventos recientes.
+  - `/products`: selección masiva, acciones masivas, columnas visibles e importador CSV.
+  - `/orders`: selección masiva, cambio de estado masivo, columnas visibles y filtros guardados.
+  - `/products/[id]` y `/pages`: autosave de borradores con restaurar/descartar.
+  - Botón "Vista previa" en el header que abre el storefront en una nueva pestaña.
+- [09:00] Verificación:
+  - `pnpm --filter @ecommerce/api test` → 22/22 suites, 92 tests pasando.
+  - `pnpm --filter @ecommerce/api lint typecheck build` → exitoso.
+  - `pnpm --filter @ecommerce/admin lint typecheck build test` → exitoso.
+  - `pnpm --filter @ecommerce/web lint typecheck build` → exitoso.
+  - `pnpm --filter @ecommerce/api-client generate build` → exitoso.
+  - Actualizados `PENDIENTES.md` y `PROGRESO.md`.
+
+- [09:15] Bugfix en admin:
+  - `/users`: corregido el crash al escribir en el modal de crear usuario. El `onChange` leía `event.currentTarget.value` dentro del updater de `setState`, lo que fallaba cuando React ejecutaba el updater después de que el evento se invalidara. Ahora se lee el valor antes de llamar a `setCreateForm`.
+  - `/custom-designs`: corregido `designs?.map is not a function`. El endpoint `GET /custom-designs/admin/all` devolvía `{ data, meta }` pero el frontend esperaba un array. Se agregó `CustomDesignListResponseDto` en el backend y el frontend ahora usa `designs.data`.
+  - Regenerados `swagger.json` y `@ecommerce/api-client`.
+  - Verificación: `pnpm --filter @ecommerce/api test` → 92 tests, `pnpm --filter @ecommerce/admin lint typecheck build` → exitoso.
+
+- [09:30] Mejora en mapeo de errores:
+  - Actualizado `getApiErrorMessage` en `apps/admin/src/lib/notifications.ts` (y también en `apps/web/src/lib/notifications.ts` para mantener consistencia).
+  - Ahora maneja: `message` como string, `message` como array (ej. errores de validación), `errors` como array, `error` como string, errores de tipo `Error`, y wrappers de openapi-fetch.
+  - Antes muchos errores del backend caían en el mensaje genérico porque `message` venía como array o estaba anidado.
+  - Verificación: `pnpm --filter @ecommerce/admin lint typecheck build test` → exitoso, `pnpm --filter @ecommerce/web lint typecheck build test` → exitoso.
+
+- [10:00] Traducción de errores del backend según idioma:
+  - Creado `apps/api/src/common/error-translations.ts` con un diccionario de mensajes de error del backend en español.
+  - Creado `HttpExceptionTranslationFilter` que intercepta `HttpException`, lee el header `Accept-Language` y traduce `message` (string o array) antes de responder.
+  - El filtro se registró globalmente en `apps/api/src/main.ts`.
+  - `apps/admin/src/lib/api.ts` y `apps/web/src/lib/api.ts` ahora envían `Accept-Language` con el locale guardado en `localStorage`.
+  - Esto alinea los errores de validación y de negocio con el idioma activo en el admin/storefront (por ahora traducciones completas en español; inglés/portugués usan el mensaje original hasta agregar traducciones).
+  - Verificación: `pnpm --filter @ecommerce/api test` → 92 tests, `pnpm --filter @ecommerce/api lint typecheck build` → exitoso, `pnpm --filter @ecommerce/admin lint typecheck build test` → exitoso, `pnpm --filter @ecommerce/web lint typecheck test` → exitoso.
+
+- [10:15] Fix exportación CSV:
+  - `apps/admin/src/app/export/page.tsx` usaba `response.blob()` después de `parseAs: 'blob'`, lo que fallaba porque openapi-fetch ya había consumido el body.
+  - Ahora se usa el `data` ya parseado como `Blob` directamente.
+  - Verificación: `pnpm --filter @ecommerce/admin lint typecheck build` → exitoso.
+
+- [11:15] Imagen al crear producto (admin):
+  - Backend: `CreateProductDto` ahora acepta `imageAssetId` opcional.
+  - Backend: `AdminProductService.create` valida que el asset exista y, si se envía `imageAssetId`, crea el `ProductImage` asociado dentro de la misma transacción.
+  - Frontend: `apps/admin/src/app/products/page.tsx` ahora muestra un `FileInput` en el modal de nuevo producto.
+  - Frontend: al crear el producto, primero sube la imagen con `uploadAsset` (que ya sube a R2 si está configurado, o local si no) y luego envía el `imageAssetId` junto con el resto de los datos.
+  - Se regeneró `packages/api-client/src/api-types.ts` a partir del nuevo `swagger.json` para que el tipado incluya `imageAssetId`.
+  - Verificación: `pnpm --filter @ecommerce/api test` → 92 tests, `pnpm --filter @ecommerce/admin lint typecheck build test` → exitoso.
+
+- [11:35] Preview de imagen al crear producto:
+  - En el modal de nuevo producto se agregó una vista previa de la imagen seleccionada usando `URL.createObjectURL`, con limpieza del objeto URL en `useEffect`.
+  - Verificación: `pnpm --filter @ecommerce/admin lint typecheck build` → exitoso.
+
+- [11:55] Alternar entre subir imagen o usar URL externa:
+  - Backend: nuevo endpoint `POST /admin/assets/external` que crea un asset con `bucket: 'external'` y `objectKey` = URL. `buildAssetUrl` ya soporta devolver la URL tal cual cuando `objectKey` comienza con `http`.
+  - Backend: `AssetsService.createExternal` para persistir el asset externo.
+  - Frontend: se agregó un `SegmentedControl` en el modal de nuevo producto con opciones "Subir archivo" / "Usar URL".
+  - Frontend: según el modo, muestra `FileInput` o `TextInput` para la URL; la vista previa funciona para ambos casos.
+  - Frontend: `createExternalAsset` en `apps/admin/src/lib/assets.ts` llama al nuevo endpoint.
+  - Se regeneró `packages/api-client/src/api-types.ts` con el nuevo endpoint.
+  - Verificación: `pnpm --filter @ecommerce/api test` → 92 tests, `pnpm --filter @ecommerce/admin lint typecheck build` → exitoso.
+
+- [12:15] Editar imagen desde el detalle del producto:
+  - En `apps/admin/src/app/products/[id]/page.tsx` se agregó el mismo selector "Subir archivo" / "Usar URL" en la sección de imágenes.
+  - La mutación `addImage` ahora acepta `{ file }` o `{ url }` y crea el asset correspondiente antes de asociarlo al producto.
+  - Se agregó vista previa de la imagen antes de agregarla.
+  - Verificación: `pnpm --filter @ecommerce/admin lint typecheck build` → exitoso.
+
+- [12:45] Subida de archivos con pre-signed URLs (estándar de seguridad):
+  - Backend: nuevo endpoint `POST /admin/assets/presign` que genera una URL firmada (`uploadUrl`) para subir directamente a R2/S3 desde el cliente.
+  - Backend: `R2StorageService.presignUpload` usa `getSignedUrl` del SDK de AWS S3 con vencimiento de 5 minutos.
+  - Backend: `AssetsService.presign` crea el registro de asset en la base de datos con `bucket: 'r2'` y `objectKey` antes de la subida, devolviendo `id`, `uploadUrl` y `url` pública.
+  - Frontend: `apps/admin/src/lib/assets.ts` ahora usa pre-signed URLs por defecto. El flujo es: pedir URL firmada al backend → hacer `PUT` directo al storage → usar el `assetId` recibido. Si R2 no está configurado, cae automáticamente al upload directo anterior.
+  - Se actualizó `@aws-sdk/client-s3` y se agregó `@aws-sdk/s3-request-presigner` (ambos en `3.1112.0` para compatibilidad).
+  - Se regeneró `packages/api-client/src/api-types.ts` con el nuevo endpoint.
+  - Verificación: `pnpm --filter @ecommerce/api test` → 92 tests, `pnpm --filter @ecommerce/admin lint typecheck build` → exitoso.
+
+- [13:15] Carpetas por propósito y validación en pre-signed uploads:
+  - Backend: `AssetsService` ahora mapea cada `AssetPurpose` a una carpeta en el bucket:
+    - `CATALOG_IMAGE` → `catalog/`
+    - `CUSTOM_DESIGN_ASSET` → `custom-designs/`
+    - `PRINT_FILE` → `print-files/`
+    - `REVIEW_IMAGE` → `reviews/`
+  - Backend: validación de tipo MIME permitido según propósito y tamaño máximo configurable (`PRESIGN_MAX_FILE_SIZE_BYTES`, default 10 MB).
+  - Backend: duración de la URL firmada configurable vía `PRESIGN_URL_EXPIRATION_SECONDS` (default 300 segundos).
+  - Backend: `PresignAssetDto` ahora acepta `purpose` y `size`; el `Content-Length` se incluye en la URL firmada para que R2/S3 valide el tamaño exacto.
+  - Frontend: `uploadAsset` acepta un `purpose` (default `CATALOG_IMAGE`) y envía `size` en la petición de presign.
+  - Se actualizó `apps/api/.env.example` con las nuevas variables.
+  - Verificación: `pnpm --filter @ecommerce/api build`, `pnpm --filter @ecommerce/admin lint typecheck build test` exitosos. Suite completa de API interrumpida por crash ambiental de Console Ninja, pero `test/admin-catalog.e2e-spec.ts` pasa.
+
+- [13:45] Endpoint de pre-signed URL en el storefront:
+  - Backend: `CustomerAssetsController` ahora expone `POST /assets/presign` para usuarios autenticados.
+  - Backend: solo se permiten los propósitos `CUSTOM_DESIGN_ASSET` y `REVIEW_IMAGE` en el storefront; cualquier otro devuelve 400.
+  - Frontend: nuevo `apps/web/src/lib/assets.ts` con `uploadAsset(file, purpose)` que usa pre-signed URLs y, si R2 no está configurado, hace fallback al upload directo anterior.
+  - Frontend: el customizador (`customizer-editor.tsx`) ahora usa `uploadAsset(file, 'CUSTOM_DESIGN_ASSET')` para imágenes y previews, enviándolas a la carpeta `custom-designs/`.
+  - Frontend: las fotos de reseñas (`product-reviews.tsx`) ahora usan `uploadAsset(file, 'REVIEW_IMAGE')`, enviándolas a la carpeta `reviews/`.
+  - Se exportó `getAccessToken` en `apps/web/src/lib/api.ts` para usarlo en el helper de assets.
+  - Verificación: `pnpm --filter @ecommerce/web lint typecheck test` → exitoso.
+
+- [14:00] Archivos de variables de entorno listos para reemplazar:
+  - `apps/api/.env` y `apps/api/.env.example`: unificados, con secciones numeradas y valores por defecto. Se agregaron variables faltantes: `APP_URL`, `STORE_NAME`, `REDIS_URL`, `CDN_BASE_URL`, `BACKUP_DIR`, `BACKUP_RETENTION_DAYS`.
+  - `apps/admin/.env` y `apps/admin/.env.example`: corregido formato de `NEXT_PUBLIC_WEB_URL` y agregados comentarios.
+  - `apps/web/.env` y `apps/web/.env.example`: estandarizados con puertos por defecto y comentarios.
+  - Ahora los tres `.env` apuntan consistentemente a API en `4000`, storefront en `3000` y admin en `3001`.
+  - Verificación: `pnpm --filter @ecommerce/api typecheck build`, `pnpm --filter @ecommerce/admin typecheck build test`, `pnpm --filter @ecommerce/web typecheck build test` → todos exitosos.
+
+- [14:30] Ajuste en URL firmada para evitar 403 por `Content-Length`:
+  - Se eliminó `ContentLength` del `PutObjectCommand` usado para generar la pre-signed URL.
+  - La validación de tamaño máximo sigue aplicándose en el backend antes de generar la URL; solo se quitó el requisito de que S3/R2 valide el `Content-Length` exacto en el PUT, que suele ser la causa de 403 cuando el navegador envía el header de forma ligeramente diferente.
+  - Verificación: `pnpm --filter @ecommerce/api typecheck build`, regeneración de tipos y typecheck de admin/web exitosos.
+
+- [14:45] Loader al navegar a editar producto:
+  - En `apps/admin/src/app/products/page.tsx` se reemplazó el `Link` por un botón que inicia la navegación con `router.push` y activa un estado `navigating`.
+  - Se agregó un overlay fijo con fondo blanco semitransparente (`rgba(255, 255, 255, 0.7)`) y un loader de 3 puntos de Mantine (`Loader type="dots"`) mientras carga la página de edición.
+  - Verificación: `pnpm --filter @ecommerce/admin lint typecheck build` → exitoso.
+
+- [15:00] Fix error de MantineProvider en storefront:
+  - `MaintenanceScreen` se renderizaba fuera de `MantineProvider`, lo que provocaba el error `@mantine/core: MantineProvider was not found` y el 500 en `/`.
+  - Se envolvió `MaintenanceScreen` con un `MantineProvider` mínimo en `apps/web/src/app/layout.tsx` cuando `maintenanceMode` está activo.
+  - Además se corrigió el build de `/personalizar`: el botón usaba `component={Link}` desde un Server Component hacia un Client Component de Mantine, lo que Next.js rechazaba. Se cambió a `Link` de Next con `passHref legacyBehavior` envolviendo un `Button component="a"`.
+  - Verificación: `pnpm --filter @ecommerce/web typecheck build` → exitoso.
+
+- [15:30] Mejora en cobertura de traducciones de errores:
+  - `apps/api/src/common/error-translations.ts` ahora incluye traducciones al portugués (`pt`) para todos los mensajes de negocio.
+  - Se agregó traducción por patrones para los mensajes por defecto de `class-validator` (`must be a string`, `should not be empty`, `must be longer than...`, etc.) tanto en español como en portugués.
+  - Se agregó un mapeo de nombres de propiedades (`name`, `slug`, `basePrice`, `email`, etc.) para que los mensajes traducidos sean más legibles.
+  - Si un mensaje no tiene traducción exacta ni coincide con un patrón conocido, se devuelve el mensaje original en inglés.
+  - Verificación: `pnpm --filter @ecommerce/api typecheck build`, tests de `admin-catalog` y `auth` pasan; typecheck de admin/web exitoso.
+
+- [16:00] Fix inconsistencia del modo mantenimiento en el storefront:
+  - Causa: el layout del storefront fetcheaba la configuración sin desactivar el cacheo de Next.js, por lo que algunas páginas servían una versión estática/cacheada con `maintenanceMode` distinto al estado actual de la base de datos.
+  - Se agregó `init: { next: { revalidate: 0 } }` al pedido de `/store-config` en `apps/web/src/app/layout.tsx`.
+  - Se agregó `export const dynamic = 'force-dynamic'` para que todas las páginas se rendericen en el servidor en cada request y respeten el flag actual.
+  - Verificación: `pnpm --filter @ecommerce/web typecheck build` → exitoso; ahora todas las rutas aparecen como dinámicas (`ƒ`).
+
+- [16:30] Fix CORS en `PATCH /store-config`:
+  - Causa probable: `app.enableCors` no tenía `allowedHeaders` explícitos y no trimmeaba los orígenes de `FRONTEND_URL`. Si el `.env` tenía espacios después de las comas (por ej. `http://localhost:3000, http://localhost:3001`), el origen del admin no coincidía y el preflight del `PATCH` fallaba.
+  - Se actualizó `apps/api/src/main.ts` para:
+    - Trimmeor cada origen y filtrar vacíos.
+    - En desarrollo (`NODE_ENV=development`) permitir cualquier origen (`origin: true`).
+    - Declarar explícitamente `allowedHeaders` incluyendo `Authorization`, `Content-Type` y `Accept-Language`.
+    - Mantener `credentials: true`.
+  - Verificación: `pnpm --filter @ecommerce/api typecheck build` → exitoso.
+
+- [17:00] Aumento de límite de body parser:
+  - Como el `PATCH /store-config` envía `storefrontConfig` como JSON string (puede incluir scripts externos y ser grande), el body parser por defecto de Nest (`100kb`) podía estar devolviendo `413 Payload Too Large` antes de que CORS agregue sus headers, lo que el navegador reporta como CORS.
+  - Se configuró el body parser JSON y urlencoded con límite de `5mb` en `apps/api/src/main.ts` mediante `app.useBodyParser(...)`.
+  - Verificación: `pnpm --filter @ecommerce/api typecheck build` → exitoso.
+
+- [17:15] Diagnóstico CORS con request logger:
+  - Se agregó un middleware de log en `apps/api/src/main.ts` (solo en desarrollo) para ver cada request: método, URL, `origin`, status code y duración.
+  - Esto permite confirmar si el `PATCH /store-config` llega al backend, qué status devuelve realmente y si el problema es CORS o un 401/403/413 disfrazado.
+  - Verificación: `pnpm --filter @ecommerce/api typecheck build` → exitoso.
+
+- [17:30] Diagnóstico de headers de preflight:
+  - A partir de los logs del usuario se observó que `OPTIONS /store-config` responde `204` pero el `PATCH /store-config` nunca llega al backend, lo que indica que el navegador está bloqueando la petición tras el preflight.
+  - Se amplió el logger para imprimir los headers de respuesta del preflight (`Access-Control-Allow-Origin`, `Access-Control-Allow-Methods`, `Access-Control-Allow-Headers`) y los headers solicitados (`Access-Control-Request-Method`, `Access-Control-Request-Headers`).
+  - Se tuvo que compilar con `NODE_OPTIONS=--max-old-space-size=8192` por un `heap out of memory` en el entorno.
+  - Verificación: build exitoso.
+
+**Fin de sesión.** Estado dejado verificado con build, typecheck, lint y tests exitosos.
+
+---
+
 ## Sesión 2026-07-11 — Agregar stock desde admin y reflejar en storefront
 
 ### Tareas en curso
@@ -1126,3 +1318,48 @@ Funcionalidades identificadas para próximas sesiones, en orden de impacto/técn
   - Actualizado `PENDIENTES.md`.
 
 **Fin de sesión.** Estado dejado verificado con build, typecheck, lint y tests exitosos.
+
+---
+
+## Sesión 2026-08-19 — Migrar refresh token a cookie HTTP-Only
+
+### Tareas en curso
+- Reemplazar el almacenamiento del refresh token en `localStorage` por una cookie `HttpOnly`, `Secure` (en prod) y `SameSite=Strict`.
+- Actualizar frontends (admin y web) y el cliente API para usar cookies en el flujo de refresh/logout.
+
+### Decisiones tomadas
+- El refresh token ya no se devuelve en el cuerpo de las respuestas de `/auth/login`, `/auth/register` ni `/auth/refresh`.
+- El backend lo guarda en una cookie `refresh_token` con atributos:
+  - `httpOnly: true`
+  - `secure: process.env.NODE_ENV === 'production'`
+  - `sameSite: 'strict'`
+  - `path: '/auth'`
+  - `maxAge` derivado de `JWT_REFRESH_EXPIRATION`.
+- `/auth/refresh` lee la cookie en lugar de un body; `/auth/logout` también la lee para revocar el token y luego la borra.
+- Se agregó `cookie-parser` como middleware global en `AppModule` para que esté disponible también en tests e2e.
+- El cliente `@ecommerce/api-client` ahora envía `credentials: 'include'` en todas las peticiones y en el refresh manual, y ya no espera recibir un refresh token nuevo en la respuesta.
+- Admin y web dejaron de persistir `refreshToken`; solo guardan el `accessToken`.
+
+### Registro de cambios
+- [23:20] Backend:
+  - Instaladas `cookie-parser` y `@types/cookie-parser`.
+  - `AppModule` aplica `cookieParser()` como middleware global.
+  - `AuthController` setea/limpia la cookie `refresh_token` en login, register, refresh y logout.
+  - Eliminado `RefreshDto` (ya no se recibe refresh token por body).
+  - `LoginResponseDto`, `RegisterResponseDto` y `RefreshResponseDto` ya no incluyen `refreshToken`.
+  - Actualizado `test/auth.e2e-spec.ts` para verificar `Set-Cookie` y ausencia de `refreshToken` en body.
+- [23:25] Frontend transversal:
+  - `@ecommerce/api-client`: refresh con `credentials: 'include'`, callback `onTokenRefreshed(accessToken)`.
+  - Admin: `lib/auth.ts` solo maneja access token; `lib/api.ts` y `components/login-form.tsx` actualizados.
+  - Web: `store/auth-store.ts` elimina `refreshToken`; `lib/api.ts`, `app/login/page.tsx` y `app/register/page.tsx` actualizados.
+  - Middleware de ambos frontends devuelve `new Request(request, { credentials: 'include' })`.
+- [23:30] Regenerado `@ecommerce/api-client` desde `swagger.json` actualizado.
+- [23:35] Verificación:
+  - `pnpm --filter api lint typecheck build` → exitoso.
+  - `pnpm --filter api test test/auth.e2e-spec.ts` → 4/4 tests.
+  - `pnpm --filter admin lint typecheck build test` → exitoso (10 tests).
+  - `pnpm --filter web lint typecheck build test` → exitoso (17 tests).
+  - `pnpm --filter api-client generate build typecheck` → exitoso.
+  - `pnpm --filter api test` → auth pasa; fallan 5 tests no relacionados en `custom-designs`, `admin-orders` y `critical-flows` (errores 500 preexistentes o de otro servicio).
+
+**Fin de sesión.** Estado dejado verificado con build, typecheck, lint y tests de auth/frontends exitosos.

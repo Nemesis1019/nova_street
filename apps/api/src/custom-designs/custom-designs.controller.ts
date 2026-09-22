@@ -19,13 +19,14 @@ import {
 import { CustomDesignStatus } from '@prisma/client';
 import { Request } from 'express';
 
-import { Roles } from '../auth/decorators/roles.decorator';
+import { RequirePermission } from '../auth/decorators/require-permission.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { Permission } from '../auth/permissions';
 import { CustomDesignsService } from './custom-designs.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { CreateCustomDesignDto } from './dto/create-custom-design.dto';
-import { CustomDesignResponseDto } from './dto/custom-design-response.dto';
+import { CustomDesignListResponseDto, CustomDesignResponseDto } from './dto/custom-design-response.dto';
 import { UpdateCustomDesignDto } from './dto/update-custom-design.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 
@@ -87,9 +88,9 @@ export class CustomDesignsController {
   // Admin endpoints
   @Get('admin/all')
   @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @RequirePermission(Permission.CUSTOM_DESIGNS_READ)
   @ApiOperation({ summary: 'List all custom designs (admin)' })
-  @ApiOkResponse({ type: [CustomDesignResponseDto], description: 'List of custom designs' })
+  @ApiOkResponse({ type: CustomDesignListResponseDto, description: 'List of custom designs' })
   findAllAdmin(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -104,7 +105,7 @@ export class CustomDesignsController {
 
   @Patch('admin/:id/status')
   @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @RequirePermission(Permission.CUSTOM_DESIGNS_WRITE)
   @ApiOperation({ summary: 'Update custom design status (admin)' })
   @ApiOkResponse({ description: 'Custom design status updated' })
   updateStatus(@Param('id') id: string, @Body() dto: UpdateStatusDto, @Req() req: Request) {

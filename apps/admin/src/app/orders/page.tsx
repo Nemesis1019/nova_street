@@ -2,9 +2,12 @@
 
 import {
   Badge,
+  Box,
   Button,
+  Checkbox,
   Group,
   Modal,
+  MultiSelect,
   Pagination,
   Paper,
   Select,
@@ -14,7 +17,7 @@ import {
   TextInput,
   Title,
 } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { useDisclosure, useLocalStorage } from '@mantine/hooks';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -48,12 +51,40 @@ function formatPrice(amount: number) {
   return `$${amount.toLocaleString()}`;
 }
 
+type OrderColumnKey = 'customer' | 'total' | 'status' | 'payment' | 'date' | 'actions';
+
+interface SavedFilter {
+  id: string;
+  name: string;
+  search: string;
+  statusFilter: string | null;
+  paymentFilter: string | null;
+}
+
+const ALL_ORDER_COLUMNS: { key: Exclude<OrderColumnKey, 'actions'>; label: string }[] = [
+  { key: 'customer', label: 'Cliente' },
+  { key: 'total', label: 'Total' },
+  { key: 'status', label: 'Estado' },
+  { key: 'payment', label: 'Pago' },
+  { key: 'date', label: 'Fecha' },
+];
+
 export default function OrdersPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [paymentFilter, setPaymentFilter] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [visibleColumns, setVisibleColumns] = useLocalStorage<OrderColumnKey[]>({
+    key: 'admin-orders-visible-columns',
+    defaultValue: ['customer', 'total', 'status', 'payment', 'date', 'actions'],
+  });
+  const [savedFilters, setSavedFilters] = useLocalStorage<SavedFilter[]>({
+    key: 'admin-orders-saved-filters',
+    defaultValue: [],
+  });
+  const [filterName, setFilterName] = useState('');
   const limit = 10;
 
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -149,6 +180,23 @@ export default function OrdersPage() {
     },
   });
 
+  const bulkStatus = useMutation({
+    mutationFn: async ({ status, ids }: { status: string; ids: string[] }) => {
+      const { error } = await apiClient.POST('/admin/orders/bulk/status', {
+        body: { status, ids } as never,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      setSelectedIds([]);
+      notifySuccess({ title: 'Estado masivo actualizado' });
+    },
+    onError: (error) => {
+      notifyError({ title: 'Error al actualizar órdenes', message: getApiErrorMessage(error) });
+    },
+  });
+
   const orders = ordersResponse?.data ?? [];
   const totalPages = ordersResponse?.meta?.total ? Math.ceil(ordersResponse.meta.total / limit) : 1;
 
@@ -180,6 +228,53 @@ export default function OrdersPage() {
       closeConfirm();
     }
   }
+
+  function toggleSelection(id: string) {
+    setSelectedIds((current) => (current.includes(id) ? current.filter((i) => i !== id) : [...current, id]));
+  }
+
+  function toggleAll() {
+    if (selectedIds.length === orders.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(orders.map((o) => o.id));
+    }
+  }
+
+  function saveFilter() {
+    if (!filterName.trim()) return;
+    const newFilter: SavedFilter = {
+      id: `${Date.now()}`,
+      name: filterName.trim(),
+      search,
+      statusFilter,
+      paymentFilter,
+    };
+    setSavedFilters((current) => [...current, newFilter]);
+    setFilterName('');
+    notifySuccess({ title: 'Filtro guardado' });
+  }
+
+  function loadFilter(id: string | null) {
+    if (!id) return;
+    const filter = savedFilters.find((f) => f.id === id);
+    if (!filter) return;
+    setSearch(filter.search);
+    setStatusFilter(filter.statusFilter);
+    setPaymentFilter(filter.paymentFilter);
+    setPage(1);
+  }
+
+  function clearFilters() {
+    setSearch('');
+    setStatusFilter(null);
+    setPaymentFilter(null);
+    setPage(1);
+  }
+
+  const isVisible = (key: OrderColumnKey) => visibleColumns.includes(key);
+  const columnOptions = ALL_ORDER_COLUMNS.map((c) => ({ value: c.key, label: c.label }));
+  const filterOptions = savedFilters.map((f) => ({ value: f.id, label: f.name }));
 
   return (
     <AdminShell>
@@ -220,7 +315,51 @@ export default function OrdersPage() {
             }}
             clearable
           />
+          <MultiSelect
+            label="Columnas"
+            data={columnOptions}
+            value={visibleColumns.filter((c) => c !== 'actions')}
+            onChange={(value) => setVisibleColumns([...(value as Exclude<OrderColumnKey, 'actions'>[]), 'actions'])}
+            clearable={false}
+            style={{ minWidth: 220 }}
+          />
         </Group>
+
+        <Group mb="md" gap="xs">
+          <Select
+            placeholder="Cargar filtro guardado"
+            data={filterOptions}
+            onChange={loadFilter}
+            clearable
+            style={{ width: 220 }}
+          />
+          <TextInput
+            placeholder="Nombre del filtro"
+            value={filterName}
+            onChange={(event) => setFilterName(event.currentTarget.value)}
+            style={{ width: 180 }}
+          />
+          <Button size="xs" variant="light" onClick={saveFilter} disabled={!filterName.trim()}>
+            Guardar filtro
+          </Button>
+          <Button size="xs" variant="subtle" onClick={clearFilters}>
+            Limpiar
+          </Button>
+        </Group>
+
+        {selectedIds.length > 0 && (
+          <Group mb="md" gap="xs">
+            <Text size="sm">{selectedIds.length} seleccionadas</Text>
+            <Select
+              placeholder="Cambiar estado"
+              data={orderStatuses}
+              value={null}
+              onChange={(value) => value && bulkStatus.mutate({ status: value, ids: selectedIds })}
+              style={{ width: 200 }}
+              clearable
+            />
+          </Group>
+        )}
 
         {isLoading ? (
           <LoadingState />
@@ -229,41 +368,62 @@ export default function OrdersPage() {
             <Table withTableBorder striped highlightOnHover>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Cliente</Table.Th>
-                  <Table.Th>Total</Table.Th>
-                  <Table.Th>Estado</Table.Th>
-                  <Table.Th>Pago</Table.Th>
-                  <Table.Th>Fecha</Table.Th>
-                  <Table.Th>Acciones</Table.Th>
+                  <Table.Th>
+                    <Checkbox
+                      checked={orders.length > 0 && selectedIds.length === orders.length}
+                      indeterminate={selectedIds.length > 0 && selectedIds.length < orders.length}
+                      onChange={toggleAll}
+                    />
+                  </Table.Th>
+                  {isVisible('customer') && <Table.Th>Cliente</Table.Th>}
+                  {isVisible('total') && <Table.Th>Total</Table.Th>}
+                  {isVisible('status') && <Table.Th>Estado</Table.Th>}
+                  {isVisible('payment') && <Table.Th>Pago</Table.Th>}
+                  {isVisible('date') && <Table.Th>Fecha</Table.Th>}
+                  {isVisible('actions') && <Table.Th>Acciones</Table.Th>}
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
                 {orders.map((order) => (
                   <Table.Tr key={order.id}>
-                    <Table.Td>{order.user.email}</Table.Td>
-                    <Table.Td>{formatPrice(order.totalAmount)}</Table.Td>
                     <Table.Td>
-                      <Badge>{order.status}</Badge>
+                      <Checkbox
+                        checked={selectedIds.includes(order.id)}
+                        onChange={() => toggleSelection(order.id)}
+                      />
                     </Table.Td>
-                    <Table.Td>
-                      <Badge color="gray">{order.paymentStatus}</Badge>
-                    </Table.Td>
-                    <Table.Td>{new Date(order.createdAt).toLocaleString()}</Table.Td>
-                    <Table.Td>
-                      <Button size="xs" variant="outline" onClick={() => handleOpenDetail(order.id)}>
-                        Ver / Editar
-                      </Button>
-                    </Table.Td>
+                    {isVisible('customer') && <Table.Td>{order.user.email}</Table.Td>}
+                    {isVisible('total') && <Table.Td>{formatPrice(order.totalAmount)}</Table.Td>}
+                    {isVisible('status') && (
+                      <Table.Td>
+                        <Badge>{order.status}</Badge>
+                      </Table.Td>
+                    )}
+                    {isVisible('payment') && (
+                      <Table.Td>
+                        <Badge color="gray">{order.paymentStatus}</Badge>
+                      </Table.Td>
+                    )}
+                    {isVisible('date') && <Table.Td>{new Date(order.createdAt).toLocaleString()}</Table.Td>}
+                    {isVisible('actions') && (
+                      <Table.Td>
+                        <Button size="xs" variant="outline" onClick={() => handleOpenDetail(order.id)}>
+                          Ver / Editar
+                        </Button>
+                      </Table.Td>
+                    )}
                   </Table.Tr>
                 ))}
               </Table.Tbody>
             </Table>
 
             {orders.length === 0 && (
-              <EmptyState
-                title="No hay órdenes"
-                description="No se encontraron órdenes con los filtros seleccionados."
-              />
+              <Box mt="md">
+                <EmptyState
+                  title="No hay órdenes"
+                  description="No se encontraron órdenes con los filtros seleccionados."
+                />
+              </Box>
             )}
 
             <Pagination value={page} onChange={setPage} total={totalPages} mt="md" />

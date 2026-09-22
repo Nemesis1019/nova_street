@@ -78,6 +78,58 @@ export function StorefrontConfigSection({
     setSection('storefrontConfig.navigation', links);
   };
 
+  const addExternalScript = () => {
+    const scripts = [
+      ...cfg.externalScripts,
+      { id: crypto.randomUUID?.() ?? Math.random().toString(36).slice(2), name: '', placement: 'head' as const, code: '' },
+    ];
+    setSection('storefrontConfig.externalScripts', scripts);
+  };
+
+  const updateExternalScript = (index: number, key: 'name' | 'placement' | 'code', value: string) => {
+    const scripts = [...cfg.externalScripts];
+    scripts[index] = { ...scripts[index], [key]: value };
+    setSection('storefrontConfig.externalScripts', scripts);
+  };
+
+  const removeExternalScript = (index: number) => {
+    const scripts = cfg.externalScripts.filter((_, i) => i !== index);
+    setSection('storefrontConfig.externalScripts', scripts);
+  };
+
+  const addPopup = () => {
+    const popups = [
+      ...cfg.popups,
+      {
+        id: crypto.randomUUID?.() ?? Math.random().toString(36).slice(2),
+        name: '',
+        enabled: true,
+        trigger: 'immediate' as const,
+        delaySeconds: 0,
+        scrollPercent: 50,
+        title: '',
+        content: '',
+        buttonText: '',
+        buttonLink: '',
+        backgroundColor: '#ffffff',
+        textColor: '#0d0d0d',
+        showOnce: true,
+      },
+    ];
+    setSection('storefrontConfig.popups', popups);
+  };
+
+  const updatePopup = (index: number, key: keyof typeof cfg.popups[number], value: unknown) => {
+    const popups = [...cfg.popups];
+    popups[index] = { ...popups[index], [key]: value };
+    setSection('storefrontConfig.popups', popups);
+  };
+
+  const removePopup = (index: number) => {
+    const popups = cfg.popups.filter((_, i) => i !== index);
+    setSection('storefrontConfig.popups', popups);
+  };
+
   return (
     <>
       <Title order={4} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
@@ -334,6 +386,199 @@ export function StorefrontConfigSection({
       </Title>
       <TextInput label="URL del logo" {...form.getInputProps('storefrontConfig.branding.logoUrl')} />
       <Textarea label="CSS personalizado" {...form.getInputProps('storefrontConfig.branding.customCss')} minRows={4} />
+
+      <Divider />
+
+      <Title order={4} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+        SEO por defecto
+      </Title>
+      <TextInput label="Template de título por defecto" {...form.getInputProps('storefrontConfig.seo.defaultTitleTemplate')} description="Usá {title} y {storeName}" />
+      <TextInput label="Template de título de producto" {...form.getInputProps('storefrontConfig.seo.productTitleTemplate')} description="Usá {productName} y {storeName}" />
+      <TextInput label="Template de título de categoría" {...form.getInputProps('storefrontConfig.seo.categoryTitleTemplate')} description="Usá {categoryName} y {storeName}" />
+      <TextInput label="Template de título de página" {...form.getInputProps('storefrontConfig.seo.pageTitleTemplate')} description="Usá {pageTitle} y {storeName}" />
+      <Textarea label="Descripción por defecto" {...form.getInputProps('storefrontConfig.seo.defaultDescription')} minRows={2} />
+      <TextInput label="URL de imagen OG por defecto" {...form.getInputProps('storefrontConfig.seo.ogImageUrl')} />
+
+      <Divider />
+
+      <Title order={4} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+        Scripts externos
+      </Title>
+      {cfg.externalScripts.map((script, index) => (
+        <Stack key={script.id} gap="xs" style={{ padding: 12, border: '1px solid #e4e2e1' }}>
+          <Group align="flex-end">
+            <TextInput
+              label="Nombre"
+              value={script.name}
+              onChange={(e) => updateExternalScript(index, 'name', e.currentTarget.value)}
+              style={{ flex: 1 }}
+            />
+            <Select
+              label="Ubicación"
+              value={script.placement}
+              onChange={(value) => value && updateExternalScript(index, 'placement', value)}
+              data={[
+                { value: 'head', label: '<head>' },
+                { value: 'body', label: '<body>' },
+              ]}
+            />
+            <Button variant="subtle" color="red" onClick={() => removeExternalScript(index)}>
+              Eliminar
+            </Button>
+          </Group>
+          <Textarea
+            label="Código (script/HTML)"
+            value={script.code}
+            onChange={(e) => updateExternalScript(index, 'code', e.currentTarget.value)}
+            minRows={3}
+          />
+        </Stack>
+      ))}
+      <Button variant="light" onClick={addExternalScript}>
+        Agregar script
+      </Button>
+
+      <Divider />
+
+      <Title order={4} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+        Botón flotante de WhatsApp
+      </Title>
+      <Switch label="Habilitar" {...form.getInputProps('storefrontConfig.whatsappButton.enabled', { type: 'checkbox' })} />
+      {cfg.whatsappButton.enabled && (
+        <>
+          <TextInput label="Número de WhatsApp" {...form.getInputProps('storefrontConfig.whatsappButton.phone')} description="Ej: 595981000000" />
+          <TextInput label="Mensaje predeterminado" {...form.getInputProps('storefrontConfig.whatsappButton.message')} />
+          <Select
+            label="Posición"
+            data={[
+              { value: 'bottomRight', label: 'Abajo a la derecha' },
+              { value: 'bottomLeft', label: 'Abajo a la izquierda' },
+            ]}
+            {...form.getInputProps('storefrontConfig.whatsappButton.position')}
+          />
+        </>
+      )}
+
+      <Divider />
+
+      <Title order={4} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+        Tipografías
+      </Title>
+      <Select
+        label="Fuente de títulos"
+        data={FONT_OPTIONS}
+        {...form.getInputProps('storefrontConfig.fonts.heading')}
+      />
+      <Select
+        label="Fuente de cuerpo"
+        data={FONT_OPTIONS}
+        {...form.getInputProps('storefrontConfig.fonts.body')}
+      />
+      <Select
+        label="Fuente monoespaciada"
+        data={FONT_OPTIONS}
+        {...form.getInputProps('storefrontConfig.fonts.mono')}
+      />
+
+      <Divider />
+
+      <Title order={4} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+        Popups
+      </Title>
+      {cfg.popups.map((popup, index) => (
+        <Stack key={popup.id} gap="xs" style={{ padding: 12, border: '1px solid #e4e2e1' }}>
+          <Group align="flex-end">
+            <TextInput
+              label="Nombre interno"
+              value={popup.name}
+              onChange={(e) => updatePopup(index, 'name', e.currentTarget.value)}
+              style={{ flex: 1 }}
+            />
+            <Switch
+              label="Activo"
+              checked={popup.enabled}
+              onChange={(e) => updatePopup(index, 'enabled', e.currentTarget.checked)}
+            />
+            <Button variant="subtle" color="red" onClick={() => removePopup(index)}>
+              Eliminar
+            </Button>
+          </Group>
+          <TextInput
+            label="Título"
+            value={popup.title}
+            onChange={(e) => updatePopup(index, 'title', e.currentTarget.value)}
+          />
+          <Textarea
+            label="Contenido"
+            value={popup.content}
+            onChange={(e) => updatePopup(index, 'content', e.currentTarget.value)}
+            minRows={2}
+          />
+          <Group grow>
+            <TextInput
+              label="Texto del botón"
+              value={popup.buttonText}
+              onChange={(e) => updatePopup(index, 'buttonText', e.currentTarget.value)}
+            />
+            <TextInput
+              label="Link del botón"
+              value={popup.buttonLink}
+              onChange={(e) => updatePopup(index, 'buttonLink', e.currentTarget.value)}
+            />
+          </Group>
+          <Select
+            label="Disparador"
+            value={popup.trigger}
+            onChange={(value) => value && updatePopup(index, 'trigger', value)}
+            data={[
+              { value: 'immediate', label: 'Inmediato' },
+              { value: 'afterDelay', label: 'Después de un delay' },
+              { value: 'scroll', label: 'Al hacer scroll' },
+              { value: 'exitIntent', label: 'Intento de salida' },
+            ]}
+          />
+          {popup.trigger === 'afterDelay' && (
+            <NumberInput
+              label="Segundos de delay"
+              min={0}
+              value={popup.delaySeconds}
+              onChange={(value) => updatePopup(index, 'delaySeconds', Number(value) || 0)}
+            />
+          )}
+          {popup.trigger === 'scroll' && (
+            <NumberInput
+              label="Porcentaje de scroll"
+              min={0}
+              max={100}
+              value={popup.scrollPercent}
+              onChange={(value) => updatePopup(index, 'scrollPercent', Number(value) || 0)}
+            />
+          )}
+          <Group grow>
+            <ColorInput label="Color de fondo" value={popup.backgroundColor} onChange={(value) => updatePopup(index, 'backgroundColor', value)} />
+            <ColorInput label="Color de texto" value={popup.textColor} onChange={(value) => updatePopup(index, 'textColor', value)} />
+          </Group>
+          <Switch
+            label="Mostrar solo una vez"
+            checked={popup.showOnce}
+            onChange={(e) => updatePopup(index, 'showOnce', e.currentTarget.checked)}
+          />
+        </Stack>
+      ))}
+      <Button variant="light" onClick={addPopup}>
+        Agregar popup
+      </Button>
     </>
   );
 }
+
+const FONT_OPTIONS = [
+  { value: 'Bebas Neue', label: 'Bebas Neue' },
+  { value: 'Inter', label: 'Inter' },
+  { value: 'JetBrains Mono', label: 'JetBrains Mono' },
+  { value: 'Roboto', label: 'Roboto' },
+  { value: 'Montserrat', label: 'Montserrat' },
+  { value: 'Playfair Display', label: 'Playfair Display' },
+  { value: 'Source Sans 3', label: 'Source Sans 3' },
+  { value: 'Work Sans', label: 'Work Sans' },
+];

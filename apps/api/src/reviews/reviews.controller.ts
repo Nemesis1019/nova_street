@@ -2,9 +2,10 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuard
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 
-import { Roles } from '../auth/decorators/roles.decorator';
+import { RequirePermission } from '../auth/decorators/require-permission.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { Permission } from '../auth/permissions';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewListResponseDto, ReviewResponseDto } from './dto/review-response.dto';
 import { ReviewsService } from './reviews.service';
@@ -44,12 +45,12 @@ export class ProductReviewsController {
 @ApiTags('admin-reviews')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
 @Controller('admin/reviews')
 export class AdminReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
   @Get()
+  @RequirePermission(Permission.REVIEWS_MODERATE)
   @ApiOkResponse({ description: 'Paginated list of reviews', type: ReviewListResponseDto })
   findAll(
     @Query('page') page?: string,
@@ -68,18 +69,21 @@ export class AdminReviewsController {
   }
 
   @Patch(':id/approve')
+  @RequirePermission(Permission.REVIEWS_MODERATE)
   @ApiOkResponse({ description: 'Review approved', type: ReviewResponseDto })
   approve(@Req() req: Request, @Param('id') id: string) {
     return this.reviewsService.updateApproval(id, true, this.extractUserId(req));
   }
 
   @Patch(':id/reject')
+  @RequirePermission(Permission.REVIEWS_MODERATE)
   @ApiOkResponse({ description: 'Review rejected', type: ReviewResponseDto })
   reject(@Req() req: Request, @Param('id') id: string) {
     return this.reviewsService.updateApproval(id, false, this.extractUserId(req));
   }
 
   @Delete(':id')
+  @RequirePermission(Permission.REVIEWS_MODERATE)
   @ApiOkResponse({ description: 'Review deleted' })
   remove(@Req() req: Request, @Param('id') id: string) {
     return this.reviewsService.remove(id, this.extractUserId(req));

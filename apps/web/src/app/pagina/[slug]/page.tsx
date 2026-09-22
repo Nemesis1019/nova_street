@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { apiClient } from '../../../lib/api';
+import { buildPageSeoMetadata } from '../../../lib/seo';
+import type { StoreConfig } from '../../../providers/config-provider';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -11,14 +13,12 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   try {
-    const { data } = await apiClient.GET('/pages/{slug}', {
-      params: { path: { slug } },
-    });
-    if (!data) return {};
-    return {
-      title: data.metaTitle || data.title,
-      description: data.metaDescription,
-    };
+    const [{ data: page }, { data: config }] = await Promise.all([
+      apiClient.GET('/pages/{slug}', { params: { path: { slug } } }),
+      apiClient.GET('/store-config'),
+    ]);
+    if (!page) return {};
+    return buildPageSeoMetadata(config as StoreConfig | undefined, page);
   } catch {
     return {};
   }

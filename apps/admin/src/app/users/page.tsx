@@ -4,13 +4,14 @@ import { Badge, Button, Group, Modal, Pagination, Paper, Select, Stack, Table, T
 import { useDisclosure } from '@mantine/hooks';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { AdminShell } from '../../components/admin-shell';
 import { EmptyState } from '../../components/empty-state';
 import { LoadingState } from '../../components/loading-state';
 import { apiClient } from '../../lib/api';
 import { getApiErrorMessage, notifyError, notifySuccess } from '../../lib/notifications';
+import { allPermissions, defaultNewUserPermissions, permissionLabels } from '../../lib/permissions';
 
 const roleOptions = [
   { value: 'ADMIN', label: 'Admin' },
@@ -29,6 +30,16 @@ export default function UsersPage() {
   const [suspendUserId, setSuspendUserId] = useState<string | null>(null);
   const [suspendReason, setSuspendReason] = useState('');
   const [suspendOpened, { open: openSuspend, close: closeSuspend }] = useDisclosure(false);
+  const [userPermissions, setUserPermissions] = useState<string[]>([]);
+  const [createOpened, { open: openCreate, close: closeCreate }] = useDisclosure(false);
+  const [createForm, setCreateForm] = useState({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    roleName: 'CUSTOMER',
+    permissions: defaultNewUserPermissions,
+  });
 
   const { data: usersResponse, isLoading } = useQuery({
     queryKey: ['admin-users', page, search, roleFilter],
@@ -47,6 +58,17 @@ export default function UsersPage() {
       return data;
     },
   });
+
+  const { data: rolesResponse } = useQuery({
+    queryKey: ['admin-roles'],
+    queryFn: async () => {
+      const { data, error } = await apiClient.GET('/admin/users/roles');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const availableRoles = rolesResponse?.data.map((role) => ({ value: role.name, label: role.name })) ?? roleOptions;
 
   const { data: detail } = useQuery({
     queryKey: ['admin-user', detailId],
@@ -116,8 +138,64 @@ export default function UsersPage() {
     },
   });
 
+  const updateUserPermissions = useMutation({
+    mutationFn: async ({ id, permissions }: { id: string; permissions: string[] }) => {
+      const { error } = await apiClient.PATCH('/admin/users/{id}/permissions', {
+        params: { path: { id } },
+        body: { permissions },
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-user', detailId] });
+      notifySuccess({ title: 'Permisos actualizados' });
+    },
+    onError: (error) => {
+      notifyError({ title: 'Error al actualizar permisos', message: getApiErrorMessage(error) });
+    },
+  });
+
+  const createUser = useMutation({
+    mutationFn: async (payload: {
+      email: string;
+      password: string;
+      firstName: string;
+      lastName: string;
+      roleName: string;
+      permissions: string[];
+    }) => {
+      const { error } = await apiClient.POST('/admin/users', {
+        body: payload,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      setCreateForm({
+        email: '',
+        password: '',
+        firstName: '',
+        lastName: '',
+        roleName: 'CUSTOMER',
+        permissions: defaultNewUserPermissions,
+      });
+      closeCreate();
+      notifySuccess({ title: 'Usuario creado' });
+    },
+    onError: (error) => {
+      notifyError({ title: 'Error al crear usuario', message: getApiErrorMessage(error) });
+    },
+  });
+
   const users = usersResponse?.data ?? [];
   const totalPages = usersResponse?.meta?.total ? Math.ceil(usersResponse.meta.total / limit) : 1;
+
+  useEffect(() => {
+    if (detail) {
+      setUserPermissions(detail.permissions ?? []);
+    }
+  }, [detail]);
 
   function handleOpenDetail(id: string) {
     setDetailId(id);
@@ -131,9 +209,10 @@ export default function UsersPage() {
 
   return (
     <AdminShell>
-      <Title order={1} mb="md">
-        Usuarios
-      </Title>
+      <Group mb="md" justify="space-between">
+        <Title order={1}>Usuarios</Title>
+        <Button onClick={openCreate}>Nuevo usuario</Button>
+      </Group>
 
       <Paper p="md">
         <Group mb="md" grow align="flex-end">
@@ -149,7 +228,7 @@ export default function UsersPage() {
           <Select
             label="Rol"
             placeholder="Todos"
-            data={roleOptions}
+            data={availableRoles}
             value={roleFilter}
             onChange={(value) => {
               setRoleFilter(value);
@@ -230,13 +309,44 @@ export default function UsersPage() {
               <strong>Creado:</strong> {new Date(detail.createdAt).toLocaleString()}
             </Text>
 
-            <Select
-              label="Rol"
-              data={roleOptions}
-              value={detail.role.name}
-              onChange={(value) => value && updateRole.mutate({ id: detail.id, roleName: value })}
-              mt="md"
-            />
+          <Select
+            label="Rol"
+            data={availableRoles}
+            value={detail.role.name}
+            onChange={(value) => value && updateRole.mutate({ id: detail.id, roleName: value })}
+            mt="md"
+          />
+
+            <Text size="sm" mt="md" mb="xs">
+              <strong>Permisos directos del usuario</strong>
+            </Text>
+            <Stack gap="xs" mb="md">
+              {allPermissions.map((permission) => (
+                <label key={permission} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <input
+                    type="checkbox"
+                    checked={userPermissions.includes(permission)}
+                    onChange={(event) => {
+                      setUserPermissions((prev) =>
+                        event.target.checked
+                          ? [...prev, permission]
+                          : prev.filter((p) => p !== permission),
+                      );
+                    }}
+                  />
+                  <span>{permissionLabels[permission] || permission}</span>
+                </label>
+              ))}
+            </Stack>
+            <Button
+              size="xs"
+              onClick={() =>
+                updateUserPermissions.mutate({ id: detail.id, permissions: userPermissions })
+              }
+              loading={updateUserPermissions.isPending}
+            >
+              Guardar permisos
+            </Button>
 
             {detail.isSuspended && (
               <Text c="red" size="sm" mt="sm">
@@ -287,6 +397,87 @@ export default function UsersPage() {
               }}
             >
               Suspender
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      <Modal opened={createOpened} onClose={closeCreate} title="Crear usuario" size="md">
+        <Stack>
+          <TextInput
+            label="Email"
+            type="email"
+            value={createForm.email}
+            onChange={(event) => {
+              const value = event.currentTarget.value;
+              setCreateForm((prev) => ({ ...prev, email: value }));
+            }}
+          />
+          <TextInput
+            label="Contraseña"
+            type="password"
+            value={createForm.password}
+            onChange={(event) => {
+              const value = event.currentTarget.value;
+              setCreateForm((prev) => ({ ...prev, password: value }));
+            }}
+          />
+          <TextInput
+            label="Nombre"
+            value={createForm.firstName}
+            onChange={(event) => {
+              const value = event.currentTarget.value;
+              setCreateForm((prev) => ({ ...prev, firstName: value }));
+            }}
+          />
+          <TextInput
+            label="Apellido"
+            value={createForm.lastName}
+            onChange={(event) => {
+              const value = event.currentTarget.value;
+              setCreateForm((prev) => ({ ...prev, lastName: value }));
+            }}
+          />
+          <Select
+            label="Rol"
+            data={availableRoles}
+            value={createForm.roleName}
+            onChange={(value) => value && setCreateForm((prev) => ({ ...prev, roleName: value }))}
+          />
+          <Text size="sm">
+            <strong>Permisos</strong>
+          </Text>
+          {allPermissions.map((permission) => (
+            <label key={permission} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={createForm.permissions.includes(permission)}
+                onChange={(event) => {
+                  const checked = event.target.checked;
+                  setCreateForm((prev) => ({
+                    ...prev,
+                    permissions: checked
+                      ? [...prev.permissions, permission]
+                      : prev.permissions.filter((p) => p !== permission),
+                  }));
+                }}
+              />
+              <span>{permissionLabels[permission] || permission}</span>
+            </label>
+          ))}
+          <Group justify="flex-end" mt="md">
+            <Button variant="default" onClick={closeCreate}>
+              Cancelar
+            </Button>
+            <Button
+              loading={createUser.isPending}
+              onClick={() => {
+                if (createForm.email && createForm.password && createForm.firstName && createForm.lastName) {
+                  createUser.mutate(createForm);
+                }
+              }}
+            >
+              Crear
             </Button>
           </Group>
         </Stack>

@@ -8,6 +8,7 @@ import {
   Modal,
   NumberInput,
   Paper,
+  SegmentedControl,
   Select,
   Stack,
   Switch,
@@ -16,15 +17,17 @@ import {
   Title,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useDisclosure } from '@mantine/hooks';
+import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { AdminShell } from '../../../components/admin-shell';
 import { apiClient } from '../../../lib/api';
-import { uploadAsset } from '../../../lib/assets';
+import { createExternalAsset, uploadAsset } from '../../../lib/assets';
 import { getApiErrorMessage, notifyError, notifySuccess } from '../../../lib/notifications';
+
+type ImageMode = 'file' | 'url';
 
 interface ProductFormValues {
   name: string;
@@ -56,6 +59,11 @@ export default function ProductDetailPage() {
   const [opened, { open, close }] = useDisclosure(false);
   const [editingVariant, setEditingVariant] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState('');
+  const [imageMode, setImageMode] = useState<ImageMode>('file');
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [hasDraft, setHasDraft] = useState(false);
 
   const variantForm = useForm<VariantFormValues>({
     initialValues: {
@@ -90,16 +98,75 @@ export default function ProductDetailPage() {
 
   const form = useForm<ProductFormValues>({
     initialValues: {
-      name: product?.name ?? '',
-      slug: product?.slug ?? '',
-      description: product?.description ?? '',
-      metaTitle: product?.metaTitle ?? '',
-      metaDescription: product?.metaDescription ?? '',
-      basePrice: product?.basePrice ?? 0,
-      categoryId: product?.categoryId ?? '',
-      isActive: product?.isActive ?? true,
+      name: '',
+      slug: '',
+      description: '',
+      metaTitle: '',
+      metaDescription: '',
+      basePrice: 0,
+      categoryId: '',
+      isActive: true,
     },
   });
+
+  useEffect(() => {
+    if (product && !isInitialized) {
+      form.setValues({
+        name: product.name,
+        slug: product.slug,
+        description: product.description ?? '',
+        metaTitle: product.metaTitle ?? '',
+        metaDescription: product.metaDescription ?? '',
+        basePrice: product.basePrice,
+        categoryId: product.categoryId,
+        isActive: product.isActive,
+      });
+      setIsInitialized(true);
+    }
+  }, [product, isInitialized, form]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(`product-draft-${productId}`);
+    setHasDraft(Boolean(saved));
+  }, [productId]);
+
+  useEffect(() => {
+    if (imageMode === 'file') {
+      if (!imageFile) {
+        setImagePreviewUrl(null);
+        return undefined;
+      }
+      const url = URL.createObjectURL(imageFile);
+      setImagePreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+
+    const url = imageUrl.trim();
+    setImagePreviewUrl(url || null);
+    return undefined;
+  }, [imageFile, imageUrl, imageMode]);
+
+  const [debouncedValues] = useDebouncedValue(form.values, 1000);
+
+  useEffect(() => {
+    if (isInitialized && productId) {
+      localStorage.setItem(`product-draft-${productId}`, JSON.stringify(debouncedValues));
+    }
+  }, [debouncedValues, isInitialized, productId]);
+
+  const restoreDraft = () => {
+    const saved = localStorage.getItem(`product-draft-${productId}`);
+    if (saved) {
+      form.setValues(JSON.parse(saved) as ProductFormValues);
+      notifySuccess({ title: 'Borrador restaurado' });
+    }
+    setHasDraft(false);
+  };
+
+  const discardDraft = () => {
+    localStorage.removeItem(`product-draft-${productId}`);
+    setHasDraft(false);
+  };
 
   const updateProduct = useMutation({
     mutationFn: async (values: ProductFormValues) => {
@@ -111,6 +178,8 @@ export default function ProductDetailPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-product', productId] });
+      localStorage.removeItem(`product-draft-${productId}`);
+      setHasDraft(false);
       notifySuccess({ title: 'Producto actualizado' });
     },
     onError: (error) => {
@@ -174,8 +243,16 @@ export default function ProductDetailPage() {
   });
 
   const addImage = useMutation({
-    mutationFn: async (file: File) => {
-      const asset = await uploadAsset(file);
+    mutationFn: async ({ file, url }: { file?: File; url?: string }) => {
+      let asset: { id: string };
+      if (file) {
+        asset = await uploadAsset(file);
+      } else if (url) {
+        asset = await createExternalAsset(url);
+      } else {
+        throw new Error('No image provided');
+      }
+
       const { error } = await apiClient.POST('/admin/products/{id}/images', {
         params: { path: { id: productId } },
         body: { assetId: asset.id } as never,
@@ -185,11 +262,12 @@ export default function ProductDetailPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-product', productId] });
-      notifySuccess({ title: 'Imagen subida' });
+      notifySuccess({ title: 'Imagen agregada' });
       setImageFile(null);
+      setImageUrl('');
     },
     onError: (error) => {
-      notifyError({ title: 'Error al subir imagen', message: getApiErrorMessage(error) });
+      notifyError({ title: 'Error al agregar imagen', message: getApiErrorMessage(error) });
     },
   });
 
@@ -255,9 +333,21 @@ export default function ProductDetailPage() {
     <AdminShell>
       <Group justify="space-between" mb="md">
         <Title order={1}>Editar producto</Title>
-        <Button variant="subtle" onClick={() => router.push('/products')}>
-          Volver
-        </Button>
+        <Group gap="xs">
+          {hasDraft && (
+            <>
+              <Button size="xs" variant="light" onClick={restoreDraft}>
+                Restaurar borrador
+              </Button>
+              <Button size="xs" variant="subtle" color="red" onClick={discardDraft}>
+                Descartar borrador
+              </Button>
+            </>
+          )}
+          <Button variant="subtle" onClick={() => router.push('/products')}>
+            Volver
+          </Button>
+        </Group>
       </Group>
 
       <Paper p="md" mb="xl">
@@ -376,18 +466,54 @@ export default function ProductDetailPage() {
           ))}
         </Group>
 
-        <Group gap="sm">
-          <FileInput
-            placeholder="Seleccionar imagen"
-            value={imageFile}
-            onChange={setImageFile}
-            accept="image/*"
-            style={{ flex: 1 }}
+        <Stack gap="sm">
+          <SegmentedControl
+            data={[
+              { label: 'Subir archivo', value: 'file' },
+              { label: 'Usar URL', value: 'url' },
+            ]}
+            value={imageMode}
+            onChange={(value) => setImageMode(value as ImageMode)}
           />
-          <Button onClick={() => imageFile && addImage.mutate(imageFile)} loading={addImage.isPending} disabled={!imageFile}>
-            Subir imagen
+          {imageMode === 'file' ? (
+            <FileInput
+              placeholder="Seleccionar imagen"
+              value={imageFile}
+              onChange={setImageFile}
+              accept="image/*"
+              style={{ flex: 1 }}
+            />
+          ) : (
+            <TextInput
+              placeholder="https://..."
+              value={imageUrl}
+              onChange={(event) => setImageUrl(event.currentTarget.value)}
+              style={{ flex: 1 }}
+            />
+          )}
+          {imagePreviewUrl && (
+            <Image
+              src={imagePreviewUrl}
+              alt="Vista previa"
+              radius="md"
+              height={160}
+              fit="contain"
+            />
+          )}
+          <Button
+            onClick={() => {
+              if (imageMode === 'file' && imageFile) {
+                addImage.mutate({ file: imageFile });
+              } else if (imageMode === 'url' && imageUrl.trim()) {
+                addImage.mutate({ url: imageUrl.trim() });
+              }
+            }}
+            loading={addImage.isPending}
+            disabled={imageMode === 'file' ? !imageFile : !imageUrl.trim()}
+          >
+            Agregar imagen
           </Button>
-        </Group>
+        </Stack>
       </Paper>
 
       <Modal opened={opened} onClose={close} title={editingVariant ? 'Editar variante' : 'Nueva variante'}>

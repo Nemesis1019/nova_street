@@ -272,4 +272,47 @@ describe('AdminOrdersController (e2e)', () => {
     expect(refundRes.body.paymentStatus).toBe(PaymentStatus.REFUNDED);
     expect(refundRes.body.refundReason).toBe('Reembolso por error de cobro');
   });
+
+  it('bulk updates status for selected orders', async () => {
+    const adminToken = await getAdminToken(app);
+    const { userId } = await createVerifiedUserAndGetToken(app);
+
+    const address = await prisma.address.create({
+      data: {
+        userId,
+        label: 'Casa',
+        line1: 'Av Siempre Viva 123',
+        city: 'Montevideo',
+        state: 'Montevideo',
+        zipCode: '11800',
+        country: 'UY',
+        phone: '099123456',
+      },
+    });
+
+    const order = await prisma.order.create({
+      data: {
+        userId,
+        status: OrderStatus.PENDING_PAYMENT,
+        paymentStatus: PaymentStatus.PENDING,
+        subtotal: 10_000,
+        shippingCost: 500,
+        totalAmount: 10_500,
+        shippingAddressId: address.id,
+        billingAddressId: address.id,
+      },
+    });
+
+    const res = await request(app.getHttpServer())
+      .post('/admin/orders/bulk/status')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ status: OrderStatus.PAID, ids: [order.id] })
+      .expect(201);
+
+    expect(res.body.status).toBe(OrderStatus.PAID);
+    expect(res.body.count).toBe(1);
+
+    const updated = await prisma.order.findUnique({ where: { id: order.id } });
+    expect(updated?.status).toBe(OrderStatus.PAID);
+  });
 });

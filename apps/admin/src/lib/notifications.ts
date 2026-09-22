@@ -20,12 +20,51 @@ export function notifyError({ title, message }: { title: string; message?: strin
   });
 }
 
-export function getApiErrorMessage(error: unknown): string {
-  if (typeof error === 'string') return error;
-  if (error && typeof error === 'object') {
-    if ('message' in error && typeof (error as Error).message === 'string') {
-      return (error as Error).message;
+function extractMessage(value: unknown): string | undefined {
+  if (typeof value === 'string') return value;
+  if (value && typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    if (typeof obj.message === 'string') return obj.message;
+    if (Array.isArray(obj.message)) return obj.message.map(String).join(', ');
+    if (Array.isArray(obj.errors)) {
+      return obj.errors
+        .map((item) => {
+          if (typeof item === 'string') return item;
+          if (item && typeof item === 'object') {
+            const itemObj = item as Record<string, unknown>;
+            if (typeof itemObj.message === 'string') return itemObj.message;
+            if (typeof itemObj.msg === 'string') return itemObj.msg;
+          }
+          return String(item);
+        })
+        .filter(Boolean)
+        .join(', ');
     }
+    if (typeof obj.error === 'string') return obj.error;
   }
-  return 'Ocurrió un error inesperado';
+  return undefined;
+}
+
+export function getApiErrorMessage(error: unknown): string {
+  if (error === null || error === undefined) {
+    return 'Ocurrió un error inesperado';
+  }
+
+  if (typeof error === 'string') return error;
+  if (error instanceof Error) return error.message || 'Ocurrió un error inesperado';
+
+  const direct = extractMessage(error);
+  if (direct) return direct;
+
+  // openapi-fetch sometimes wraps the response body in an `error` property.
+  if (error && typeof error === 'object' && 'error' in error) {
+    const nested = extractMessage((error as Record<string, unknown>).error);
+    if (nested) return nested;
+  }
+
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return 'Ocurrió un error inesperado';
+  }
 }

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 import { apiClient } from '../../../lib/api';
+import { uploadAsset } from '../../../lib/assets';
 import { getApiErrorMessage, notifyError, notifySuccess } from '../../../lib/notifications';
 import { useTranslation } from '../../../providers/i18n-provider';
 import { useAuthStore } from '../../../store/auth-store';
@@ -51,18 +52,7 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
     setUploading(true);
     try {
       const results = await Promise.all(
-        toUpload.map(async (file) => {
-          const formData = new FormData();
-          formData.append('file', file);
-          const token = useAuthStore.getState().accessToken;
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/assets/upload-review`, {
-            method: 'POST',
-            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-            body: formData,
-          });
-          if (!res.ok) throw new Error('Error al subir foto');
-          return res.json() as Promise<{ id: string; url: string }>;
-        }),
+        toUpload.map(async (file) => uploadAsset(file, 'REVIEW_IMAGE')),
       );
       setUploadedAssets((prev) => [...prev, ...results].slice(0, MAX_REVIEW_PHOTOS));
     } catch (error) {

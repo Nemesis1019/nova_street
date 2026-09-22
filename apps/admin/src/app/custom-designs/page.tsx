@@ -75,7 +75,7 @@ export default function CustomDesignsPage() {
           },
         },
       });
-      return data ?? [];
+      return data ?? { data: [], meta: { page: 1, limit: 20, total: 0 } };
     },
   });
 
@@ -114,7 +114,9 @@ export default function CustomDesignsPage() {
     return <LoginForm />;
   }
 
-  const rows = designs?.map((design) => (
+  const designList = designs?.data ?? [];
+
+  const rows = designList.map((design) => (
     <Table.Tr key={design.id}>
       <Table.Td>
         {design.previewImageUrl ? (
@@ -188,7 +190,7 @@ export default function CustomDesignsPage() {
             style={{ minWidth: 200 }}
           />
           <Text size="sm" c="dimmed">
-            {designs?.length ?? 0} diseños
+            {designs?.meta?.total ?? designList.length} diseños
           </Text>
         </Group>
 
@@ -212,7 +214,7 @@ export default function CustomDesignsPage() {
               <Table.Tbody>{rows}</Table.Tbody>
             </Table>
 
-            {designs?.length === 0 && (
+            {designList.length === 0 && (
               <EmptyState
                 title="No hay diseños"
                 description="No se encontraron diseños personalizados con el filtro seleccionado."

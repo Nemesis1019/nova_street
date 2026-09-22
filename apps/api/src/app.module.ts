@@ -1,14 +1,16 @@
 import { CacheModule } from '@nestjs/cache-manager';
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import cookieParser from 'cookie-parser';
 
 import { AddressesModule } from './addresses/addresses.module';
 import { AdminCatalogModule } from './admin-catalog/admin-catalog.module';
 import { AdminCouponsModule } from './admin-coupons/admin-coupons.module';
 import { AdminDashboardModule } from './admin-dashboard/admin-dashboard.module';
 import { AdminOrdersModule } from './admin-orders/admin-orders.module';
+import { AdminSearchModule } from './admin-search/admin-search.module';
 import { AdminUsersModule } from './admin-users/admin-users.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AppController } from './app.controller';
@@ -28,6 +30,7 @@ import { EmailModule } from './email/email.module';
 import { ExportModule } from './export/export.module';
 import { HealthModule } from './health/health.module';
 import { NewsletterModule } from './newsletter/newsletter.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { OrdersModule } from './orders/orders.module';
 import { PagesModule } from './pages/pages.module';
 import { PaymentModule } from './payment/payment.module';
@@ -82,6 +85,7 @@ import { WishlistModule } from './wishlist/wishlist.module';
     AdminCatalogModule,
     AdminCouponsModule,
     AdminOrdersModule,
+    AdminSearchModule,
     AdminUsersModule,
     AdminDashboardModule,
     AnalyticsModule,
@@ -106,6 +110,7 @@ import { WishlistModule } from './wishlist/wishlist.module';
     ExportModule,
     HealthModule,
     NewsletterModule,
+    NotificationsModule,
     PagesModule,
   ],
   controllers: [AppController],
@@ -117,4 +122,8 @@ import { WishlistModule } from './wishlist/wishlist.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(cookieParser()).forRoutes('*');
+  }
+}
