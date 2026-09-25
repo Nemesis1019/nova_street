@@ -33,6 +33,9 @@ lerna-debug.log*
 .env.local
 .env.*.local
 
+# Doppler local config (per-dev)
+doppler.yaml
+
 # Testing
 coverage/
 

@@ -1293,7 +1293,98 @@ Cuando se pida implementar una feature:
 
 ---
 
-## 26. Prioridad del proyecto
+## 26. Setup local y variables de entorno con Doppler
+
+El monorepo usa **Doppler** como fuente de verdad para secretos y variables de entorno. Cada app (`apps/api`, `apps/web`, `apps/admin`) tiene su propio proyecto en Doppler, con al menos la configuración `dev`.
+
+### Requisitos previos
+
+- Node.js y pnpm (`packageManager: pnpm@11.9.0`).
+- PostgreSQL y Redis ejecutándose localmente (o vía Docker Compose).
+- Doppler CLI instalado y autenticado:
+
+  ```bash
+  doppler --version
+  doppler login
+  ```
+
+### Estructura recomendada en Doppler
+
+Crear tres proyectos en Doppler:
+
+```txt
+ecommerce-api     <- config: dev, stg, prd
+ecommerce-web     <- config: dev, stg, prd
+ecommerce-admin   <- config: dev, stg, prd
+```
+
+Cada proyecto contiene las variables necesarias para su app. Los archivos `.env` de ejemplo (`apps/api/.env.example`, `apps/web/.env.example`, `apps/admin/.env.example`) indican qué variables requiere cada una.
+
+### Subir `.env` existente a Doppler
+
+Si ya tenés archivos `.env` locales, subilos una vez para popular Doppler:
+
+```bash
+cd apps/api
+# Crear primero el proyecto y config "dev" en la UI de Doppler, luego:
+doppler secrets upload dev .env
+
+cd ../web
+doppler secrets upload dev .env
+
+cd ../admin
+doppler secrets upload dev .env
+```
+
+### Configurar `doppler.yaml` por app
+
+En cada app hay un archivo `doppler.yaml.example`. Copialo a `doppler.yaml` y ajustá el nombre del proyecto si usás otro:
+
+```bash
+cp apps/api/doppler.yaml.example apps/api/doppler.yaml
+cp apps/web/doppler.yaml.example apps/web/doppler.yaml
+cp apps/admin/doppler.yaml.example apps/admin/doppler.yaml
+```
+
+Ejemplo de `apps/api/doppler.yaml`:
+
+```yaml
+project: ecommerce-api
+config: dev
+```
+
+> `doppler.yaml` está en `.gitignore` porque el nombre del proyecto puede variar entre desarrolladores/entornos.
+
+### Levantar el entorno de desarrollo
+
+Con las variables desde Doppler:
+
+```bash
+# API
+pnpm run doppler:api
+
+# Web (storefront) — en otra terminal
+pnpm run doppler:web
+
+# Admin — en otra terminal
+pnpm run doppler:admin
+```
+
+Equivalente manual (si preferís no usar los scripts de root):
+
+```bash
+cd apps/api && doppler run -- pnpm dev
+cd apps/web && doppler run -- pnpm dev
+cd apps/admin && doppler run -- pnpm dev
+```
+
+### Sin Doppler (fallback local)
+
+Si no querés usar Doppler temporalmente, cada app sigue leyendo archivos `.env` locales. Mantené los `.env.example` actualizados y nunca commitees `.env` reales.
+
+---
+
+## 27. Prioridad del proyecto
 
 La prioridad técnica es construir una base robusta y mantenible, no solo avanzar rápido.
 

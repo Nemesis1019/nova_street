@@ -11,7 +11,10 @@
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "generate:api-client": "turbo run generate:api-client"
+    "generate:api-client": "turbo run generate:api-client",
+    "doppler:api": "cd apps/api && doppler run -- pnpm dev",
+    "doppler:web": "cd apps/web && doppler run -- pnpm dev",
+    "doppler:admin": "cd apps/admin && doppler run -- pnpm dev"
   },
   "keywords": [
     "ecommerce",

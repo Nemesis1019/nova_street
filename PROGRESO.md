@@ -1362,4 +1362,11 @@ Funcionalidades identificadas para próximas sesiones, en orden de impacto/técn
   - `pnpm --filter api-client generate build typecheck` → exitoso.
   - `pnpm --filter api test` → auth pasa; fallan 5 tests no relacionados en `custom-designs`, `admin-orders` y `critical-flows` (errores 500 preexistentes o de otro servicio).
 
+- [23:45] Documentación y setup con Doppler:
+  - Agregada sección "Setup local y variables de entorno con Doppler" en `skills.md`.
+  - Creados `apps/api/doppler.yaml.example`, `apps/web/doppler.yaml.example` y `apps/admin/doppler.yaml.example`.
+  - Agregados `doppler.yaml` a `.gitignore`.
+  - Agregados scripts `doppler:api`, `doppler:web` y `doppler:admin` en `package.json` raíz.
+  - Verificación: `pnpm --filter api lint typecheck build` y builds de admin/web siguen exitosos.
+
 **Fin de sesión.** Estado dejado verificado con build, typecheck, lint y tests de auth/frontends exitosos.
