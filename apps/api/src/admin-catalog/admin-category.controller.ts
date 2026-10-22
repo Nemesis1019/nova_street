@@ -10,6 +10,7 @@ import { Permission } from '../auth/permissions';
 import { AdminCategoryService } from './admin-category.service';
 import { CategoryDetailDto, CategoryResponseDto } from './dto/admin-catalog-response.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { ReorderCategoriesDto } from './dto/reorder-categories.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @ApiTags('admin-catalog')
@@ -50,6 +51,22 @@ export class AdminCategoryController {
   @ApiOkResponse({ type: CategoryDetailDto })
   findOne(@Param('id') id: string) {
     return this.adminCategoryService.findById(id);
+  }
+
+  @Patch('reorder')
+  @RequirePermission(Permission.CATEGORIES_WRITE)
+  @ApiOkResponse({ description: 'Categories reordered' })
+  async reorder(@Req() req: Request, @Body() dto: ReorderCategoriesDto) {
+    const userId = this.extractUserId(req);
+    const result = await this.adminCategoryService.reorder(dto.items);
+    await this.auditService.log({
+      userId,
+      action: 'REORDER_CATEGORIES',
+      entity: 'Category',
+      entityId: 'bulk',
+      after: { items: dto.items },
+    });
+    return result;
   }
 
   @Patch(':id')

@@ -27,6 +27,7 @@ export class AdminCategoryService {
         metaDescription: dto.metaDescription,
         parentId: dto.parentId,
         isActive: dto.isActive ?? true,
+        sortOrder: dto.sortOrder ?? 0,
       },
     });
     await this.invalidateCatalogCache();
@@ -34,9 +35,11 @@ export class AdminCategoryService {
   }
 
   async findAll() {
-    return this.prisma.category.findMany({
-      orderBy: { name: 'asc' },
+    const categories = await this.prisma.category.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+      include: { _count: { select: { products: true } } },
     });
+    return categories.map(({ _count, ...category }) => ({ ...category, productCount: _count.products }));
   }
 
   async findById(id: string) {
@@ -65,10 +68,24 @@ export class AdminCategoryService {
         metaDescription: dto.metaDescription,
         parentId: dto.parentId,
         isActive: dto.isActive,
+        sortOrder: dto.sortOrder,
       },
     });
     await this.invalidateCatalogCache();
     return category;
+  }
+
+  async reorder(items: Array<{ id: string; sortOrder: number }>) {
+    await this.prisma.$transaction(
+      items.map((item) =>
+        this.prisma.category.update({
+          where: { id: item.id },
+          data: { sortOrder: item.sortOrder },
+        }),
+      ),
+    );
+    await this.invalidateCatalogCache();
+    return { updated: items.length };
   }
 
   async remove(id: string) {

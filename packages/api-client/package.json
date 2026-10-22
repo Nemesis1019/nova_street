@@ -18,6 +18,7 @@
     "build": "tsup src/index.ts --format cjs,esm --dts --clean",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "lint": "pnpm exec eslint src/**/*.ts",
     "clean": "rm -rf dist .turbo"
   },
@@ -27,7 +28,8 @@
     "eslint": "^9.20.0",
     "openapi-typescript": "^7.0.0",
     "tsup": "^8.4.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.9"
   },
   "publishConfig": {
     "access": "restricted"

@@ -53,7 +53,7 @@ export default function OrderDetailPage() {
   const router = useRouter();
   const params = useParams();
   const orderId = params.id as string;
-  const { isAuthenticated, isHydrated } = useAuthStore();
+  const { isAuthenticated, sessionReady } = useAuthStore();
 
   const {
     data: order,
@@ -88,7 +88,7 @@ export default function OrderDetailPage() {
     },
   });
 
-  if (!isHydrated) {
+  if (!sessionReady) {
     return (
       <>
         <StoreHeader />
@@ -221,15 +221,43 @@ export default function OrderDetailPage() {
                       <Group
                         key={item.id}
                         justify="space-between"
+                        wrap="nowrap"
                         style={{ borderBottom: '1px solid rgba(13,13,13,0.1)', paddingBottom: 12 }}
                       >
-                        <div>
-                          <Text fw={500}>{item.name ?? item.type}</Text>
-                          <Text size="xs" c="dimmed" style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>
-                            CANTIDAD: {item.quantity}
-                          </Text>
-                        </div>
-                        <Text style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>
+                        <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
+                          {item.imageUrl ? (
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name ?? ''}
+                              loading="lazy"
+                              style={{
+                                width: 56,
+                                height: 56,
+                                objectFit: 'cover',
+                                border: '1px solid rgba(13,13,13,0.2)',
+                                flexShrink: 0,
+                              }}
+                            />
+                          ) : (
+                            <span
+                              aria-hidden="true"
+                              style={{
+                                width: 56,
+                                height: 56,
+                                backgroundColor: '#f6f3f2',
+                                border: '1px solid rgba(13,13,13,0.2)',
+                                flexShrink: 0,
+                              }}
+                            />
+                          )}
+                          <div>
+                            <Text fw={500}>{item.name ?? item.type}</Text>
+                            <Text size="xs" c="dimmed" style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>
+                              CANTIDAD: {item.quantity}
+                            </Text>
+                          </div>
+                        </Group>
+                        <Text style={{ fontFamily: 'var(--font-jetbrains-mono)', flexShrink: 0 }}>
                           {format(item.unitPrice * item.quantity)}
                         </Text>
                       </Group>

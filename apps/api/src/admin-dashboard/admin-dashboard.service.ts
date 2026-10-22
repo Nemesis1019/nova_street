@@ -56,8 +56,8 @@ export class AdminDashboardService {
     };
   }
 
-  async getTrends() {
-    const days = 7;
+  async getTrends(requestedDays = 7) {
+    const days = Math.min(Math.max(Math.trunc(requestedDays) || 7, 1), 90);
     const dates: Date[] = [];
     const today = new Date();
     today.setHours(0, 0, 0, 0);

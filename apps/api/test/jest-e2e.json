@@ -3,7 +3,10 @@
   "rootDir": ".",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
+  "setupFiles": ["<rootDir>/e2e-setup.ts"],
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
-  }
+    "^.+\\.ts$": "ts-jest",
+    "^.+\\.js$": "<rootDir>/esm-js-transformer.js"
+  },
+  "transformIgnorePatterns": ["/node_modules/(?!(.pnpm|@scure|@noble|@otplib|otplib)/)"]
 }

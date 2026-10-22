@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { CartItemType } from '@prisma/client';
 
+import { buildAssetUrl } from '../assets/asset-url.util';
 import { PrismaService } from '../prisma/prisma.service';
 import { StockPolicyResolver } from '../stock/stock-policy.resolver';
 import { AddCartItemDto } from './dto/add-cart-item.dto';
@@ -20,6 +21,14 @@ export type CartItemSummary = {
   unitPrice: number;
   subtotal: number;
   name?: string;
+  imageUrl?: string;
+  productVariant?: {
+    id: string;
+    sku: string;
+    size?: string;
+    color?: string;
+    product: { name: string; slug: string };
+  };
 };
 
 export type CartSummary = {
@@ -43,7 +52,22 @@ export class CartService {
           include: {
             productVariant: {
               include: {
-                product: { select: { name: true, slug: true } },
+                product: {
+                  select: {
+                    name: true,
+                    slug: true,
+                    images: {
+                      orderBy: { sortOrder: 'asc' },
+                      take: 1,
+                      include: { asset: { select: { bucket: true, objectKey: true } } },
+                    },
+                  },
+                },
+                images: {
+                  orderBy: { sortOrder: 'asc' },
+                  take: 1,
+                  include: { asset: { select: { bucket: true, objectKey: true } } },
+                },
               },
             },
             customDesign: {
@@ -64,7 +88,22 @@ export class CartService {
             include: {
               productVariant: {
                 include: {
-                  product: { select: { name: true, slug: true } },
+                  product: {
+                  select: {
+                    name: true,
+                    slug: true,
+                    images: {
+                      orderBy: { sortOrder: 'asc' },
+                      take: 1,
+                      include: { asset: { select: { bucket: true, objectKey: true } } },
+                    },
+                  },
+                },
+                images: {
+                  orderBy: { sortOrder: 'asc' },
+                  take: 1,
+                  include: { asset: { select: { bucket: true, objectKey: true } } },
+                },
                 },
               },
               customDesign: {
@@ -238,24 +277,50 @@ export class CartService {
         customDesignId: string | null;
         quantity: number;
         unitPrice: number;
-        productVariant?: { product?: { name: string } } | null;
+        productVariant?: {
+          id: string;
+          sku: string;
+          size?: string | null;
+          color?: string | null;
+          product?: {
+            name: string;
+            slug: string;
+            images?: Array<{ asset: { bucket: string; objectKey: string } | null }>;
+          };
+          images?: Array<{ asset: { bucket: string; objectKey: string } | null }>;
+        } | null;
         customDesign?: { designTemplate?: { name: string } } | null;
       }>;
     },
   ): CartSummary {
-    const items = cart.items.map((item) => ({
-      id: item.id,
-      type: item.type,
-      productVariantId: item.productVariantId,
-      customDesignId: item.customDesignId,
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      subtotal: item.unitPrice * item.quantity,
-      name:
-        item.productVariant?.product?.name ??
-        item.customDesign?.designTemplate?.name ??
-        'Producto personalizado',
-    }));
+    const items = cart.items.map((item) => {
+      // La imagen puede colgar de la variante o del producto (caso habitual).
+      const image =
+        item.productVariant?.images?.[0]?.asset ?? item.productVariant?.product?.images?.[0]?.asset;
+      return {
+        id: item.id,
+        type: item.type,
+        productVariantId: item.productVariantId,
+        customDesignId: item.customDesignId,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        subtotal: item.unitPrice * item.quantity,
+        imageUrl: image ? buildAssetUrl(image.bucket, image.objectKey) : undefined,
+        name:
+          item.productVariant?.product?.name ??
+          item.customDesign?.designTemplate?.name ??
+          'Producto personalizado',
+        productVariant: item.productVariant
+          ? {
+              id: item.productVariant.id,
+              sku: item.productVariant.sku,
+              size: item.productVariant.size ?? undefined,
+              color: item.productVariant.color ?? undefined,
+              product: item.productVariant.product ?? { name: '', slug: '' },
+            }
+          : undefined,
+      };
+    });
 
     return {
       id: cart.id,

@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, Container, Grid, GridCol, Group, NumberInput, Stack, Text, Title } from '@mantine/core';
-import { IconArrowForward, IconTrash } from '@tabler/icons-react';
+import { IconArrowForward, IconPhotoOff, IconTrash } from '@tabler/icons-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 
@@ -99,6 +99,10 @@ export default function CartPage() {
                   key={item.id}
                   name={item.name ?? 'Producto'}
                   sku={item.productVariant?.sku}
+                  variantLabel={
+                    [item.productVariant?.size, item.productVariant?.color].filter(Boolean).join(' · ') || null
+                  }
+                  imageUrl={item.imageUrl}
                   unitPrice={item.unitPrice}
                   quantity={item.quantity}
                   onQuantityChange={(value) => updateServerItem.mutate({ itemId: item.id, quantity: value })}
@@ -128,7 +132,9 @@ export default function CartPage() {
                 <CartItemRow
                   key={item.productVariantId}
                   name={item.name || 'Producto'}
-                  sku={item.productVariantId}
+                  sku={item.sku}
+                  variantLabel={[item.size, item.color].filter(Boolean).join(' · ') || null}
+                  imageUrl={item.imageUrl}
                   unitPrice={item.price ?? 0}
                   quantity={item.quantity}
                   onQuantityChange={(value) => updateQuantity(item.productVariantId, value)}
@@ -205,13 +211,24 @@ function EmptyCart() {
 interface CartItemRowProps {
   name: string;
   sku?: string | null;
+  variantLabel?: string | null;
+  imageUrl?: string;
   unitPrice: number;
   quantity: number;
   onQuantityChange: (value: number) => void;
   onRemove: () => void;
 }
 
-function CartItemRow({ name, sku, unitPrice, quantity, onQuantityChange, onRemove }: CartItemRowProps) {
+function CartItemRow({
+  name,
+  sku,
+  variantLabel,
+  imageUrl,
+  unitPrice,
+  quantity,
+  onQuantityChange,
+  onRemove,
+}: CartItemRowProps) {
   const { format } = useCurrency();
   return (
     <Group
@@ -223,25 +240,63 @@ function CartItemRow({ name, sku, unitPrice, quantity, onQuantityChange, onRemov
         border: '1px solid #0d0d0d',
       }}
     >
-      <Stack gap={4}>
-        <Text
+      <Group gap="md" align="center" wrap="nowrap">
+        <div
           style={{
-            fontFamily: 'var(--font-bebas-neue), Bebas Neue, Impact, sans-serif',
-            fontSize: '24px',
-            letterSpacing: '0.02em',
+            width: 72,
+            height: 72,
+            flexShrink: 0,
+            overflow: 'hidden',
+            border: '1px solid #0d0d0d',
+            backgroundColor: '#f6f3f2',
           }}
         >
-          {name}
-        </Text>
-        {sku && (
-          <Text size="xs" c="dimmed" style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>
-            SKU: {sku}
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={name}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+          ) : (
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#c9c6c5',
+              }}
+            >
+              <IconPhotoOff size={22} stroke={1.2} />
+            </div>
+          )}
+        </div>
+        <Stack gap={4}>
+          <Text
+            style={{
+              fontFamily: 'var(--font-bebas-neue), Bebas Neue, Impact, sans-serif',
+              fontSize: '24px',
+              letterSpacing: '0.02em',
+            }}
+          >
+            {name}
           </Text>
-        )}
-        <Text size="sm" style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>
-          {format(unitPrice)} c/u
-        </Text>
-      </Stack>
+          {variantLabel && (
+            <Text size="xs" c="dimmed" style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>
+              {variantLabel}
+            </Text>
+          )}
+          {sku && (
+            <Text size="xs" c="dimmed" style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>
+              SKU: {sku}
+            </Text>
+          )}
+          <Text size="sm" style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>
+            {format(unitPrice)} c/u
+          </Text>
+        </Stack>
+      </Group>
       <Group gap="md" align="center">
         <NumberInput
           value={quantity}
@@ -257,9 +312,14 @@ function CartItemRow({ name, sku, unitPrice, quantity, onQuantityChange, onRemov
             },
           }}
         />
-        <Button variant="subtle" color="dark" onClick={onRemove} px="xs">
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label="Eliminar del carrito"
+          className="nova-cart-remove"
+        >
           <IconTrash size={18} />
-        </Button>
+        </button>
       </Group>
     </Group>
   );
@@ -334,6 +394,21 @@ function OrderSummary({ total, itemCount, isAuthenticated }: OrderSummaryProps) 
                 : t('cart.freeShipping')}
             </Text>
           </div>
+        )}
+        {config.minOrderAmount && config.minOrderAmount > 0 && total < config.minOrderAmount && (
+          <Text size="sm" style={{ color: '#c92a2a' }}>
+            El mínimo de compra es {format(config.minOrderAmount)}. Te faltan {format(config.minOrderAmount - total)} para completar tu pedido.
+          </Text>
+        )}
+        {(config.productionEstimateDays || config.deliveryEstimateDays) && (
+          <Text size="xs" c="dimmed">
+            {[
+              config.productionEstimateDays ? `${config.productionEstimateDays} días de producción` : null,
+              config.deliveryEstimateDays ? `${config.deliveryEstimateDays} días de envío` : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </Text>
         )}
         <div style={{ borderTop: '1px solid #0d0d0d' }} />
         <Group justify="space-between">

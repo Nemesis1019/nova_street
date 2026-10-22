@@ -12,6 +12,7 @@ import { buildCategorySeoMetadata, buildSeoMetadata } from '../../lib/seo';
 import { parseStorefrontConfig } from '../../lib/storefront-config';
 import type { StoreConfig } from '../../providers/config-provider';
 import { CatalogFilters } from './catalog-filters';
+import { CatalogFiltersProvider } from './catalog-filters-context';
 import { CatalogPagination } from './catalog-pagination';
 
 export async function generateMetadata({
@@ -35,9 +36,12 @@ export async function generateMetadata({
       }
     }
 
-    return buildSeoMetadata(storeConfig, { title: 'Colecciones', template: 'default' });
+    return buildSeoMetadata(storeConfig, {
+      title: storeConfig?.enableCustomDesigns === false ? 'Catálogo' : 'Colecciones',
+      template: 'default',
+    });
   } catch {
-    return { title: 'Colecciones' };
+    return { title: 'Catálogo' };
   }
 }
 
@@ -105,13 +109,13 @@ export default async function CatalogPage({
     minPrice: parseNumber(params.minPrice),
     maxPrice: parseNumber(params.maxPrice),
     inStock: params.inStock === 'true',
-    search: parseString(params.search),
+    search: parseString(params.search) ?? parseString(params.q),
     sort: (parseString(params.sort) as 'newest' | 'price_asc' | 'price_desc' | 'name_asc') ?? defaultSort,
   };
 
   let products: components['schemas']['ProductListResponseDto']['data'] = [];
   let meta: components['schemas']['ProductListResponseDto']['meta'] | undefined;
-  let categories: { slug: string; name: string }[] = [];
+  let categories: { slug: string; name: string; description?: string | null }[] = [];
   let enableCatalogFilters = true;
 
   try {
@@ -121,12 +125,25 @@ export default async function CatalogPage({
     ]);
     products = productsResponse?.data ?? [];
     meta = productsResponse?.meta;
-    categories = (categoriesResponse ?? []) as { slug: string; name: string }[];
+    categories = (categoriesResponse ?? []) as { slug: string; name: string; description?: string | null }[];
     enableCatalogFilters = catalogConfig.showFilters;
   } catch {
     products = [];
     categories = [];
   }
+
+  // El modo "catálogo" (sin personalizador, ej. cafetería) usa la categoría
+  // activa y el banner de suscripción. El modo fashion conserva la campaña.
+  const fashionMode = configResponse?.enableCustomDesigns !== false;
+  const activeCategory = query.categorySlug
+    ? categories.find((category) => category.slug === query.categorySlug)
+    : undefined;
+  const catalogEyebrow = fashionMode ? 'Colección Exclusiva 2026' : configResponse?.name ?? 'Catálogo';
+  const catalogTitle = fashionMode ? 'COPA MUNDO' : activeCategory?.name ?? 'Catálogo';
+  const catalogSubtitle = fashionMode
+    ? 'Edición limitada. Diseños exclusivos de tirada limitada impresos en algodón de alto gramaje.'
+    : activeCategory?.description || configResponse?.description || '';
+  const catalogBadge = fashionMode ? 'New Drop' : 'Novedades';
 
   const sizes = ['S', 'M', 'L', 'XL'];
   const colors = ['Negro', 'Blanco', 'Gris', 'Azul', 'Rojo'];
@@ -149,8 +166,8 @@ export default async function CatalogPage({
       <StoreHeader />
       <main style={{ backgroundColor: '#fcf9f8' }}>
         {/* Page header */}
-        <section style={{ padding: '96px 16px 48px', borderBottom: '1px solid #0d0d0d' }}>
-          <Container size="xl" px={0}>
+        <section style={{ padding: '96px 0 48px', borderBottom: '1px solid #0d0d0d' }}>
+          <Container fluid px={{ base: 16, md: 64 }}>
             <Stack gap="xs">
               <Text
                 size="xs"
@@ -160,7 +177,7 @@ export default async function CatalogPage({
                   letterSpacing: '0.1em',
                 }}
               >
-                Colección Exclusiva 2026
+                {catalogEyebrow}
               </Text>
               <Title
                 order={1}
@@ -170,111 +187,141 @@ export default async function CatalogPage({
                   lineHeight: 0.9,
                 }}
               >
-                COPA MUNDO
+                {catalogTitle}
               </Title>
               <Text size="lg" c="dimmed" maw={600}>
-                Edición limitada. Diseños exclusivos de tirada limitada impresos en algodón de alto gramaje.
+                {catalogSubtitle}
               </Text>
             </Stack>
           </Container>
         </section>
 
         {/* Filters + Grid */}
-        <section style={{ padding: '64px 16px 128px' }}>
-          <Container size="xl" px={0}>
-            <Grid gap="xl">
-              {enableCatalogFilters && (
-                <GridCol span={{ base: 12, md: 3 }}>
-                  <CatalogFilters
-                    sizes={sizes}
-                    colors={colors}
-                    categories={categories}
-                    priceRanges={priceRanges}
-                    initialCategory={query.categorySlug}
-                    initialSizes={query.sizes}
-                    initialColors={query.colors}
-                    initialMinPrice={query.minPrice}
-                    initialMaxPrice={query.maxPrice}
-                    initialInStock={query.inStock}
-                    initialSearch={query.search}
-                    initialSort={query.sort}
-                  />
-                </GridCol>
-              )}
-              <GridCol span={{ base: 12, md: enableCatalogFilters ? 9 : 12 }}>
-                <Group mb="lg" gap="sm" justify="space-between">
-                  <Group gap="sm">
-                    <Badge variant="outline" color="dark" radius={0}>
-                      New Drop
-                    </Badge>
-                    {activeFiltersCount > 0 && (
-                      <Badge variant="filled" color="dark" radius={0}>
-                        {activeFiltersCount} filtro{activeFiltersCount > 1 ? 's' : ''}
+        <section style={{ padding: '64px 0 128px' }}>
+          <Container fluid px={{ base: 16, md: 64 }}>
+            <CatalogFiltersProvider
+              categories={categories}
+              priceRanges={priceRanges}
+              initialCategory={query.categorySlug}
+              initialSizes={query.sizes}
+              initialColors={query.colors}
+              initialMinPrice={query.minPrice}
+              initialMaxPrice={query.maxPrice}
+              initialInStock={query.inStock}
+              initialSearch={query.search}
+              initialSort={query.sort}
+            >
+              <div className="catalog-layout">
+                {enableCatalogFilters && (
+                  <aside className="catalog-sidebar">
+                    <CatalogFilters sizes={sizes} colors={colors} />
+                  </aside>
+                )}
+                <div className="catalog-content">
+                  <Group mb="lg" gap="sm" justify="space-between" wrap="wrap">
+                    <Group gap="sm" wrap="wrap">
+                      <Badge variant="outline" color="dark" radius={0}>
+                        {catalogBadge}
                       </Badge>
+                      {enableCatalogFilters && activeFiltersCount > 0 && (
+                        <Badge variant="filled" color="dark" radius={0}>
+                          {activeFiltersCount} filtro{activeFiltersCount > 1 ? 's' : ''}
+                        </Badge>
+                      )}
+                    </Group>
+                    {meta && (
+                      <Text size="sm" c="dimmed">
+                        {meta.total} producto{meta.total === 1 ? '' : 's'}
+                      </Text>
                     )}
                   </Group>
-                  {meta && (
-                    <Text size="sm" c="dimmed">
-                      {meta.total} producto{meta.total === 1 ? '' : 's'}
+                  <div className="catalog-products">
+                    {products.map((product) => (
+                      <ProductCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                  {products.length === 0 && (
+                    <Text c="dimmed" mt="xl">
+                      No hay productos disponibles.
                     </Text>
                   )}
-                </Group>
-                <Grid gap="xl">
-                  {products.map((product) => (
-                    <GridCol span={{ base: 12, sm: 6, lg: 4 }} key={product.id}>
-                      <ProductCard product={product} />
-                    </GridCol>
-                  ))}
-                </Grid>
-                {products.length === 0 && (
-                  <Text c="dimmed" mt="xl">
-                    No hay productos disponibles.
-                  </Text>
-                )}
-                {meta && meta.total > query.limit && (
-                  <Suspense fallback={null}>
-                    <CatalogPagination
-                      page={query.page}
-                      limit={query.limit}
-                      total={meta.total}
-                    />
-                  </Suspense>
-                )}
-              </GridCol>
-            </Grid>
+                  {meta && meta.total > query.limit && (
+                    <Suspense fallback={null}>
+                      <CatalogPagination
+                        page={query.page}
+                        limit={query.limit}
+                        total={meta.total}
+                      />
+                    </Suspense>
+                  )}
+                </div>
+              </div>
+            </CatalogFiltersProvider>
           </Container>
         </section>
 
-        {/* Bottom CTA */}
-        <section style={{ padding: '96px 16px', backgroundColor: '#0d0d0d', color: '#fcf9f8' }}>
-          <Container size="xl" px={0}>
-            <Grid gap="xl" align="center">
-              <GridCol span={{ base: 12, md: 8 }}>
+        {fashionMode ? (
+          <section style={{ padding: '96px 0', backgroundColor: '#0d0d0d', color: '#fcf9f8' }}>
+            <Container fluid px={{ base: 16, md: 64 }}>
+              <Grid gap="xl" align="center">
+                <GridCol span={{ base: 12, md: 8 }}>
+                  <Title order={2} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+                    Marca tu energía.
+                  </Title>
+                  <Text size="lg" mt="md" style={{ color: '#c9c6c5' }}>
+                    La colección COPA MUNDO fusiona la intensidad del anime con la pasión del fútbol global.
+                    Diseños exclusivos de tirada limitada impresos en algodón de alto gramaje.
+                  </Text>
+                </GridCol>
+                <GridCol span={{ base: 12, md: 4 }}>
+                  <UiButton
+                    fullWidth
+                    size="lg"
+                    iconRight="arrow-forward"
+                    style={{
+                      backgroundColor: '#fcf9f8',
+                      color: '#0d0d0d',
+                      fontFamily: 'var(--font-bebas-neue)',
+                    }}
+                  >
+                    Ver Lookbook
+                  </UiButton>
+                </GridCol>
+              </Grid>
+            </Container>
+          </section>
+        ) : storefront.promoBanner.enabled ? (
+          <section
+            style={{
+              padding: '96px 0',
+              backgroundColor: storefront.promoBanner.backgroundColor,
+              color: storefront.promoBanner.textColor,
+            }}
+          >
+            <Container fluid px={{ base: 16, md: 64 }}>
+              <Stack align="center" ta="center" gap="md">
                 <Title order={2} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
-                  Marca tu energía.
+                  {storefront.promoBanner.title}
                 </Title>
-                <Text size="lg" mt="md" style={{ color: '#c9c6c5' }}>
-                  La colección COPA MUNDO fusiona la intensidad del anime con la pasión del fútbol global.
-                  Diseños exclusivos de tirada limitada impresos en algodón de alto gramaje.
+                <Text size="lg" maw={600}>
+                  {storefront.promoBanner.subtitle}
                 </Text>
-              </GridCol>
-              <GridCol span={{ base: 12, md: 4 }}>
                 <UiButton
-                  fullWidth
+                  href={storefront.promoBanner.link}
                   size="lg"
                   iconRight="arrow-forward"
                   style={{
-                    backgroundColor: '#fcf9f8',
-                    color: '#0d0d0d',
+                    backgroundColor: storefront.promoBanner.textColor,
+                    color: storefront.promoBanner.backgroundColor,
                     fontFamily: 'var(--font-bebas-neue)',
                   }}
                 >
-                  Ver Lookbook
+                  Ver más
                 </UiButton>
-              </GridCol>
-            </Grid>
-          </Container>
-        </section>
+              </Stack>
+            </Container>
+          </section>
+        ) : null}
       </main>
       <StoreFooter />
     </>

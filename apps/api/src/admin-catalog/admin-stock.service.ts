@@ -3,6 +3,7 @@ import { BadRequestException, Inject, Injectable, NotFoundException } from '@nes
 import { StockMode } from '@prisma/client';
 import { Cache } from 'cache-manager';
 
+import { buildAssetUrl } from '../assets/asset-url.util';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -84,7 +85,7 @@ export class AdminStockService {
     return updated;
   }
 
-  async updateInventory(variantId: string, quantity: number, adminUserId: string) {
+  async updateInventory(variantId: string, quantity: number, adminUserId: string, reason?: string) {
     const variant = await this.prisma.productVariant.findUnique({
       where: { id: variantId },
       include: { inventory: true, product: { select: { name: true } } },
@@ -115,7 +116,7 @@ export class AdminStockService {
         entity: 'Inventory',
         entityId: inventory.id,
         before: { quantity: previousQuantity },
-        after: { quantity },
+        after: { quantity, reason: reason ?? null },
       },
     });
 
@@ -123,7 +124,7 @@ export class AdminStockService {
     return inventory;
   }
 
-  async addStock(variantId: string, quantity: number, adminUserId: string) {
+  async addStock(variantId: string, quantity: number, adminUserId: string, reason?: string) {
     const variant = await this.prisma.productVariant.findUnique({
       where: { id: variantId },
       include: { inventory: true, product: { select: { name: true } } },
@@ -158,7 +159,7 @@ export class AdminStockService {
         entity: 'Inventory',
         entityId: inventory.id,
         before: { quantity: previousQuantity },
-        after: { quantity: inventory.quantity },
+        after: { quantity: inventory.quantity, reason: reason ?? null },
       },
     });
 
@@ -178,7 +179,20 @@ export class AdminStockService {
         skip,
         take: limit,
         include: {
-          product: { select: { id: true, name: true, slug: true } },
+          product: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              images: {
+                orderBy: { sortOrder: 'asc' },
+                take: 1,
+                select: {
+                  asset: { select: { bucket: true, objectKey: true } },
+                },
+              },
+            },
+          },
           inventory: true,
         },
         orderBy: { createdAt: 'desc' },
@@ -186,6 +200,22 @@ export class AdminStockService {
       this.prisma.productVariant.count({ where }),
     ]);
 
-    return { data, meta: { page, limit, total } };
+    return {
+      data: data.map(({ product, ...variant }) => {
+        if (!product) return { ...variant, product: undefined };
+
+        const { images, ...productData } = product;
+        return {
+          ...variant,
+          product: {
+            ...productData,
+            imageUrl: images[0]
+              ? buildAssetUrl(images[0].asset.bucket, images[0].asset.objectKey)
+              : undefined,
+          },
+        };
+      }),
+      meta: { page, limit, total },
+    };
   }
 }

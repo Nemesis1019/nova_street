@@ -8,7 +8,12 @@ export function AnnouncementBar() {
   const storefront = parseStorefrontConfig(config.storefrontConfig);
   const bar = storefront.announcementBar;
 
-  if (!bar.enabled || !bar.text) {
+  const now = Date.now();
+  const withinWindow =
+    (!bar.startsAt || new Date(bar.startsAt).getTime() <= now) &&
+    (!bar.endsAt || new Date(bar.endsAt).getTime() >= now);
+
+  if (!bar.enabled || !bar.text || !withinWindow) {
     return null;
   }
 

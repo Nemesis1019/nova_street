@@ -3,14 +3,19 @@
 import { Button, Container, Divider, Group, Stack, Text, TextInput } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useState } from 'react';
 
 import { apiClient } from '../lib/api';
 import { bebasNeue, jetbrainsMono } from '../lib/fonts';
+import { getApiErrorMessage, notifyError, notifySuccess } from '../lib/notifications';
 import { parseStorefrontConfig } from '../lib/storefront-config';
 import { useStoreConfig } from '../providers/config-provider';
+import { useTranslation } from '../providers/i18n-provider';
+import { openCookieConsent } from './cookie-consent';
 
 export function StoreFooter() {
   const config = useStoreConfig();
+  const { t } = useTranslation();
   const storefront = parseStorefrontConfig(config.storefrontConfig);
   const footer = storefront.footer;
   const socialLinks = config.socialLinks && typeof config.socialLinks === 'object' ? (config.socialLinks as Record<string, string>) : {};
@@ -24,6 +29,29 @@ export function StoreFooter() {
   });
 
   const pages = pagesResponse?.data ?? [];
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
+
+  const subscribeToNewsletter = async () => {
+    const email = newsletterEmail.trim();
+    if (!email) {
+      notifyError({ title: 'Newsletter', message: 'Ingresá tu email para suscribirte.' });
+      return;
+    }
+    setNewsletterLoading(true);
+    try {
+      const { error } = await apiClient.POST('/newsletter/subscribe', {
+        body: { email, source: 'footer' },
+      });
+      if (error) throw error;
+      notifySuccess({ title: 'Newsletter', message: 'Gracias por suscribirte. Te escribimos pronto.' });
+      setNewsletterEmail('');
+    } catch (error) {
+      notifyError({ title: 'No pudimos suscribirte', message: getApiErrorMessage(error) });
+    } finally {
+      setNewsletterLoading(false);
+    }
+  };
 
   return (
     <footer
@@ -34,13 +62,13 @@ export function StoreFooter() {
         color: '#1b1c1c',
       }}
     >
-      <Container px={{ base: 16, md: 64 }} py="xl">
+      <Container fluid px={{ base: 16, md: 64 }} py="xl">
         <Stack gap="xl">
           <Group justify="space-between" align="flex-start" wrap="wrap" gap="xl">
             <Stack gap="md" maw={400}>
               <Text
-                className={bebasNeue.className}
                 style={{
+                  fontFamily: 'var(--font-bebas-neue), Bebas Neue, Impact, sans-serif',
                   fontSize: '48px',
                   letterSpacing: '0.02em',
                 }}
@@ -48,8 +76,7 @@ export function StoreFooter() {
                 {config.name}
               </Text>
               <Text size="sm" c="dimmed">
-                {config.description ||
-                  'Redefiniendo la autonomía urbana a través de la moda estructural. Hecho para aquellos que marcan su propia energía.'}
+                {config.description}
               </Text>
             </Stack>
 
@@ -140,6 +167,11 @@ export function StoreFooter() {
                   <TextInput
                     placeholder="tu@email.com"
                     radius={0}
+                    value={newsletterEmail}
+                    onChange={(event) => setNewsletterEmail(event.currentTarget.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') void subscribeToNewsletter();
+                    }}
                     styles={{
                       input: {
                         border: '1px solid #0d0d0d',
@@ -152,6 +184,8 @@ export function StoreFooter() {
                   <Button
                     className={bebasNeue.className}
                     radius={0}
+                    loading={newsletterLoading}
+                    onClick={() => void subscribeToNewsletter()}
                     style={{
                       letterSpacing: '0.05em',
                     }}
@@ -167,9 +201,20 @@ export function StoreFooter() {
 
           <Group justify="space-between" wrap="wrap" gap="md">
             <Text size="xs" c="dimmed">
-              {footer.copyrightText || `© ${new Date().getFullYear()} ${config.name}. Todos los derechos reservados.`}
+              {footer.copyrightText ||
+                `© ${new Date().getFullYear()} ${(storefront.legal.legalName || config.name).replace(/\.$/, '')}. Todos los derechos reservados.`}
             </Text>
             <Group gap="md">
+              <Text
+                size="xs"
+                c="dimmed"
+                component="button"
+                type="button"
+                onClick={() => openCookieConsent()}
+                style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                {t('cookies.manage')}
+              </Text>
               <Text size="xs" c="dimmed">
                 Visa
               </Text>

@@ -60,7 +60,7 @@ export class AdminStockController {
     @Body() dto: UpdateInventoryDto,
   ) {
     const adminUserId = this.extractUserId(req);
-    return this.adminStockService.updateInventory(id, dto.quantity, adminUserId);
+    return this.adminStockService.updateInventory(id, dto.quantity, adminUserId, dto.reason);
   }
 
   @Post('variants/:id/add-stock')
@@ -84,7 +84,7 @@ export class AdminStockController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     const adminUserId = this.extractUserId(req);
-    const inventory = await this.adminStockService.addStock(id, dto.quantity, adminUserId);
+    const inventory = await this.adminStockService.addStock(id, dto.quantity, adminUserId, dto.reason);
 
     let asset: { id: string; url: string; mimeType: string; size: number } | undefined;
     if (file) {

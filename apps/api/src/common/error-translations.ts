@@ -13,6 +13,7 @@ const propertyTranslations: Record<string, Record<SupportedLocale, string>> = {
   firstName: { es: 'El nombre', en: 'First name', pt: 'Nome' },
   lastName: { es: 'El apellido', en: 'Last name', pt: 'Sobrenome' },
   acceptedTerms: { es: 'Los términos', en: 'Terms', pt: 'Termos' },
+  token: { es: 'El token', en: 'Token', pt: 'Token' },
   mimeType: { es: 'El tipo de archivo', en: 'File type', pt: 'Tipo de arquivo' },
   size: { es: 'El tamaño', en: 'Size', pt: 'Tamanho' },
   filename: { es: 'El nombre de archivo', en: 'Filename', pt: 'Nome do arquivo' },
@@ -456,9 +457,13 @@ export const errorTranslations: Record<
     es: "Credenciales inválidas",
     pt: "Credenciais inválidas",
   },
-  "Invalid or expired verification code": {
-    es: "Código de verificación inválido o vencido",
-    pt: "Código de verificação inválido ou expirado",
+  "Invalid or expired verification token": {
+    es: "El enlace de confirmación es inválido o venció",
+    pt: "O link de confirmação é inválido ou expirou",
+  },
+  "Could not send verification email": {
+    es: "No pudimos enviar el email de confirmación. Verificá la configuración de envío de emails e intentá de nuevo.",
+    pt: "Não foi possível enviar o email de confirmação. Verifique a configuração de envio e tente novamente.",
   },
   "Invalid refresh token": {
     es: "Token de refresco inválido",
@@ -486,9 +491,10 @@ export const errorTranslations: Record<
     es: "Falta el nombre",
     pt: "Falta o nome",
   },
-  "Password must contain at least one letter and one number": {
-    es: "La contraseña debe contener al menos una letra y un número",
-    pt: "A senha deve conter pelo menos uma letra e um número",
+  "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número": {
+    es: "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número",
+    en: "Password must have at least 8 characters, one uppercase, one lowercase and one number",
+    pt: "A senha deve ter pelo menos 8 caracteres, uma maiúscula, uma minúscula e um número",
   },
   "slug must be a valid URL slug": {
     es: "El slug debe ser un slug URL válido",

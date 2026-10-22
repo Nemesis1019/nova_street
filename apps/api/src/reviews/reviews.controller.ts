@@ -6,6 +6,7 @@ import { RequirePermission } from '../auth/decorators/require-permission.decorat
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Permission } from '../auth/permissions';
+import { BulkReviewApprovalDto } from './dto/bulk-review-approval.dto';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewListResponseDto, ReviewResponseDto } from './dto/review-response.dto';
 import { ReviewsService } from './reviews.service';
@@ -66,6 +67,14 @@ export class AdminReviewsController {
       productId,
       search,
     });
+  }
+
+  @Patch('bulk/approve')
+  @UseGuards(RolesGuard)
+  @RequirePermission(Permission.REVIEWS_MODERATE)
+  @ApiOkResponse({ description: 'Reviews approved in bulk' })
+  bulkApprove(@Req() req: Request, @Body() dto: BulkReviewApprovalDto) {
+    return this.reviewsService.bulkUpdateApproval(dto.ids, true, this.extractUserId(req));
   }
 
   @Patch(':id/approve')

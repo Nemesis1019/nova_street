@@ -36,26 +36,17 @@ export async function createUserAndGetToken(
   };
 }
 
-export async function verifyUserEmail(
-  app: INestApplication,
-  email: string,
-  token: string,
-): Promise<void> {
+/**
+ * Marca el email como verificado directamente en DB. El link real de
+ * verificación usa un token hasheado que no es recuperable, así que los tests
+ * que solo necesitan un usuario verificado no pasan por el endpoint.
+ */
+export async function verifyUserEmail(app: INestApplication, email: string): Promise<void> {
   const prisma = app.get(PrismaService);
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) throw new Error('User not found');
-
-  const code = await prisma.emailVerificationCode.findFirst({
-    where: { userId: user.id },
-    orderBy: { createdAt: 'desc' },
+  await prisma.user.update({
+    where: { email },
+    data: { emailVerified: true, emailVerifiedAt: new Date() },
   });
-  if (!code) throw new Error('Verification code not found');
-
-  await request(app.getHttpServer())
-    .post('/auth/verify-email')
-    .set('Authorization', `Bearer ${token}`)
-    .send({ code: code.code })
-    .expect(200);
 }
 
 export async function createVerifiedUserAndGetToken(
@@ -64,7 +55,7 @@ export async function createVerifiedUserAndGetToken(
   password = 'Secure1234',
 ): Promise<{ token: string; userId: string; email: string }> {
   const result = await createUserAndGetToken(app, email, password);
-  await verifyUserEmail(app, result.email, result.token);
+  await verifyUserEmail(app, result.email);
   return result;
 }
 

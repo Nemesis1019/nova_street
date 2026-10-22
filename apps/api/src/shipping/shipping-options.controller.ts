@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 
@@ -9,6 +9,10 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Permission } from '../auth/permissions';
 import { CreateShippingOptionDto } from './dto/create-shipping-option.dto';
 import { EstimatedShippingOptionResponseDto } from './dto/estimated-shipping-option-response.dto';
+import {
+  ShippingCredentialsResponseDto,
+  UpdateShippingCredentialsDto,
+} from './dto/shipping-credentials.dto';
 import { ShippingOptionResponseDto } from './dto/shipping-option-response.dto';
 import { UpdateShippingOptionDto } from './dto/update-shipping-option.dto';
 import { ShippingOptionsService } from './shipping-options.service';
@@ -65,6 +69,37 @@ export class ShippingOptionsController {
     return created;
   }
 
+  @Get('admin/credentials')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @RequirePermission(Permission.PROVIDERS_READ)
+  @ApiOkResponse({ type: ShippingCredentialsResponseDto })
+  getCredentials(@Req() req: Request) {
+    this.assertPlatformSuperadmin(req);
+    return this.service.getCredentials();
+  }
+
+  @Patch('admin/credentials')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @RequirePermission(Permission.PROVIDERS_WRITE)
+  @ApiOkResponse({ type: ShippingCredentialsResponseDto })
+  async updateCredentials(@Req() req: Request, @Body() dto: UpdateShippingCredentialsDto) {
+    this.assertPlatformSuperadmin(req);
+    const userId = this.extractUserId(req);
+    const before = await this.service.getCredentials();
+    const updated = await this.service.updateCredentials(dto);
+    await this.auditService.log({
+      userId,
+      action: 'UPDATE_SHIPPING_CREDENTIALS',
+      entity: 'StoreConfig',
+      entityId: 'shipping',
+      before,
+      after: updated,
+    });
+    return updated;
+  }
+
   @Patch('admin/:id')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -109,6 +144,15 @@ export class ShippingOptionsController {
 
   private extractUserId(req: Request): string {
     return (req.user as { userId: string }).userId;
+  }
+
+  /** Las credenciales del carrier son configuración sensible de plataforma. */
+  private assertPlatformSuperadmin(req: Request) {
+    if (!(req.user as { isPlatform?: boolean }).isPlatform) {
+      throw new ForbiddenException(
+        'Solo los superadmins de plataforma pueden gestionar credenciales de proveedores',
+      );
+    }
   }
 
   private shippingOptionSnapshot(option: Record<string, unknown>): Record<string, unknown> {

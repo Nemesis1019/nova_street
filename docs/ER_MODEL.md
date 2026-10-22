@@ -25,7 +25,7 @@ Este documento describe el modelo de datos actual de la plataforma, generado a p
 | `User` | Cuentas de cliente y administrador. Incluye datos de contacto, flags de verificación, consentimiento de términos y rol. |
 | `Role` | Roles del sistema (`CUSTOMER`, `ADMIN`). |
 | `RefreshToken` | Tokens de refresco rotativos para sesiones JWT. |
-| `EmailVerificationCode` | Códigos OTP de 6 dígitos para verificación de email. |
+| `EmailVerificationToken` | Tokens de un solo uso (hash SHA-256) para confirmar el email vía link. |
 | `Address` | Direcciones de envío/facturación asociadas a un usuario. |
 
 ### Configuración y marketing
@@ -85,7 +85,7 @@ Este documento describe el modelo de datos actual de la plataforma, generado a p
 | `User` | 1:N | `Address` | Un usuario puede tener varias direcciones. |
 | `Role` | 1:N | `User` | Un rol puede tener muchos usuarios. |
 | `User` | 1:N | `RefreshToken` | Rotación de tokens de sesión. |
-| `User` | 1:N | `EmailVerificationCode` | Códigos de verificación de email. |
+| `User` | 1:N | `EmailVerificationToken` | Tokens de confirmación de email. |
 | `User` | 1:1 (opcional) | `Cart` | Cada usuario autenticado tiene un carrito. |
 | `User` | 1:N | `Order` | Historial de pedidos del usuario. |
 | `User` | 1:N | `CustomDesign` | Diseños creados por el usuario. |

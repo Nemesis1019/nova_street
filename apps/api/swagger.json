@@ -15,6 +15,42 @@
         ]
       }
     },
+    "/users/me": {
+      "patch": {
+        "operationId": "UsersController_updateMe",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthUserDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "users"
+        ]
+      }
+    },
     "/wishlist": {
       "get": {
         "operationId": "WishlistController_findAll",
@@ -54,12 +90,12 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WishlistListDto"
+                  "$ref": "#/components/schemas/WishlistItemDto"
                 }
               }
             }
@@ -165,6 +201,283 @@
         ]
       }
     },
+    "/auth/2fa/setup": {
+      "post": {
+        "operationId": "AuthController_twoFactorSetup",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFactorChallengeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorSetupResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/2fa/setup/confirm": {
+      "post": {
+        "operationId": "AuthController_twoFactorSetupConfirm",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFactorConfirmDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorSessionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/2fa/verify": {
+      "post": {
+        "operationId": "AuthController_twoFactorVerify",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFactorVerifyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorSessionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/2fa/disable": {
+      "post": {
+        "operationId": "AuthController_twoFactorDisable",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFactorDisableDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/2fa/recovery-codes": {
+      "post": {
+        "operationId": "AuthController_twoFactorRecoveryCodes",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFactorDisableDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorRecoveryCodesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/2fa/setup/current": {
+      "post": {
+        "operationId": "AuthController_twoFactorSetupCurrent",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorSetupResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/2fa/setup/confirm/current": {
+      "post": {
+        "operationId": "AuthController_twoFactorSetupConfirmCurrent",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFactorDisableDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorRecoveryCodesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/2fa/devices": {
+      "get": {
+        "operationId": "AuthController_twoFactorDevices",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrustedDeviceDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/2fa/devices/{id}": {
+      "delete": {
+        "operationId": "AuthController_twoFactorRevokeDevice",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/auth/refresh": {
       "post": {
         "operationId": "AuthController_refresh",
@@ -215,7 +528,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/AuthUserDto"
                 }
               }
             }
@@ -257,11 +570,6 @@
             }
           }
         },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
         "tags": [
           "auth"
         ]
@@ -293,6 +601,142 @@
         ]
       }
     },
+    "/auth/forgot-password": {
+      "post": {
+        "operationId": "AuthController_forgotPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "operationId": "AuthController_resetPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/accept-terms": {
+      "post": {
+        "operationId": "AuthController_acceptTerms",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/google": {
+      "post": {
+        "operationId": "AuthController_googleLogin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/apple": {
+      "post": {
+        "operationId": "AuthController_appleLogin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppleLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/auth/change-password": {
       "patch": {
         "operationId": "AuthController_changePassword",
@@ -319,6 +763,251 @@
         ],
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/admin/email-templates": {
+      "get": {
+        "operationId": "EmailTemplatesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-email-templates"
+        ]
+      },
+      "post": {
+        "operationId": "EmailTemplatesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEmailTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-email-templates"
+        ]
+      }
+    },
+    "/admin/email-templates/{key}": {
+      "get": {
+        "operationId": "EmailTemplatesController_findOne",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-email-templates"
+        ]
+      },
+      "put": {
+        "operationId": "EmailTemplatesController_upsert",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertEmailTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-email-templates"
+        ]
+      }
+    },
+    "/admin/email-templates/{key}/reset": {
+      "post": {
+        "operationId": "EmailTemplatesController_reset",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-email-templates"
+        ]
+      }
+    },
+    "/admin/email-templates/{key}/preview": {
+      "post": {
+        "operationId": "EmailTemplatesController_preview",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewEmailTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-email-templates"
+        ]
+      }
+    },
+    "/admin/email-templates/{key}/test": {
+      "post": {
+        "operationId": "EmailTemplatesController_sendTest",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestEmailTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-email-templates"
         ]
       }
     },
@@ -753,6 +1442,35 @@
         ]
       }
     },
+    "/admin/categories/reorder": {
+      "patch": {
+        "operationId": "AdminCategoryController_reorder",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderCategoriesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Categories reordered"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-catalog"
+        ]
+      }
+    },
     "/admin/products": {
       "post": {
         "operationId": "AdminProductController_create",
@@ -809,6 +1527,38 @@
           },
           {
             "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
             "required": false,
             "in": "query",
             "schema": {
@@ -1637,6 +2387,34 @@
         ]
       }
     },
+    "/admin/assets/{id}": {
+      "delete": {
+        "operationId": "AssetsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-assets"
+        ]
+      }
+    },
     "/assets/presign": {
       "post": {
         "operationId": "CustomerAssetsController_presign",
@@ -2251,6 +3029,42 @@
         ]
       }
     },
+    "/admin/orders/bulk/payment-status": {
+      "patch": {
+        "operationId": "AdminOrdersController_bulkUpdatePaymentStatus",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkOrderPaymentStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bulk payment status updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-orders"
+        ]
+      }
+    },
     "/admin/orders/{id}/status": {
       "patch": {
         "operationId": "AdminOrdersController_updateStatus",
@@ -2566,6 +3380,42 @@
         ]
       }
     },
+    "/admin/orders/manual": {
+      "post": {
+        "operationId": "AdminOrdersController_createManual",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateManualOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Manual order created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminOrderDetailResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-orders"
+        ]
+      }
+    },
     "/admin/orders/bulk/status": {
       "post": {
         "operationId": "AdminOrdersController_bulkUpdateStatus",
@@ -2602,6 +3452,28 @@
         ]
       }
     },
+    "/payments/active-provider": {
+      "get": {
+        "operationId": "PaymentController_activeProvider",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActiveProviderResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Proveedor de pagos activo (stripe | bold)",
+        "tags": [
+          "payments"
+        ]
+      }
+    },
     "/payments/create-checkout-session/{orderId}": {
       "post": {
         "operationId": "PaymentController_createCheckoutSession",
@@ -2632,7 +3504,43 @@
             "bearer": []
           }
         ],
-        "summary": "Create a Stripe Checkout session for an order",
+        "summary": "Create a checkout session (link de pago) for an order",
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/payments/button-checkout/{orderId}": {
+      "get": {
+        "operationId": "PaymentController_buttonCheckout",
+        "parameters": [
+          {
+            "name": "orderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoldButtonConfigResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Config del botón de pagos embebido (Bold) para una orden",
         "tags": [
           "payments"
         ]
@@ -2643,11 +3551,26 @@
         "operationId": "PaymentController_webhook",
         "parameters": [],
         "responses": {
-          "201": {
+          "200": {
             "description": ""
           }
         },
         "summary": "Stripe webhook endpoint",
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/payments/webhook/bold": {
+      "post": {
+        "operationId": "PaymentController_boldWebhook",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Bold webhook endpoint (firma x-bold-signature)",
         "tags": [
           "payments"
         ]
@@ -3012,6 +3935,66 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ShippingOptionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "shipping-options"
+        ]
+      }
+    },
+    "/shipping-options/admin/credentials": {
+      "get": {
+        "operationId": "ShippingOptionsController_getCredentials",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShippingCredentialsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "shipping-options"
+        ]
+      },
+      "patch": {
+        "operationId": "ShippingOptionsController_updateCredentials",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateShippingCredentialsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShippingCredentialsResponseDto"
                 }
               }
             }
@@ -3699,10 +4682,19 @@
     "/admin/dashboard/trends": {
       "get": {
         "operationId": "AdminDashboardController_getTrends",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "days",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Daily trends for the last 7 days",
+            "description": "Daily trends for the selected period",
             "content": {
               "application/json": {
                 "schema": {
@@ -4141,6 +5133,25 @@
         ]
       }
     },
+    "/admin/currencies/sync": {
+      "post": {
+        "operationId": "AdminCurrenciesController_sync",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Exchange rates synced from the provider"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-currencies"
+        ]
+      }
+    },
     "/admin/currencies/{code}": {
       "patch": {
         "operationId": "AdminCurrenciesController_update",
@@ -4491,6 +5502,36 @@
         ]
       }
     },
+    "/custom-designs/admin/bulk-status": {
+      "patch": {
+        "operationId": "CustomDesignsController_bulkUpdateStatus",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkUpdateStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Custom designs status updated"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Bulk update custom design status (admin)",
+        "tags": [
+          "custom-designs"
+        ]
+      }
+    },
     "/custom-designs/admin/{id}/status": {
       "patch": {
         "operationId": "CustomDesignsController_updateStatus",
@@ -4649,7 +5690,85 @@
         ]
       }
     },
+    "/addresses/{id}/default": {
+      "patch": {
+        "operationId": "AddressesController_setDefault",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddressResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "addresses"
+        ]
+      }
+    },
     "/addresses/{id}": {
+      "patch": {
+        "operationId": "AddressesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAddressDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddressResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "addresses"
+        ]
+      },
       "delete": {
         "operationId": "AddressesController_remove",
         "parameters": [
@@ -4681,6 +5800,619 @@
         ],
         "tags": [
           "addresses"
+        ]
+      }
+    },
+    "/platform/tenants": {
+      "get": {
+        "operationId": "PlatformController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Listado de clientes de la plataforma"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform"
+        ]
+      },
+      "post": {
+        "operationId": "PlatformController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTenantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/platform/tenants/{id}": {
+      "patch": {
+        "operationId": "PlatformController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTenantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/platform/tenants/{id}/health": {
+      "get": {
+        "operationId": "PlatformController_health",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Conectividad y métricas básicas del cliente"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/platform/tenants/{id}/migrations": {
+      "get": {
+        "operationId": "PlatformController_migrations",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historial de migraciones/ejecuciones del cliente"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/platform/migrate": {
+      "post": {
+        "operationId": "PlatformController_migrateAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Aplica migraciones pendientes a todos los clientes"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/platform/backups": {
+      "post": {
+        "operationId": "PlatformController_backupAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Respalda la BD de cada cliente activo"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/platform/tenants/{id}/impersonate": {
+      "post": {
+        "operationId": "PlatformController_impersonate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImpersonateTenantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sesión de administrador del cliente indicado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/platform/auth/login": {
+      "post": {
+        "operationId": "PlatformAuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "platform-auth"
+        ]
+      }
+    },
+    "/platform/auth/login/2fa": {
+      "post": {
+        "operationId": "PlatformAuthController_loginTwoFactor",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformTwoFactorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "platform-auth"
+        ]
+      }
+    },
+    "/platform/auth/refresh": {
+      "post": {
+        "operationId": "PlatformAuthController_refresh",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "platform-auth"
+        ]
+      }
+    },
+    "/platform/auth/logout": {
+      "post": {
+        "operationId": "PlatformAuthController_logout",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "platform-auth"
+        ]
+      }
+    },
+    "/platform/auth/step-up": {
+      "post": {
+        "operationId": "PlatformAuthController_stepUp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform-auth"
+        ]
+      }
+    },
+    "/platform/auth/me": {
+      "get": {
+        "operationId": "PlatformAuthController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform-auth"
+        ]
+      }
+    },
+    "/platform/auth/2fa/setup": {
+      "post": {
+        "operationId": "PlatformAuthController_setupTwoFactor",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform-auth"
+        ]
+      }
+    },
+    "/platform/auth/2fa/confirm": {
+      "post": {
+        "operationId": "PlatformAuthController_confirmTwoFactor",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformCodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform-auth"
+        ]
+      }
+    },
+    "/platform/auth/2fa/disable": {
+      "post": {
+        "operationId": "PlatformAuthController_disableTwoFactor",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformCodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform-auth"
+        ]
+      }
+    },
+    "/platform/auth/sessions": {
+      "get": {
+        "operationId": "PlatformAuthController_sessions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform-auth"
+        ]
+      }
+    },
+    "/platform/auth/sessions/revoke": {
+      "post": {
+        "operationId": "PlatformAuthController_revokeSessions",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform-auth"
+        ]
+      }
+    },
+    "/platform/auth/audit": {
+      "get": {
+        "operationId": "PlatformAuthController_auditLog",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform-auth"
+        ]
+      }
+    },
+    "/platform/users": {
+      "get": {
+        "operationId": "PlatformUsersController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform-users"
+        ]
+      },
+      "post": {
+        "operationId": "PlatformUsersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePlatformUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform-users"
+        ]
+      }
+    },
+    "/platform/users/{id}": {
+      "patch": {
+        "operationId": "PlatformUsersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePlatformUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform-users"
         ]
       }
     },
@@ -4819,6 +6551,35 @@
                 }
               }
             }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-production"
+        ]
+      }
+    },
+    "/admin/production/bulk/assign": {
+      "patch": {
+        "operationId": "ProductionController_bulkAssign",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkAssignProductionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Production items assigned in bulk"
           }
         },
         "security": [
@@ -5184,6 +6945,35 @@
         ]
       }
     },
+    "/admin/reviews/bulk/approve": {
+      "patch": {
+        "operationId": "AdminReviewsController_bulkApprove",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkReviewApprovalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reviews approved in bulk"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-reviews"
+        ]
+      }
+    },
     "/admin/reviews/{id}/approve": {
       "patch": {
         "operationId": "AdminReviewsController_approve",
@@ -5339,6 +7129,40 @@
         "tags": [
           "admin-refunds"
         ]
+      },
+      "post": {
+        "operationId": "RefundsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRefundDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Manual refund created (PENDING)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefundResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-refunds"
+        ]
       }
     },
     "/admin/refunds/orders/{orderId}": {
@@ -5377,6 +7201,146 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RefundListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-refunds"
+        ]
+      }
+    },
+    "/admin/refunds/{id}": {
+      "get": {
+        "operationId": "RefundsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Refund detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefundResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-refunds"
+        ]
+      }
+    },
+    "/admin/refunds/{id}/approve": {
+      "patch": {
+        "operationId": "RefundsController_approve",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Refund approved and processed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefundResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-refunds"
+        ]
+      }
+    },
+    "/admin/refunds/{id}/reject": {
+      "patch": {
+        "operationId": "RefundsController_reject",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Refund rejected (FAILED)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefundResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-refunds"
+        ]
+      }
+    },
+    "/admin/refunds/{id}/retry": {
+      "patch": {
+        "operationId": "RefundsController_retry",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Failed refund retried",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefundResponseDto"
                 }
               }
             }
@@ -5447,6 +7411,130 @@
         ]
       }
     },
+    "/store-redirects": {
+      "get": {
+        "operationId": "StoreRedirectsController_findActive",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "store-redirects"
+        ]
+      }
+    },
+    "/admin/store-redirects": {
+      "get": {
+        "operationId": "AdminStoreRedirectsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-store-redirects"
+        ]
+      },
+      "post": {
+        "operationId": "AdminStoreRedirectsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStoreRedirectDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-store-redirects"
+        ]
+      }
+    },
+    "/admin/store-redirects/{id}": {
+      "patch": {
+        "operationId": "AdminStoreRedirectsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStoreRedirectDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-store-redirects"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminStoreRedirectsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-store-redirects"
+        ]
+      }
+    },
     "/admin/export/orders": {
       "get": {
         "operationId": "ExportController_exportOrders",
@@ -5502,6 +7590,102 @@
         ]
       }
     },
+    "/admin/export/users": {
+      "get": {
+        "operationId": "ExportController_exportUsers",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-export"
+        ]
+      }
+    },
+    "/admin/export/audit-logs": {
+      "get": {
+        "operationId": "ExportController_exportAuditLogs",
+        "parameters": [
+          {
+            "name": "action",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "entity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-export"
+        ]
+      }
+    },
     "/health/db": {
       "get": {
         "operationId": "HealthController_db",
@@ -5511,6 +7695,21 @@
             "description": ""
           }
         },
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/health/platform": {
+      "get": {
+        "operationId": "HealthController_platform",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Readiness de la BD maestra (resolución de tenants).",
         "tags": [
           "health"
         ]
@@ -5800,6 +7999,72 @@
       }
     },
     "schemas": {
+      "UpdateProfileDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "lastName": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "document": {
+            "type": "string",
+            "maxLength": 40
+          }
+        }
+      },
+      "AuthUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "twoFactorEnabled": {
+            "type": "boolean",
+            "description": "Indica si el usuario tiene 2FA activado"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "document": {
+            "type": "string",
+            "nullable": true,
+            "description": "Documento de identidad"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "firstName",
+          "lastName",
+          "role",
+          "emailVerified"
+        ]
+      },
       "WishlistItemDto": {
         "type": "object",
         "properties": {
@@ -5821,6 +8086,19 @@
           "imageUrl": {
             "type": "string"
           },
+          "isAvailable": {
+            "type": "boolean",
+            "description": "false si el producto/variante está desactivado o sin stock"
+          },
+          "unavailableReason": {
+            "type": "string",
+            "description": "Motivo cuando no está disponible",
+            "enum": [
+              "PRODUCT_INACTIVE",
+              "VARIANT_INACTIVE",
+              "OUT_OF_STOCK"
+            ]
+          },
           "createdAt": {
             "format": "date-time",
             "type": "string"
@@ -5832,6 +8110,7 @@
           "productName",
           "productSlug",
           "price",
+          "isAvailable",
           "createdAt"
         ]
       },
@@ -5871,8 +8150,7 @@
           "password": {
             "type": "string",
             "minLength": 8,
-            "maxLength": 100,
-            "pattern": "^(?=.*[A-Za-z])(?=.*\\d).+$"
+            "maxLength": 100
           },
           "firstName": {
             "type": "string",
@@ -5894,51 +8172,35 @@
           "acceptedTerms"
         ]
       },
-      "AuthUserDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "email": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "role": {
-            "type": "string"
-          },
-          "emailVerified": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "id",
-          "email",
-          "firstName",
-          "lastName",
-          "role",
-          "emailVerified"
-        ]
-      },
       "RegisterResponseDto": {
         "type": "object",
         "properties": {
           "accessToken": {
-            "type": "string"
+            "type": "string",
+            "description": "Token de acceso (ausente cuando se requiere 2FA)"
           },
           "user": {
             "$ref": "#/components/schemas/AuthUserDto"
+          },
+          "twoFactorRequired": {
+            "type": "boolean",
+            "description": "true cuando la cuenta requiere verificación en dos pasos"
+          },
+          "twoFactorSetupRequired": {
+            "type": "boolean",
+            "description": "true cuando el usuario debe configurar 2FA por primera vez"
+          },
+          "challengeToken": {
+            "type": "string",
+            "description": "Token temporal para completar el flujo 2FA"
+          },
+          "verificationEmailSent": {
+            "type": "boolean",
+            "description": "Indica si el email de verificación se pudo enviar"
           }
         },
         "required": [
-          "accessToken",
-          "user"
+          "verificationEmailSent"
         ]
       },
       "LoginDto": {
@@ -5950,6 +8212,10 @@
           },
           "password": {
             "type": "string"
+          },
+          "remember": {
+            "type": "boolean",
+            "description": "true = cookie de sesión persistente; false = cookie de sesión (se borra al cerrar el navegador)."
           }
         },
         "required": [
@@ -5961,15 +8227,199 @@
         "type": "object",
         "properties": {
           "accessToken": {
+            "type": "string",
+            "description": "Token de acceso (ausente cuando se requiere 2FA)"
+          },
+          "user": {
+            "$ref": "#/components/schemas/AuthUserDto"
+          },
+          "twoFactorRequired": {
+            "type": "boolean",
+            "description": "true cuando la cuenta requiere verificación en dos pasos"
+          },
+          "twoFactorSetupRequired": {
+            "type": "boolean",
+            "description": "true cuando el usuario debe configurar 2FA por primera vez"
+          },
+          "challengeToken": {
+            "type": "string",
+            "description": "Token temporal para completar el flujo 2FA"
+          }
+        }
+      },
+      "TwoFactorChallengeDto": {
+        "type": "object",
+        "properties": {
+          "challengeToken": {
+            "type": "string",
+            "description": "Token de desafío devuelto por /auth/login"
+          }
+        },
+        "required": [
+          "challengeToken"
+        ]
+      },
+      "TwoFactorSetupResponseDto": {
+        "type": "object",
+        "properties": {
+          "secret": {
+            "type": "string",
+            "description": "Secreto TOTP (para carga manual)"
+          },
+          "otpauthUrl": {
+            "type": "string",
+            "description": "URI otpauth:// para autenticadores"
+          },
+          "qrDataUrl": {
+            "type": "string",
+            "description": "QR en formato data URL (PNG)"
+          }
+        },
+        "required": [
+          "secret",
+          "otpauthUrl",
+          "qrDataUrl"
+        ]
+      },
+      "TwoFactorConfirmDto": {
+        "type": "object",
+        "properties": {
+          "challengeToken": {
+            "type": "string",
+            "description": "Token de desafío devuelto por /auth/login"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 10,
+            "example": "123456",
+            "description": "Código TOTP de 6 dígitos"
+          },
+          "trustDevice": {
+            "type": "boolean",
+            "description": "Confiar en este dispositivo durante 30 días"
+          }
+        },
+        "required": [
+          "challengeToken",
+          "code"
+        ]
+      },
+      "TwoFactorSessionResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
             "type": "string"
           },
           "user": {
             "$ref": "#/components/schemas/AuthUserDto"
+          },
+          "recoveryCodes": {
+            "description": "Códigos de recuperación (solo al activar 2FA)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
           "accessToken",
           "user"
+        ]
+      },
+      "TwoFactorVerifyDto": {
+        "type": "object",
+        "properties": {
+          "challengeToken": {
+            "type": "string",
+            "description": "Token de desafío devuelto por /auth/login"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 10,
+            "example": "123456",
+            "description": "Código TOTP de 6 dígitos"
+          },
+          "trustDevice": {
+            "type": "boolean",
+            "description": "Confiar en este dispositivo durante 30 días"
+          },
+          "backup": {
+            "type": "boolean",
+            "description": "Usar un código de recuperación en lugar del TOTP"
+          }
+        },
+        "required": [
+          "challengeToken",
+          "code"
+        ]
+      },
+      "TwoFactorDisableDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 10,
+            "description": "Código TOTP actual para confirmar la desactivación"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "TwoFactorRecoveryCodesResponseDto": {
+        "type": "object",
+        "properties": {
+          "recoveryCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "recoveryCodes"
+        ]
+      },
+      "TrustedDeviceDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userAgent": {
+            "type": "string",
+            "nullable": true,
+            "description": "User-Agent del navegador"
+          },
+          "ip": {
+            "type": "string",
+            "nullable": true,
+            "description": "IP desde la que se confió el dispositivo"
+          },
+          "lastUsedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Último uso del dispositivo"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Vencimiento de la confianza (30 días)"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "lastUsedAt",
+          "expiresAt",
+          "createdAt"
         ]
       },
       "RefreshResponseDto": {
@@ -5986,14 +8436,73 @@
       "VerifyEmailDto": {
         "type": "object",
         "properties": {
-          "code": {
-            "type": "string",
-            "minLength": 6,
-            "maxLength": 6
+          "token": {
+            "type": "string"
           }
         },
         "required": [
-          "code"
+          "token"
+        ]
+      },
+      "ForgotPasswordDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "token",
+          "password"
+        ]
+      },
+      "GoogleLoginDto": {
+        "type": "object",
+        "properties": {
+          "idToken": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "idToken"
+        ]
+      },
+      "AppleLoginDto": {
+        "type": "object",
+        "properties": {
+          "identityToken": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "identityToken"
         ]
       },
       "ChangePasswordDto": {
@@ -6004,12 +8513,99 @@
           },
           "newPassword": {
             "type": "string",
-            "minLength": 6
+            "minLength": 8,
+            "maxLength": 100
           }
         },
         "required": [
           "currentPassword",
           "newPassword"
+        ]
+      },
+      "CreateEmailTemplateDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "maxLength": 100,
+            "pattern": "^[a-z0-9][a-z0-9-]*$",
+            "description": "Clave técnica (minúsculas, números y guiones)",
+            "example": "promo-verano"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Nombre visible de la plantilla"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Descripción / propósito"
+          },
+          "subject": {
+            "type": "string",
+            "maxLength": 300,
+            "description": "Asunto por defecto (admite variables {{...}})"
+          },
+          "html": {
+            "type": "string",
+            "description": "Contenido HTML (admite variables {{...}})"
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "subject",
+          "html"
+        ]
+      },
+      "UpsertEmailTemplateDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "subject": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "html": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "subject",
+          "html"
+        ]
+      },
+      "PreviewEmailTemplateDto": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "html": {
+            "type": "string"
+          }
+        }
+      },
+      "TestEmailTemplateDto": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string",
+            "format": "email",
+            "description": "Destinatario de la prueba",
+            "example": "admin@nova.co"
+          }
+        },
+        "required": [
+          "to"
         ]
       },
       "CategoryDto": {
@@ -6401,6 +8997,10 @@
           "metaDescription": {
             "type": "string",
             "maxLength": 500
+          },
+          "sortOrder": {
+            "type": "number",
+            "minimum": 0
           }
         },
         "required": [
@@ -6437,6 +9037,12 @@
           "isActive": {
             "type": "boolean"
           },
+          "sortOrder": {
+            "type": "number"
+          },
+          "productCount": {
+            "type": "number"
+          },
           "createdAt": {
             "format": "date-time",
             "type": "string"
@@ -6451,6 +9057,7 @@
           "name",
           "slug",
           "isActive",
+          "sortOrder",
           "createdAt",
           "updatedAt"
         ]
@@ -6484,6 +9091,12 @@
           "isActive": {
             "type": "boolean"
           },
+          "sortOrder": {
+            "type": "number"
+          },
+          "productCount": {
+            "type": "number"
+          },
           "createdAt": {
             "format": "date-time",
             "type": "string"
@@ -6504,9 +9117,41 @@
           "name",
           "slug",
           "isActive",
+          "sortOrder",
           "createdAt",
           "updatedAt",
           "children"
+        ]
+      },
+      "ReorderCategoryItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sortOrder": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "sortOrder"
+        ]
+      },
+      "ReorderCategoriesDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReorderCategoryItemDto"
+            }
+          }
+        },
+        "required": [
+          "items"
         ]
       },
       "UpdateCategoryDto": {
@@ -6537,6 +9182,10 @@
           "metaDescription": {
             "type": "string",
             "maxLength": 500
+          },
+          "sortOrder": {
+            "type": "number",
+            "minimum": 0
           }
         }
       },
@@ -6701,6 +9350,9 @@
             "items": {
               "$ref": "#/components/schemas/ProductVariantResponseDto"
             }
+          },
+          "imageUrl": {
+            "type": "string"
           }
         },
         "required": [
@@ -6796,6 +9448,9 @@
             "items": {
               "$ref": "#/components/schemas/ProductVariantResponseDto"
             }
+          },
+          "imageUrl": {
+            "type": "string"
           },
           "images": {
             "type": "array",
@@ -7042,6 +9697,9 @@
           "quantity": {
             "type": "number",
             "minimum": 0
+          },
+          "reason": {
+            "type": "string"
           }
         },
         "required": [
@@ -7722,6 +10380,9 @@
           "productionStatus": {
             "type": "string"
           },
+          "imageUrl": {
+            "type": "string"
+          },
           "productVariant": {
             "$ref": "#/components/schemas/AdminOrderProductVariantDto"
           },
@@ -8025,20 +10686,46 @@
           "payments"
         ]
       },
+      "BulkOrderPaymentStatusDto": {
+        "type": "object",
+        "properties": {
+          "paymentStatus": {
+            "type": "string",
+            "enum": [
+              "PAID",
+              "REFUNDED",
+              "PENDING",
+              "AUTHORIZED",
+              "FAILED"
+            ]
+          },
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "paymentStatus",
+          "ids"
+        ]
+      },
       "UpdateOrderStatusDto": {
         "type": "object",
         "properties": {
           "status": {
             "type": "string",
             "enum": [
-              "PAID",
-              "REFUNDED",
               "PENDING_PAYMENT",
+              "PAID",
               "IN_PRODUCTION",
               "READY_TO_SHIP",
               "SHIPPED",
               "DELIVERED",
-              "CANCELLED"
+              "CANCELLED",
+              "REFUNDED"
             ]
           }
         },
@@ -8052,11 +10739,11 @@
           "paymentStatus": {
             "type": "string",
             "enum": [
-              "FAILED",
+              "PAID",
+              "REFUNDED",
               "PENDING",
               "AUTHORIZED",
-              "PAID",
-              "REFUNDED"
+              "FAILED"
             ]
           }
         },
@@ -8122,20 +10809,154 @@
           "reason"
         ]
       },
+      "ManualOrderItemDto": {
+        "type": "object",
+        "properties": {
+          "variantId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Variante del producto"
+          },
+          "quantity": {
+            "type": "number",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "variantId",
+          "quantity"
+        ]
+      },
+      "ManualOrderAddressDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Etiqueta de la dirección",
+            "example": "Casa"
+          },
+          "line1": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 300
+          },
+          "line2": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "city": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 150
+          },
+          "state": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 150
+          },
+          "country": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 150
+          },
+          "zipCode": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 30
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "company": {
+            "type": "string",
+            "maxLength": 150
+          }
+        },
+        "required": [
+          "line1",
+          "city",
+          "state",
+          "country",
+          "zipCode"
+        ]
+      },
+      "CreateManualOrderDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Cliente existente por id"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Cliente existente por email (alternativo a userId)"
+          },
+          "items": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManualOrderItemDto"
+            }
+          },
+          "addressId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Dirección guardada del cliente"
+          },
+          "address": {
+            "description": "Dirección nueva (se crea para el cliente)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ManualOrderAddressDto"
+              }
+            ]
+          },
+          "shippingOptionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Opción de envío"
+          },
+          "paymentStatus": {
+            "enum": [
+              "PENDING",
+              "PAID"
+            ],
+            "type": "string",
+            "description": "Estado inicial del pago"
+          },
+          "adminNotes": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Notas internas"
+          },
+          "customerNotes": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Notas visibles para el cliente"
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
       "BulkOrderStatusDto": {
         "type": "object",
         "properties": {
           "status": {
             "type": "string",
             "enum": [
-              "PAID",
-              "REFUNDED",
               "PENDING_PAYMENT",
+              "PAID",
               "IN_PRODUCTION",
               "READY_TO_SHIP",
               "SHIPPED",
               "DELIVERED",
-              "CANCELLED"
+              "CANCELLED",
+              "REFUNDED"
             ]
           },
           "ids": {
@@ -8151,6 +10972,23 @@
           "ids"
         ]
       },
+      "ActiveProviderResponseDto": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "example": "bold"
+          },
+          "supportsButton": {
+            "type": "boolean",
+            "description": "true si el proveedor soporta botón de pagos embebido"
+          }
+        },
+        "required": [
+          "provider",
+          "supportsButton"
+        ]
+      },
       "CheckoutSessionResponseDto": {
         "type": "object",
         "properties": {
@@ -8160,6 +10998,45 @@
         },
         "required": [
           "url"
+        ]
+      },
+      "BoldButtonConfigResponseDto": {
+        "type": "object",
+        "properties": {
+          "apiKey": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "integritySignature": {
+            "type": "string",
+            "description": "Hash SHA256(orderId + amount + currency + secret)"
+          },
+          "redirectionUrl": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "sandbox": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "apiKey",
+          "orderId",
+          "amount",
+          "currency",
+          "integritySignature",
+          "redirectionUrl",
+          "sandbox"
         ]
       },
       "CalculateShippingCostDto": {
@@ -8487,6 +11364,9 @@
           },
           "name": {
             "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
           }
         },
         "required": [
@@ -8638,6 +11518,13 @@
             "type": "number",
             "nullable": true
           },
+          "coverageZones": {
+            "description": "Zonas de cobertura de la opción",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "isDefault": {
             "type": "boolean"
           },
@@ -8689,6 +11576,12 @@
           "freeShippingThreshold": {
             "type": "number"
           },
+          "coverageZones": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "isDefault": {
             "type": "boolean"
           },
@@ -8703,6 +11596,64 @@
           "name",
           "price"
         ]
+      },
+      "ShippingCredentialsResponseDto": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "description": "Proveedor de envíos activo",
+            "example": "flatRate"
+          },
+          "apiUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL base de la API del carrier"
+          },
+          "accountId": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID/cuenta del carrier"
+          },
+          "hasApiKey": {
+            "type": "boolean",
+            "description": "Indica si hay una API key configurada"
+          },
+          "apiKeyLast4": {
+            "type": "string",
+            "nullable": true,
+            "description": "Últimos 4 caracteres de la API key (para verificación visual)"
+          }
+        },
+        "required": [
+          "provider",
+          "hasApiKey"
+        ]
+      },
+      "UpdateShippingCredentialsDto": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Proveedor de envíos (flatRate, externo, ...)"
+          },
+          "apiUrl": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "URL base de la API del carrier"
+          },
+          "accountId": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "ID/cuenta del carrier"
+          },
+          "apiKey": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "API key del carrier (se guarda tal cual; nunca se devuelve completa)"
+          }
+        }
       },
       "UpdateShippingOptionDto": {
         "type": "object",
@@ -8725,6 +11676,12 @@
           },
           "freeShippingThreshold": {
             "type": "number"
+          },
+          "coverageZones": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "isDefault": {
             "type": "boolean"
@@ -9245,6 +12202,9 @@
           },
           "revenue": {
             "type": "number"
+          },
+          "imageUrl": {
+            "type": "string"
           }
         },
         "required": [
@@ -9370,6 +12330,10 @@
           },
           "name": {
             "type": "string"
+          },
+          "imageUrl": {
+            "type": "string",
+            "description": "Imagen principal de la variante (si tiene)"
           },
           "productVariant": {
             "$ref": "#/components/schemas/CartProductVariantSummaryDto"
@@ -9812,6 +12776,35 @@
           "meta"
         ]
       },
+      "BulkUpdateStatusDto": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PENDING_REVIEW",
+              "APPROVED",
+              "REJECTED"
+            ]
+          },
+          "rejectionReason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ids",
+          "status"
+        ]
+      },
       "UpdateStatusDto": {
         "type": "object",
         "properties": {
@@ -9996,6 +12989,224 @@
           "updatedAt"
         ]
       },
+      "UpdateAddressDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "line1": {
+            "type": "string"
+          },
+          "line2": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "zipCode": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "company": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CreateTenantDto": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "acme"
+          },
+          "name": {
+            "type": "string",
+            "example": "Acme Store"
+          },
+          "domain": {
+            "type": "string",
+            "example": "acme.nova.app"
+          },
+          "adminEmail": {
+            "type": "string",
+            "format": "email",
+            "example": "admin@acme.com"
+          },
+          "adminPassword": {
+            "type": "string",
+            "minLength": 8,
+            "example": "Password1234"
+          },
+          "databaseUrl": {
+            "type": "string",
+            "description": "Usar una BD existente en lugar de crear tenant_<slug>"
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "adminEmail",
+          "adminPassword"
+        ]
+      },
+      "UpdateTenantDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ACTIVE",
+              "SUSPENDED"
+            ],
+            "type": "string"
+          }
+        }
+      },
+      "ImpersonateTenantDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 5,
+            "description": "Motivo de la impersonación (auditoría)"
+          },
+          "readOnly": {
+            "type": "boolean",
+            "description": "Sesión de solo lectura (sin mutaciones)"
+          },
+          "password": {
+            "type": "string",
+            "description": "Contraseña del operador (step-up)"
+          },
+          "stepUpToken": {
+            "type": "string",
+            "description": "Token de step-up vigente (evita pedir la contraseña de nuevo)"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "PlatformLoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          },
+          "code": {
+            "type": "string",
+            "description": "Código TOTP si el operador tiene 2FA"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "PlatformTwoFactorDto": {
+        "type": "object",
+        "properties": {
+          "challengeToken": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "challengeToken",
+          "code"
+        ]
+      },
+      "PlatformPasswordDto": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "password"
+        ]
+      },
+      "PlatformCodeDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "CreatePlatformUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "name": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          },
+          "role": {
+            "enum": [
+              "OWNER",
+              "OPERATOR",
+              "SUPPORT"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "name",
+          "password"
+        ]
+      },
+      "UpdatePlatformUserDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "OWNER",
+              "OPERATOR",
+              "SUPPORT"
+            ],
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
       "ProductionItemResponseDto": {
         "type": "object",
         "properties": {
@@ -10140,6 +13351,27 @@
           "status"
         ]
       },
+      "BulkAssignProductionDto": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "assignedToId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "ids"
+        ]
+      },
       "AssignProductionItemDto": {
         "type": "object",
         "properties": {
@@ -10271,9 +13503,9 @@
           "status": {
             "type": "string",
             "enum": [
-              "PENDING",
               "DELIVERED",
               "CANCELLED",
+              "PENDING",
               "IN_TRANSIT"
             ]
           }
@@ -10470,6 +13702,22 @@
           "rating"
         ]
       },
+      "BulkReviewApprovalDto": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "ids"
+        ]
+      },
       "RefundResponseDto": {
         "type": "object",
         "properties": {
@@ -10555,6 +13803,30 @@
           "meta"
         ]
       },
+      "CreateRefundDto": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Orden a reembolsar"
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 1,
+            "description": "Monto en centavos; por defecto el total de la orden"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "description": "Motivo del reembolso"
+          }
+        },
+        "required": [
+          "orderId",
+          "reason"
+        ]
+      },
       "StoreConfigResponseDto": {
         "type": "object",
         "properties": {
@@ -10564,6 +13836,10 @@
           },
           "name": {
             "type": "string"
+          },
+          "storefrontUrl": {
+            "type": "string",
+            "description": "URL pública del storefront del tenant actual"
           },
           "description": {
             "type": "string"
@@ -10672,6 +13948,70 @@
           "paymentProvider": {
             "type": "string"
           },
+          "boldApiKey": {
+            "type": "string",
+            "nullable": true,
+            "description": "Llave de identidad de Bold (botón de pagos)"
+          },
+          "boldSecretConfigured": {
+            "type": "boolean",
+            "description": "true si hay una llave secreta de Bold configurada (nunca se devuelve)"
+          },
+          "boldSandbox": {
+            "type": "boolean",
+            "description": "Modo pruebas de Bold (firma de webhook con clave vacía)"
+          },
+          "stripePublishableKey": {
+            "type": "string",
+            "nullable": true,
+            "description": "Llave publicable de Stripe (segura para el cliente)"
+          },
+          "stripeSecretConfigured": {
+            "type": "boolean",
+            "description": "true si hay una secret key de Stripe configurada (nunca se devuelve)"
+          },
+          "stripeWebhookConfigured": {
+            "type": "boolean",
+            "description": "true si hay un webhook secret de Stripe configurado (nunca se devuelve)"
+          },
+          "smtpHost": {
+            "type": "string",
+            "nullable": true,
+            "description": "Host SMTP del tenant (si no, se usa el de la plataforma)"
+          },
+          "smtpPort": {
+            "type": "number",
+            "nullable": true,
+            "description": "Puerto SMTP del tenant"
+          },
+          "smtpUser": {
+            "type": "string",
+            "nullable": true,
+            "description": "Usuario SMTP del tenant"
+          },
+          "smtpPassConfigured": {
+            "type": "boolean",
+            "description": "true si hay una contraseña SMTP configurada (nunca se devuelve)"
+          },
+          "smtpSecure": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "TLS/SSL del SMTP del tenant"
+          },
+          "smtpFrom": {
+            "type": "string",
+            "nullable": true,
+            "description": "Remitente SMTP del tenant"
+          },
+          "resendApiKeyConfigured": {
+            "type": "boolean",
+            "description": "true si hay una API key de Resend configurada (nunca se devuelve)"
+          },
+          "resendFrom": {
+            "type": "string",
+            "nullable": true,
+            "description": "Remitente de Resend del tenant"
+          },
           "shippingProvider": {
             "type": "string"
           },
@@ -10689,6 +14029,43 @@
           "shippingDiscountFixedAmount": {
             "type": "number",
             "nullable": true
+          },
+          "termsPageId": {
+            "type": "string",
+            "nullable": true
+          },
+          "termsVersion": {
+            "type": "number"
+          },
+          "minOrderAmount": {
+            "type": "number",
+            "nullable": true
+          },
+          "productionEstimateDays": {
+            "type": "number",
+            "nullable": true
+          },
+          "deliveryEstimateDays": {
+            "type": "number",
+            "nullable": true
+          },
+          "emailSenderName": {
+            "type": "string"
+          },
+          "emailSenderAddress": {
+            "type": "string"
+          },
+          "googleOAuthEnabled": {
+            "type": "boolean"
+          },
+          "googleClientId": {
+            "type": "string"
+          },
+          "appleOAuthEnabled": {
+            "type": "boolean"
+          },
+          "appleClientId": {
+            "type": "string"
           }
         },
         "required": [
@@ -10717,7 +14094,10 @@
           "emailProvider",
           "paymentProvider",
           "shippingProvider",
-          "shippingBaseCost"
+          "shippingBaseCost",
+          "termsVersion",
+          "googleOAuthEnabled",
+          "appleOAuthEnabled"
         ]
       },
       "UpdateStoreConfigDto": {
@@ -10731,10 +14111,12 @@
           },
           "logoUrl": {
             "type": "string",
+            "nullable": true,
             "format": "uri"
           },
           "faviconUrl": {
             "type": "string",
+            "nullable": true,
             "format": "uri"
           },
           "primaryColor": {
@@ -10763,6 +14145,7 @@
           },
           "heroImageUrl": {
             "type": "string",
+            "nullable": true,
             "format": "uri"
           },
           "heroTitle": {
@@ -10872,6 +14255,56 @@
           "paymentProvider": {
             "type": "string"
           },
+          "boldApiKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "boldSecretKey": {
+            "type": "string"
+          },
+          "boldSandbox": {
+            "type": "boolean"
+          },
+          "stripePublishableKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "stripeSecretKey": {
+            "type": "string"
+          },
+          "stripeWebhookSecret": {
+            "type": "string"
+          },
+          "smtpHost": {
+            "type": "string",
+            "nullable": true
+          },
+          "smtpPort": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "smtpUser": {
+            "type": "string",
+            "nullable": true
+          },
+          "smtpPass": {
+            "type": "string"
+          },
+          "smtpSecure": {
+            "type": "boolean"
+          },
+          "smtpFrom": {
+            "type": "string",
+            "nullable": true
+          },
+          "resendApiKey": {
+            "type": "string"
+          },
+          "resendFrom": {
+            "type": "string",
+            "nullable": true
+          },
           "shippingProvider": {
             "type": "string"
           },
@@ -10891,6 +14324,103 @@
           "shippingDiscountFixedAmount": {
             "type": "number",
             "minimum": 0
+          },
+          "termsPageId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "termsVersion": {
+            "type": "number",
+            "minimum": 1
+          },
+          "minOrderAmount": {
+            "type": "number",
+            "minimum": 0
+          },
+          "productionEstimateDays": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 365
+          },
+          "deliveryEstimateDays": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 365
+          },
+          "emailSenderName": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "emailSenderAddress": {
+            "type": "string",
+            "nullable": true,
+            "format": "email"
+          },
+          "googleOAuthEnabled": {
+            "type": "boolean"
+          },
+          "googleClientId": {
+            "type": "string"
+          },
+          "appleOAuthEnabled": {
+            "type": "boolean"
+          },
+          "appleClientId": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateStoreRedirectDto": {
+        "type": "object",
+        "properties": {
+          "fromPath": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "toUrl": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "statusCode": {
+            "type": "number",
+            "enum": [
+              301,
+              302,
+              307,
+              308
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "fromPath",
+          "toUrl"
+        ]
+      },
+      "UpdateStoreRedirectDto": {
+        "type": "object",
+        "properties": {
+          "fromPath": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "toUrl": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "statusCode": {
+            "type": "number",
+            "enum": [
+              301,
+              302,
+              307,
+              308
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
           }
         }
       },

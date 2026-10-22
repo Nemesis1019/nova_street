@@ -7,6 +7,9 @@ export class StoreConfigResponseDto {
   @ApiProperty()
   name!: string;
 
+  @ApiPropertyOptional({ description: 'URL pública del storefront del tenant actual' })
+  storefrontUrl?: string;
+
   @ApiPropertyOptional()
   description?: string;
 
@@ -109,6 +112,48 @@ export class StoreConfigResponseDto {
   @ApiProperty()
   paymentProvider!: string;
 
+  @ApiPropertyOptional({ description: 'Llave de identidad de Bold (botón de pagos)' })
+  boldApiKey?: string | null;
+
+  @ApiPropertyOptional({ description: 'true si hay una llave secreta de Bold configurada (nunca se devuelve)' })
+  boldSecretConfigured?: boolean;
+
+  @ApiPropertyOptional({ description: 'Modo pruebas de Bold (firma de webhook con clave vacía)' })
+  boldSandbox?: boolean;
+
+  @ApiPropertyOptional({ description: 'Llave publicable de Stripe (segura para el cliente)' })
+  stripePublishableKey?: string | null;
+
+  @ApiPropertyOptional({ description: 'true si hay una secret key de Stripe configurada (nunca se devuelve)' })
+  stripeSecretConfigured?: boolean;
+
+  @ApiPropertyOptional({ description: 'true si hay un webhook secret de Stripe configurado (nunca se devuelve)' })
+  stripeWebhookConfigured?: boolean;
+
+  @ApiPropertyOptional({ description: 'Host SMTP del tenant (si no, se usa el de la plataforma)' })
+  smtpHost?: string | null;
+
+  @ApiPropertyOptional({ description: 'Puerto SMTP del tenant' })
+  smtpPort?: number | null;
+
+  @ApiPropertyOptional({ description: 'Usuario SMTP del tenant' })
+  smtpUser?: string | null;
+
+  @ApiPropertyOptional({ description: 'true si hay una contraseña SMTP configurada (nunca se devuelve)' })
+  smtpPassConfigured?: boolean;
+
+  @ApiPropertyOptional({ description: 'TLS/SSL del SMTP del tenant' })
+  smtpSecure?: boolean | null;
+
+  @ApiPropertyOptional({ description: 'Remitente SMTP del tenant' })
+  smtpFrom?: string | null;
+
+  @ApiPropertyOptional({ description: 'true si hay una API key de Resend configurada (nunca se devuelve)' })
+  resendApiKeyConfigured?: boolean;
+
+  @ApiPropertyOptional({ description: 'Remitente de Resend del tenant' })
+  resendFrom?: string | null;
+
   @ApiProperty()
   shippingProvider!: string;
 
@@ -123,4 +168,37 @@ export class StoreConfigResponseDto {
 
   @ApiPropertyOptional({ nullable: true })
   shippingDiscountFixedAmount?: number | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  termsPageId?: string | null;
+
+  @ApiProperty()
+  termsVersion!: number;
+
+  @ApiPropertyOptional({ nullable: true })
+  minOrderAmount?: number | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  productionEstimateDays?: number | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  deliveryEstimateDays?: number | null;
+
+  @ApiPropertyOptional()
+  emailSenderName?: string;
+
+  @ApiPropertyOptional()
+  emailSenderAddress?: string;
+
+  @ApiProperty()
+  googleOAuthEnabled!: boolean;
+
+  @ApiPropertyOptional()
+  googleClientId?: string;
+
+  @ApiProperty()
+  appleOAuthEnabled!: boolean;
+
+  @ApiPropertyOptional()
+  appleClientId?: string;
 }

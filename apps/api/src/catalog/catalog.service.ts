@@ -5,6 +5,7 @@ import { Cache } from 'cache-manager';
 
 import { buildAssetUrl, buildImageVariantUrl } from '../assets/asset-url.util';
 import { PrismaService } from '../prisma/prisma.service';
+import { getCurrentTenantSlug } from '../tenant/tenant-runtime';
 import { ListProductsQueryDto, ProductSort } from './dto/list-products-query.dto';
 
 function buildVariantDto(variant: {
@@ -47,7 +48,9 @@ export class CatalogService {
   ) {}
 
   private cacheKey(prefix: string, suffix: string): string {
-    return `${prefix}:${suffix}`;
+    // Prefijo por tenant: la caché es compartida entre clientes (memoria/Redis).
+    const tenant = getCurrentTenantSlug();
+    return `${tenant ? `t:${tenant}:` : ''}${prefix}:${suffix}`;
   }
 
   private async getCached<T>(key: string, factory: () => Promise<T>, ttlSeconds = 300): Promise<T> {
@@ -66,7 +69,8 @@ export class CatalogService {
       async () =>
         this.prisma.category.findMany({
           where: { isActive: true },
-          orderBy: { name: 'asc' },
+          // El orden del admin manda; el nombre desempata.
+          orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
           select: {
             id: true,
             name: true,
@@ -138,7 +142,10 @@ export class CatalogService {
     const skip = (page - 1) * limit;
 
     const category = categorySlug
-      ? await this.prisma.category.findUnique({ where: { slug: categorySlug } })
+      ? await this.prisma.category.findUnique({
+          where: { slug: categorySlug },
+          include: { children: { select: { id: true } } },
+        })
       : null;
 
     const where: Record<string, unknown> = {
@@ -146,7 +153,8 @@ export class CatalogService {
     };
 
     if (category?.id) {
-      where.categoryId = category.id;
+      // Las categorías padre incluyen los productos de sus subcategorías.
+      where.categoryId = { in: [category.id, ...category.children.map((child) => child.id)] };
     }
 
     if (search) {
@@ -401,10 +409,10 @@ export class CatalogService {
     variants: { priceAdjustment: number | null }[],
   ): number {
     if (variants.length === 0) return basePrice;
-    const adjustments = variants
-      .map((v) => v.priceAdjustment ?? 0)
-      .filter((a) => a !== 0);
-    if (adjustments.length === 0) return basePrice;
+    // El precio de lista es el de la variante más barata. Incluimos los
+    // ajustes en 0: antes se filtraban y un café con 250 g sin ajuste y
+    // 500 g con ajuste mostraba el precio de 500 g como "desde".
+    const adjustments = variants.map((v) => v.priceAdjustment ?? 0);
     return basePrice + Math.min(...adjustments);
   }
 

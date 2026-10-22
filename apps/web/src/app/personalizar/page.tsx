@@ -1,16 +1,32 @@
-import { Badge, Button, Container, Grid, GridCol, Stack, Text, Title } from '@mantine/core';
-import Link from 'next/link';
+import { Badge, Container, Grid, GridCol, Stack, Text, Title } from '@mantine/core';
+import { redirect } from 'next/navigation';
 
+import { LinkButton } from '../../components/link-button';
 import { StoreFooter } from '../../components/store-footer';
 import { StoreHeader } from '../../components/store-header';
 import { apiClient } from '../../lib/api';
 import type { DesignTemplate } from '../../lib/customizer-types';
+import type { StoreConfig } from '../../providers/config-provider';
 
 export const metadata = {
   title: 'Personalizar',
 };
 
 export default async function CustomizePage() {
+  let storeConfig: StoreConfig | undefined;
+  try {
+    const { data } = await apiClient.GET('/store-config');
+    storeConfig = (data as StoreConfig) ?? undefined;
+  } catch {
+    storeConfig = undefined;
+  }
+
+  // El personalizador es una función de tiendas de indumentaria. En la
+  // cafetería (enableCustomDesigns=false) no debe existir como vista.
+  if (storeConfig?.enableCustomDesigns === false) {
+    redirect('/catalogo');
+  }
+
   let templates: DesignTemplate[] = [];
   try {
     const { data } = await apiClient.GET('/design-templates');
@@ -83,19 +99,17 @@ export default async function CustomizePage() {
                           Desde ${template.basePrice.toLocaleString()}
                         </Text>
                       </div>
-                      <Link href={`/personalizar/${template.id}`} passHref legacyBehavior>
-                        <Button
-                          component="a"
-                          fullWidth
-                          style={{
-                            backgroundColor: '#0d0d0d',
-                            color: '#fcf9f8',
-                            fontFamily: 'var(--font-bebas-neue)',
-                          }}
-                        >
-                          Personalizar
-                        </Button>
-                      </Link>
+                      <LinkButton
+                        href={`/personalizar/${template.id}`}
+                        fullWidth
+                        style={{
+                          backgroundColor: '#0d0d0d',
+                          color: '#fcf9f8',
+                          fontFamily: 'var(--font-bebas-neue)',
+                        }}
+                      >
+                        Personalizar
+                      </LinkButton>
                     </Stack>
                   </div>
                 </GridCol>

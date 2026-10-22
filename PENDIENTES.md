@@ -6,6 +6,50 @@
 
 ## Resueltas
 
+### Roles — Super Admin y protección de API keys (2026-10-12)
+
+- ✅ **Rol `SUPER_ADMIN`** creado (48 permisos = todos) para control total del panel; el rol `ADMIN` quedó con todo **excepto** `providers:read/write`. Seed actualizado (`seed:roles`): CUSTOMER / ADMIN / SUPER_ADMIN.
+- ✅ **`admin@tienda.com` asignado a SUPER_ADMIN**; `admin2@tienda.com` queda como ADMIN (útil para validar la restricción). 2FA ahora también es obligatorio para `SUPER_ADMIN` (`TWO_FACTOR_FORCED_ROLES=SUPER_ADMIN,ADMIN,STAFF`).
+- ✅ **Permisos nuevos `providers:read` / `providers:write`** (categoría "Proveedores & Integraciones" en `/roles`) y **se eliminó el bypass de `role === 'ADMIN'`** del `RolesGuard`: ahora los permisos se evalúan siempre contra la lista efectiva (rol + overrides).
+- ✅ **Solo Super Admin puede tocar**:
+  - `PATCH /store-config` en los campos de proveedores/API keys: `paymentProvider`, `boldApiKey`, `boldSecretKey`, `boldSandbox`, `emailProvider`, `googleOAuthEnabled`, `googleClientId`, `appleOAuthEnabled`, `appleClientId` (bloquea solo si el valor **cambia**; guardar el resto de la config sigue funcionando para ADMIN).
+  - `GET/PATCH /shipping-options/admin/credentials` (credenciales del carrier).
+- ✅ **UI**: en `/store-config` los campos de proveedores quedan deshabilitados con aviso "Solo Super Admin puede gestionar proveedores y API keys"; en `/shipping-options` el botón de credenciales queda bloqueado. Hook `useCurrentPermissions()` reutilizable.
+- ✅ **Endurecimiento extra**: los secretos (`boldSecretKey`, `shippingApiKey`) ya no quedan en claro en la auditoría (`[redacted]`).
+- ℹ️ Para dar control total a otro usuario: asignarle el rol `SUPER_ADMIN` desde `/users` (o quitarle `providers:*` a un rol custom para restringirlo).
+
+### Pagos — Integración Bold (2026-10-12)
+
+- ✅ **Botón de pagos de Bold** en el storefront: checkout embebido con el script oficial (`checkout.bold.co/library/boldPaymentButton.js`), hash de integridad SHA256(`orderId + amount + currency + llave secreta`) generado **server-side** (`GET /payments/button-checkout/:orderId`), fallback a link de pago (`POST https://integrations.api.bold.co/online/link/v1`) y webhook firmado (`POST /payments/webhook/bold`).
+- ✅ **Webhook**: verificación `x-bold-signature` = HMAC-SHA256(llave secreta, base64(body)) en hex; en sandbox la firma usa clave vacía; mapea `SALE_APPROVED → PAID` y `SALE_REJECTED → FAILED`; **idempotente** (webhooks duplicados responden 200 sin re-procesar).
+- ✅ **Credenciales desde `/store-config`**: llave de identidad, llave secreta (write-only, nunca se devuelve) y switch de sandbox; `GET /store-config` público no expone la llave secreta (`boldSecretConfigured` informa si está configurada).
+- ✅ **`GET /payments/active-provider`** para que el storefront elija botón embebido (Bold) o redirect (Stripe).
+- ✅ **`PaymentProviderResolver`**: la pasarela se resuelve en cada operación leyendo `StoreConfig`, así activar Bold desde el admin **no requiere reiniciar la API** (el token `PAYMENT_PROVIDER` quedó como hook de override para tests e2e).
+- ✅ Página `/checkout/confirmacion` con polling del estado (Bold puede demorar hasta 10 min en notificar) y botón de reintento de pago.
+- ✅ Tests unitarios del provider (9): firma de integridad, verificación de webhook, mapeo de eventos, sandbox y config del botón.
+- ⏳ **Para activar en producción**: pegar las llaves del comercio (Panel Bold → Integraciones), elegir "Bold" como pasarela activa en `/store-config` y registrar el webhook apuntando a `https://<api-host>/payments/webhook/bold`.
+- ℹ️ **Reembolsos**: Bold no expone API de anulación/reembolso para botón de pagos; el flujo de reembolsos del admin los marcará como fallidos con el mensaje de gestionarlos desde el panel de Bold.
+
+### Plataforma — Emails y auth
+
+- ✅ Plantillas de email configurables desde el admin (`/email-templates`): modelo `EmailTemplate`, motor de variables `{{...}}`/`{{{...}}}`, 11 emails transaccionales migrados, vista previa con datos de ejemplo y restablecer a default (SPEC-046).
+- ✅ Flujo completo de recuperación de contraseña: `POST /auth/forgot-password` / `POST /auth/reset-password`, tokens hasheado SHA-256 de un solo uso (60 min), revocación de sesiones al restablecer, páginas `/forgot-password` y `/reset-password` en el storefront.
+- ✅ Selección de proveedor de email en caliente: `EmailProviderResolver` lee `StoreConfig.emailProvider` en cada envío (caché 60s) — ya no requiere reiniciar la API.
+- ✅ Fix de assets huérfanos: `DELETE /admin/assets/:id` + rollback en el admin si falla la creación del producto o la asociación de imagen.
+- ✅ Fix de generación de swagger en rutas con caracteres no ASCII (`src/common/swagger-path-shim.ts`, cargado al arrancar la API y en `generate:swagger`).
+- ✅ `express` agregado como dependencia explícita de `apps/api` (los tests e2e lo requieren con el layout estricto de pnpm).
+
+### Plataforma — Personalización avanzada desde admin (SPEC-047)
+
+- ✅ Términos y condiciones versionados: `termsPageId`/`termsVersion` en `StoreConfig`, registro estampa la versión vigente, `POST /auth/accept-terms` y banner de re-aceptación en el storefront.
+- ✅ Login social real: `POST /auth/google` (id_token) y `POST /auth/apple` (RS256 vs JWKS de Apple), vínculo por email, botones funcionales en `/login` y `/register`.
+- ✅ Redirects configurables: modelo `StoreRedirect`, CRUD en `/redirects` del admin y middleware de Next con caché de 60s.
+- ✅ Página 404 configurable (título/mensaje en `storefrontConfig.notFound`).
+- ✅ Home: sección `countdown` (cuenta regresiva de drop) y `featuredProducts` con título, categoría y límite configurables.
+- ✅ Anuncio superior con fechas de vigencia (`startsAt`/`endsAt`).
+- ✅ Checkout: `minOrderAmount` validado en `POST /checkout/init`, aviso en carrito y estimaciones de producción/envío en carrito y producto.
+- ✅ Remitente de email configurable desde `/store-config` (`emailSenderName`/`emailSenderAddress`, prioridad sobre env).
+
 ### API — Alta y media prioridad
 
 - ✅ Tests e2e para `GET /admin/dashboard/trends`.
@@ -120,19 +164,46 @@
   - Revisar foco, contraste y experiencia mobile en formularios de cuenta y checkout.
 - **Ampliar cobertura de tests de frontend**
   - Agregar tests para hooks y componentes más complejos del storefront.
+- **CORS del bucket R2 (Cloudflare)**
+  - La política CORS del bucket solo permite `http://localhost:3000` y `http://localhost:3001`. Si el storefront se abre desde otro origen (`127.0.0.1:3000`, URL reenviada, etc.), la imagen base del personalizador carga sin CORS (se muestra igual, pero sin vista previa exportable).
+  - Para recuperar la vista previa: agregar el origen en Cloudflare → R2 → bucket → Settings → CORS Policy (el token S3 actual no tiene permisos a nivel bucket para gestionarlo por API).
 
 ---
 
 ## Mejoras futuras de administración (no prioritarias)
 
 1. **Usuarios y permisos**
-   - Roles granulares (`CATALOG_MANAGER`, `ORDER_MANAGER`, etc.).
-   - Invitar admins.
+   - ✅ Roles granulares: se pueden crear roles y editar su matriz de permisos desde `/roles`.
+   - Pendiente: "invitar admins" (flujo de invitación por email; hoy se crean desde `/users`).
 
-6. **Seguridad**
-   - 2FA para admins.
-   - Sesiones activas y revocación de tokens.
-   - Rate limiting más estricto en `/admin`.
+2. **Seguridad**
+   - ✅ 2FA para admins (TOTP + dispositivo confiable + códigos de recuperación).
+   - ✅ Sesiones: logout revoca el refresh token; refresh en cookie httpOnly con rotación y `__Host-` en producción.
+   - Pendiente: pantalla de gestión de 2FA en Seguridad (desactivar / regenerar códigos de recuperación).
+   - Pendiente: login con Google en el admin (el backend lo soporta; botón deshabilitado).
+   - Rate limiting: `/admin` está exento a propósito (ráfagas legítimas del panel); auth con límite estricto.
+
+---
+
+## Auditoría admin (2026-10-12) — funcionalidades de los mockups pendientes
+
+> Revisión de las 25 pantallas de Stitch vs el código: **cobertura completa de rutas**. Los siguientes puntos son funcionalidades que el mockup muestra pero que hoy no están soportadas (requieren backend nuevo).
+
+1. **Reembolsos (`/refunds`)** — ✅ **Resuelto (2026-10-12)**: `POST /admin/refunds` (solicitud manual), `PATCH /admin/refunds/:id/approve|reject|retry`, `GET /admin/refunds/:id` (comprobante); UI con acciones por estado, modales de confirmación/comprobante/solicitud y feedback según resultado. Al completarse el total reembolsado la orden pasa a `REFUNDED` y libera reservas de stock.
+2. **Órdenes — "Crear Orden Manual"** — ✅ **Resuelto (2026-10-12)**: `POST /admin/orders/manual` (cliente por id/email, items por variante, dirección guardada/nueva/default, envío, estado de pago, notas); modal en `/orders`. No reserva stock (carga administrativa).
+3. **Envíos — zonas de cobertura y credenciales de API** — ✅ **Resuelto (2026-10-12)**: `ShippingOption.coverageZones` (migración `shipping_zones_and_credentials`), modal "Zonas de cobertura" y modal "Gestionar credenciales API" (`GET/PATCH /shipping-options/admin/credentials`, API key enmascarada y nunca expuesta en el `GET /store-config` público).
+4. **Monedas — sincronización de tasas de cambio** — ✅ **Resuelto (2026-10-12)**: `POST /admin/currencies/sync` (open.er-api.com, base = moneda default) + botón "Sincronizar tasas" con detalle de cambios.
+5. **Exportaciones — módulos Clientes y Logs** — ✅ **Resuelto (2026-10-12)**: `GET /admin/export/users` (filtros search/role/status) y `GET /admin/export/audit-logs` (filtros action/entity/from/to) + tarjetas en `/export`.
+6. **Plantillas de email — "Crear Plantilla"** — ✅ **Resuelto (2026-10-12)**: `POST /admin/email-templates` (plantillas custom, claves reservadas bloqueadas) + `POST /admin/email-templates/:key/test` (envío de prueba con datos de ejemplo, errores del proveedor como 502 claro) + modal de creación y sandbox de envío habilitado.
+7. **2FA — gestión desde Seguridad** — ✅ **Resuelto (2026-10-12)**: pantalla `/security` (estado, activar con QR, desactivar, regenerar códigos, dispositivos confiables con revocación) + endpoints autenticados `POST /auth/2fa/setup/current`, `POST /auth/2fa/setup/confirm/current`, `GET/DELETE /auth/2fa/devices`. Fix de seguridad: `sanitizeUser` ya no expone `twoFactorSecret`.
+8. **Login admin con Google** — backend listo (`POST /auth/google`), botón deshabilitado por falta de Google Identity en el admin.
+9. **Backups y Colas** — los endpoints existen (`/admin/backups/trigger`, `/admin/queues/jobs`) pero no tienen UI (baja prioridad, tampoco están en los mockups).
+
+### Transversales detectados
+
+- **Estados de error en queries** — ✅ **Resuelto (2026-10-12)**: componente compartido `QueryError` + `if (error) throw error` en las queries principales y rama de error con reintento en 21 pantallas.
+- **Cobertura de tests del admin**: 15 tests (componentes base + auth + OTP). Falta cobertura de páginas y flujos (listados, mutaciones, 2FA).
+- **Accesibilidad/responsive del admin**: sin auditoría formal (foco, contraste, navegación por teclado en tablas).
 
 ---
 

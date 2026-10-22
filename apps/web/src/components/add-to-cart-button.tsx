@@ -1,11 +1,14 @@
 'use client';
 
 import { Badge, Button, NumberInput, Select, Stack, Text } from '@mantine/core';
-import { IconArrowForward } from '@tabler/icons-react';
-import { useMemo, useState } from 'react';
+import { IconArrowForward, IconCheck } from '@tabler/icons-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useMemo, useRef, useState } from 'react';
 
 import { apiClient } from '../lib/api';
-import { getApiErrorMessage, notifyError, notifySuccess } from '../lib/notifications';
+import { flyToCart } from '../lib/fly-to-cart';
+import { getApiErrorMessage, notifyError } from '../lib/notifications';
+import { useCurrency } from '../providers/currency-provider';
 import { useAuthStore } from '../store/auth-store';
 import { useCartStore } from '../store/cart-store';
 
@@ -17,6 +20,7 @@ interface ProductVariant {
   stockMode?: string;
   availableQuantity?: number;
   inStock?: boolean;
+  priceAdjustment?: number;
 }
 
 interface AddToCartButtonProps {
@@ -27,14 +31,20 @@ interface AddToCartButtonProps {
     basePrice: number;
     variants: ProductVariant[];
   };
+  /** Imagen principal para el carrito local (invitados). */
+  imageUrl?: string;
 }
 
-export function AddToCartButton({ product }: AddToCartButtonProps) {
+export function AddToCartButton({ product, imageUrl }: AddToCartButtonProps) {
   const [quantity, setQuantity] = useState(1);
   const [selectedVariantId, setSelectedVariantId] = useState(product.variants[0]?.id ?? '');
   const [isAdding, setIsAdding] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const addItem = useCartStore((state) => state.addItem);
   const { isAuthenticated } = useAuthStore();
+  const { format } = useCurrency();
+  const queryClient = useQueryClient();
 
   const selectedVariant = useMemo(
     () => product.variants.find((v) => v.id === selectedVariantId),
@@ -46,6 +56,8 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
   const maxQuantity = isTracked
     ? Math.max(1, selectedVariant?.availableQuantity ?? 0)
     : 10;
+  const variantPrice = (variant: ProductVariant) =>
+    product.basePrice + (variant.priceAdjustment ?? 0);
 
   const handleAdd = async () => {
     if (!selectedVariantId || !canAdd) return;
@@ -61,16 +73,25 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
           } as never,
         });
         if (error) throw error;
+        queryClient.invalidateQueries({ queryKey: ['cart'] });
       } else {
         addItem({
           type: 'STANDARD',
           productVariantId: selectedVariantId,
           quantity,
           name: product.name,
-          price: product.basePrice,
+          price: selectedVariant ? variantPrice(selectedVariant) : product.basePrice,
+          sku: selectedVariant?.sku,
+          size: selectedVariant?.size ?? null,
+          color: selectedVariant?.color ?? null,
+          imageUrl,
         });
       }
-      notifySuccess({ title: 'Agregado al carrito', message: `${product.name} x ${quantity}` });
+
+      // Feedback visual en lugar del aviso: la foto vuela al carrito.
+      flyToCart(buttonRef.current, imageUrl);
+      setJustAdded(true);
+      window.setTimeout(() => setJustAdded(false), 1300);
     } catch (error) {
       notifyError({ title: 'Error al agregar', message: getApiErrorMessage(error) });
     } finally {
@@ -88,10 +109,13 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
         label="Variante"
         value={selectedVariantId}
         onChange={(value) => setSelectedVariantId(value ?? '')}
-        data={product.variants.map((variant) => ({
-          value: variant.id,
-          label: [variant.size, variant.color, variant.sku].filter(Boolean).join(' / '),
-        }))}
+        data={product.variants.map((variant) => {
+          const label = [variant.size, variant.color].filter(Boolean).join(' / ') || variant.sku;
+          return {
+            value: variant.id,
+            label: `${label} · ${format(variantPrice(variant))}`,
+          };
+        })}
         styles={{
           label: {
             fontFamily: 'var(--font-jetbrains-mono), JetBrains Mono, monospace',
@@ -138,20 +162,28 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
         }}
       />
       <Button
+        ref={buttonRef}
         onClick={handleAdd}
         size="lg"
         fullWidth
         loading={isAdding}
         disabled={!canAdd}
-        rightSection={<IconArrowForward size={18} />}
+        rightSection={
+          justAdded ? (
+            <IconCheck size={18} className="nova-pop" />
+          ) : (
+            <IconArrowForward size={18} />
+          )
+        }
         style={{
-          backgroundColor: '#0d0d0d',
+          backgroundColor: justAdded ? '#6f7a4e' : '#0d0d0d',
           color: '#fcf9f8',
           fontFamily: 'var(--font-bebas-neue), Bebas Neue, Impact, sans-serif',
           letterSpacing: '0.05em',
+          transition: 'background-color 220ms ease',
         }}
       >
-        {canAdd ? 'Añadir al Carrito' : 'Sin stock'}
+        {!canAdd ? 'Sin stock' : justAdded ? 'Agregado' : 'Añadir al Carrito'}
       </Button>
     </Stack>
   );

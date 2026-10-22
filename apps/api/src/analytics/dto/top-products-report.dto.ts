@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class TopProductDto {
   @ApiProperty()
@@ -12,6 +12,9 @@ export class TopProductDto {
 
   @ApiProperty()
   revenue!: number;
+
+  @ApiPropertyOptional()
+  imageUrl?: string;
 }
 
 export class TopProductsReportDto {

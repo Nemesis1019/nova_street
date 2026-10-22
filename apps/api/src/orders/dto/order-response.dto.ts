@@ -45,6 +45,9 @@ export class OrderItemResponseDto {
 
   @ApiPropertyOptional()
   name?: string;
+
+  @ApiPropertyOptional()
+  imageUrl?: string;
 }
 
 export class OrderResponseDto {

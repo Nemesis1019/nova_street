@@ -1,3 +1,5 @@
+import "./common/swagger-path-shim";
+
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -6,6 +8,7 @@ import type { NextFunction, Request, Response } from "express";
 import { join } from "path";
 
 import { AppModule } from "./app.module";
+import { CorsPolicyService } from "./common/cors-policy.service";
 import { HttpExceptionTranslationFilter } from "./common/http-exception-translation.filter";
 
 async function bootstrap() {
@@ -54,20 +57,23 @@ async function bootstrap() {
       next();
     });
   }
-  const rawOrigins = process.env.FRONTEND_URL
-    ? process.env.FRONTEND_URL.split(',').map((o) => o.trim()).filter(Boolean)
-    : [];
-
-  const allowedOrigins = rawOrigins.length > 0 ? rawOrigins : ['http://localhost:3000'];
+  // CORS dinámico: subdominios de plataforma + dominios de clientes registrados.
+  const corsPolicy = app.get(CorsPolicyService);
 
   // eslint-disable-next-line no-console
-  console.log(`CORS config — NODE_ENV=${process.env.NODE_ENV}, isDev=${isDev}, origins=${JSON.stringify(allowedOrigins)}`);
+  console.log(`CORS config — NODE_ENV=${process.env.NODE_ENV}, isDev=${isDev} (política multi-tenant)`);
 
   app.enableCors({
-    origin: isDev ? true : allowedOrigins,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      void corsPolicy
+        .isAllowedOrigin(origin)
+        .then((allowed) => callback(null, allowed))
+        .catch(() => callback(null, false));
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: 'Content-Type, Accept, Authorization, Accept-Language, X-Requested-With',
-    exposedHeaders: 'X-Total-Count',
+    allowedHeaders: 'Content-Type, Accept, Authorization, Accept-Language, X-Client, X-Tenant, X-Requested-With, X-CSRF-Token',
+    exposedHeaders: 'X-Total-Count, X-Tenant',
     credentials: true,
     preflightContinue: false,
     optionsSuccessStatus: 204,

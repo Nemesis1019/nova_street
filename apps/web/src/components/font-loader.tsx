@@ -12,6 +12,7 @@ const FALLBACK_STACKS: Record<string, string> = {
   Roboto: 'sans-serif',
   Montserrat: 'sans-serif',
   'Playfair Display': 'serif',
+  Fraunces: 'serif',
   'Source Sans 3': 'sans-serif',
   'Work Sans': 'sans-serif',
 };

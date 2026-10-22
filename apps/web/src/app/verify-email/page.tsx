@@ -1,55 +1,56 @@
 'use client';
 
-import { Button, PinInput, Stack, Text, Title } from '@mantine/core';
-import { useForm } from '@mantine/form';
+import { Button, Center, Loader, Stack, Text, Title } from '@mantine/core';
 import { useMutation } from '@tanstack/react-query';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useRef, useState } from 'react';
 
-import { StoreFooter } from '../../components/store-footer';
+import { AuthShell } from '../../components/auth-shell';
 import { apiClient } from '../../lib/api';
 import { getApiErrorMessage, notifyError, notifySuccess } from '../../lib/notifications';
+import { useStoreConfig } from '../../providers/config-provider';
 import { useAuthStore } from '../../store/auth-store';
 
+type VerificationStatus = 'idle' | 'success' | 'error';
+
 function VerifyEmailForm() {
-  const router = useRouter();
+  const config = useStoreConfig();
   const searchParams = useSearchParams();
-  const email = searchParams.get('email') ?? '';
-  const { isAuthenticated, setEmailVerified } = useAuthStore();
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
-    }
-  }, [isAuthenticated, router]);
-
-  const form = useForm({
-    initialValues: { code: '' },
-    validate: {
-      code: (value: string) => (value.length === 6 ? null : 'Ingresá el código de 6 dígitos'),
-    },
-  });
+  const token = searchParams.get('token') ?? '';
+  const { isAuthenticated, email } = useAuthStore();
+  const [status, setStatus] = useState<VerificationStatus>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+  const started = useRef(false);
 
   const verify = useMutation({
-    mutationFn: async (code: string) => {
+    mutationFn: async (value: string) => {
       const { data, error } = await apiClient.POST('/auth/verify-email', {
-        body: { code } as never,
+        body: { token: value } as never,
       });
       if (error || !data) throw error ?? new Error('Verification failed');
-      return data as { user: { emailVerified: boolean } };
-    },
-    onSuccess: (data) => {
-      if (data.user.emailVerified) {
-        setEmailVerified(true);
-        notifySuccess({ title: 'Email verificado', message: 'Ya podés realizar compras.' });
-        router.push('/catalogo');
-      }
-    },
-    onError: (error) => {
-      notifyError({ title: 'Código inválido', message: getApiErrorMessage(error) });
+      return data as { user: { email: string; emailVerified: boolean } };
     },
   });
+
+  useEffect(() => {
+    if (!token || started.current) return;
+    started.current = true;
+
+    verify.mutate(token, {
+      onSuccess: (data) => {
+        setStatus('success');
+        const auth = useAuthStore.getState();
+        if (auth.isAuthenticated && auth.email && auth.email.toLowerCase() === data.user.email.toLowerCase()) {
+          auth.setEmailVerified(true);
+        }
+      },
+      onError: (error) => {
+        setStatus('error');
+        setErrorMessage(getApiErrorMessage(error));
+      },
+    });
+  }, [token, verify]);
 
   const resend = useMutation({
     mutationFn: async () => {
@@ -59,96 +60,156 @@ function VerifyEmailForm() {
       if (error) throw error;
     },
     onSuccess: () => {
-      notifySuccess({ title: 'Código reenviado', message: `Revisá tu bandeja de entrada (${email}).` });
+      notifySuccess({
+        title: 'Email reenviado',
+        message: `Revisá tu bandeja de entrada${email ? ` (${email})` : ''}, incluido el spam.`,
+      });
     },
     onError: (error) => {
       notifyError({ title: 'Error al reenviar', message: getApiErrorMessage(error) });
     },
   });
 
-  if (!isAuthenticated) {
-    return null;
-  }
+  const renderContent = () => {
+    if (token && status === 'idle') {
+      return (
+        <Stack gap="lg" align="center">
+          <Stack gap="xs" align="center">
+            <Title order={2} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+              CONFIRMANDO TU CUENTA
+            </Title>
+            <Text size="sm" c="dimmed" ta="center">
+              Estamos validando tu link de confirmación...
+            </Text>
+          </Stack>
+          <Center>
+            <Loader color="#0d0d0d" />
+          </Center>
+        </Stack>
+      );
+    }
 
-  return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#fcf9f8' }}>
-      <header style={{ borderBottom: '1px solid #0d0d0d', padding: '16px 64px' }}>
-        <Link
-          href="/"
-          style={{
-            fontFamily: 'var(--font-bebas-neue), Bebas Neue, Impact, sans-serif',
-            fontSize: '28px',
-            letterSpacing: '0.05em',
-            color: '#0d0d0d',
-            textDecoration: 'none',
-          }}
-        >
-          NÖVA
-        </Link>
-      </header>
+    if (token && status === 'success') {
+      return (
+        <Stack gap="lg">
+          <Stack gap="xs">
+            <Title order={2} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+              CUENTA CONFIRMADA
+            </Title>
+            <Text size="sm" c="dimmed">
+              Tu email fue confirmado correctamente. Ya podés realizar compras y acceder a todas las funciones.
+            </Text>
+          </Stack>
+          <Button
+            component={Link}
+            href={isAuthenticated ? '/catalogo' : '/login'}
+            fullWidth
+            size="lg"
+            style={{ backgroundColor: '#0d0d0d', color: '#fcf9f8', fontFamily: 'var(--font-bebas-neue)' }}
+          >
+            {isAuthenticated ? 'Ir al catálogo' : 'Iniciar sesión'}
+          </Button>
+        </Stack>
+      );
+    }
 
-      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '64px 16px' }}>
-        <div style={{ padding: '48px', border: '1px solid #0d0d0d', backgroundColor: '#f6f3f2', maxWidth: 480, width: '100%' }}>
-          <Stack gap="lg">
-            <Stack gap="xs">
-              <Title order={2} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
-                VERIFICÁ TU EMAIL
-              </Title>
-              <Text size="sm" c="dimmed">
-                Te enviamos un código de 6 dígitos a <strong>{email}</strong>. Ingresalo abajo para activar tu cuenta y poder comprar.
-              </Text>
-            </Stack>
-
-            <form onSubmit={form.onSubmit((values) => verify.mutate(values.code))}>
-              <Stack gap="md" align="center">
-                <PinInput
-                  {...form.getInputProps('code')}
-                  length={6}
-                  type="number"
-                  size="lg"
-                  styles={{
-                    input: {
-                      border: '1px solid #0d0d0d',
-                      borderRadius: 0,
-                      backgroundColor: '#fcf9f8',
-                    },
-                  }}
-                />
-                {form.errors.code && (
-                  <Text size="sm" c="red">
-                    {form.errors.code}
-                  </Text>
-                )}
-                <Button
-                  type="submit"
-                  loading={verify.isPending}
-                  fullWidth
-                  size="lg"
-                  style={{
-                    backgroundColor: '#0d0d0d',
-                    color: '#fcf9f8',
-                    fontFamily: 'var(--font-bebas-neue)',
-                  }}
-                >
-                  Verificar
-                </Button>
-              </Stack>
-            </form>
-
+    if (token && status === 'error') {
+      return (
+        <Stack gap="lg">
+          <Stack gap="xs">
+            <Title order={2} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+              NO PUDIMOS CONFIRMAR TU CUENTA
+            </Title>
+            <Text size="sm" c="dimmed">
+              {errorMessage || 'El link de confirmación es inválido o venció.'}
+            </Text>
+          </Stack>
+          {isAuthenticated ? (
             <Button
-              variant="subtle"
               onClick={() => resend.mutate()}
               loading={resend.isPending}
               fullWidth
-              style={{ color: '#0d0d0d', fontFamily: 'var(--font-bebas-neue)' }}
+              size="lg"
+              style={{ backgroundColor: '#0d0d0d', color: '#fcf9f8', fontFamily: 'var(--font-bebas-neue)' }}
             >
-              Reenviar código
+              Reenviar email
             </Button>
-          </Stack>
-        </div>
-      </main>
-      <StoreFooter />
-    </div>
+          ) : (
+            <Button
+              component={Link}
+              href="/login"
+              fullWidth
+              size="lg"
+              style={{ backgroundColor: '#0d0d0d', color: '#fcf9f8', fontFamily: 'var(--font-bebas-neue)' }}
+            >
+              Iniciar sesión para reenviar
+            </Button>
+          )}
+        </Stack>
+      );
+    }
+
+    return (
+      <Stack gap="lg">
+        <Stack gap="xs">
+          <Title order={2} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+            CONFIRMÁ TU CUENTA
+          </Title>
+          <Text size="sm" c="dimmed">
+            {email ? (
+              <>
+                Te enviamos un link de confirmación a <strong>{email}</strong>. Revisá tu bandeja de entrada (y el
+                spam) y hacé clic en el enlace.
+              </>
+            ) : (
+              'Te enviamos un link de confirmación a tu correo. Revisá tu bandeja de entrada (y el spam) y hacé clic en el enlace.'
+            )}
+          </Text>
+        </Stack>
+        {isAuthenticated ? (
+          <Button
+            onClick={() => resend.mutate()}
+            loading={resend.isPending}
+            fullWidth
+            size="lg"
+            style={{ backgroundColor: '#0d0d0d', color: '#fcf9f8', fontFamily: 'var(--font-bebas-neue)' }}
+          >
+            Reenviar email
+          </Button>
+        ) : (
+          <Button
+            component={Link}
+            href="/login"
+            fullWidth
+            size="lg"
+            style={{ backgroundColor: '#0d0d0d', color: '#fcf9f8', fontFamily: 'var(--font-bebas-neue)' }}
+          >
+            Iniciar sesión
+          </Button>
+        )}
+        <Text size="sm" ta="center">
+          <Link href="/catalogo" style={{ color: '#0d0d0d', fontWeight: 600 }}>
+            Volver al catálogo
+          </Link>
+        </Text>
+      </Stack>
+    );
+  };
+
+  return (
+    <AuthShell
+      eyebrow="Verificación de cuenta"
+      title={
+        <>
+          CONFIRMÁ
+          <br />
+          TU CUENTA.
+        </>
+      }
+      description={`Un último paso para activar todas las funciones de tu cuenta ${config.name}.`}
+    >
+      {renderContent()}
+    </AuthShell>
   );
 }
 

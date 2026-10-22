@@ -7,6 +7,10 @@ export interface CartItem {
   quantity: number;
   name?: string;
   price?: number;
+  sku?: string;
+  size?: string | null;
+  color?: string | null;
+  imageUrl?: string;
 }
 
 interface CartState {

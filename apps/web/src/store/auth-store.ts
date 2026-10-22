@@ -8,12 +8,23 @@ interface AuthState {
   isHydrated: boolean;
   emailVerified: boolean;
   rememberMe: boolean;
-  setAuth: (accessToken: string, email: string, emailVerified?: boolean, rememberMe?: boolean) => void;
+  acceptedTermsVersion: string | null;
+  /** True cuando ya se intentó restaurar la sesión (hidratación + cookie). */
+  sessionReady: boolean;
+  setAuth: (
+    accessToken: string,
+    email: string,
+    emailVerified?: boolean,
+    rememberMe?: boolean,
+    acceptedTermsVersion?: string | null,
+  ) => void;
   setAccessToken: (accessToken: string) => void;
   setEmailVerified: (verified: boolean) => void;
   setRememberMe: (rememberMe: boolean) => void;
+  setAcceptedTermsVersion: (version: string) => void;
   logout: () => void;
   setHydrated: (hydrated: boolean) => void;
+  setSessionReady: (ready: boolean) => void;
 }
 
 const safeStorage = {
@@ -48,6 +59,11 @@ const safeStorage = {
   },
 };
 
+type PersistedAuthState = Pick<
+  AuthState,
+  'accessToken' | 'email' | 'isAuthenticated' | 'emailVerified' | 'rememberMe' | 'acceptedTermsVersion'
+>;
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -57,23 +73,44 @@ export const useAuthStore = create<AuthState>()(
       isHydrated: false,
       emailVerified: false,
       rememberMe: false,
-      setAuth: (accessToken, email, emailVerified = false, rememberMe = false) => {
-        set({ accessToken, email, isAuthenticated: true, emailVerified, rememberMe });
+      acceptedTermsVersion: null,
+      sessionReady: false,
+      setAuth: (accessToken, email, emailVerified = false, rememberMe = false, acceptedTermsVersion = null) => {
+        set({ accessToken, email, isAuthenticated: true, emailVerified, rememberMe, acceptedTermsVersion });
       },
       setAccessToken: (accessToken) => {
         set({ accessToken, isAuthenticated: true });
       },
       setEmailVerified: (verified) => set({ emailVerified: verified }),
       setRememberMe: (rememberMe) => set({ rememberMe }),
+      setAcceptedTermsVersion: (version) => set({ acceptedTermsVersion: version }),
       logout: () => {
-        set({ accessToken: null, email: null, isAuthenticated: false, emailVerified: false, rememberMe: false });
+        set({
+          accessToken: null,
+          email: null,
+          isAuthenticated: false,
+          emailVerified: false,
+          rememberMe: false,
+          acceptedTermsVersion: null,
+        });
       },
       setHydrated: (hydrated) => set({ isHydrated: hydrated }),
+      setSessionReady: (sessionReady) => set({ sessionReady }),
     }),
     {
       name: 'auth-store',
-      storage: safeStorage as unknown as PersistStorage<AuthState>,
+      storage: safeStorage as unknown as PersistStorage<PersistedAuthState>,
       skipHydration: true,
+      // Solo se persisten los datos de sesión; los flags de runtime
+      // (`isHydrated`, `sessionReady`) quedan fuera.
+      partialize: (state) => ({
+        accessToken: state.accessToken,
+        email: state.email,
+        isAuthenticated: state.isAuthenticated,
+        emailVerified: state.emailVerified,
+        rememberMe: state.rememberMe,
+        acceptedTermsVersion: state.acceptedTermsVersion,
+      }),
       onRehydrateStorage: () => (state) => {
         state?.setHydrated(true);
       },

@@ -14,7 +14,7 @@ export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Sse('stream')
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'SUPER_ADMIN', 'STAFF')
   stream() {
     return this.notificationsService.getStream();
   }

@@ -8,12 +8,14 @@ import type { Metadata } from 'next';
 import { AnnouncementBar } from '../components/announcement-bar';
 import { AuthRehydrator } from '../components/auth-rehydrator';
 import { ComparatorBar } from '../components/comparator-bar';
+import { CookieConsent } from '../components/cookie-consent';
 import { CustomStyles } from '../components/custom-styles';
 import { EmailVerificationBanner } from '../components/email-verification-banner';
 import { ExternalScripts } from '../components/external-scripts';
 import { FontLoader } from '../components/font-loader';
 import { MaintenanceScreen } from '../components/maintenance-screen';
 import { Popups } from '../components/popups';
+import { TermsBanner } from '../components/terms-banner';
 import { WhatsAppButton } from '../components/whatsapp-button';
 import { apiClient } from '../lib/api';
 import { bebasNeue, inter, jetbrainsMono } from '../lib/fonts';
@@ -84,7 +86,6 @@ async function fetchCurrencies() {
 export async function generateMetadata(): Promise<Metadata> {
   const config = await fetchStoreConfig();
   return buildSeoMetadata(config, {
-    title: config.description || 'Inicio',
     description: config.description ?? undefined,
     template: 'default',
   });
@@ -103,6 +104,7 @@ export default async function RootLayout({
       lang="es"
       className={`${inter.variable} ${bebasNeue.variable} ${jetbrainsMono.variable}`}
       style={{ backgroundColor: config.backgroundColor || NOVA_COLORS.surface }}
+      suppressHydrationWarning
     >
       <head>
         <ColorSchemeScript />
@@ -128,11 +130,13 @@ export default async function RootLayout({
                       <CustomStyles />
                       <ExternalScripts config={config} />
                       <AnnouncementBar />
+                      <TermsBanner />
                       <EmailVerificationBanner />
                       {children}
                       <ComparatorBar />
                       <WhatsAppButton config={config} />
                       <Popups />
+                      <CookieConsent />
                     </AuthRehydrator>
                   </ThemeProvider>
                 </QueryProvider>

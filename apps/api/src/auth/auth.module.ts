@@ -5,6 +5,7 @@ import { PassportModule } from '@nestjs/passport';
 import type { SignOptions } from 'jsonwebtoken';
 
 import { EmailModule } from '../email/email.module';
+import { TwoFactorModule } from '../two-factor/two-factor.module';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -14,8 +15,10 @@ import { JwtStrategy } from './strategies/jwt.strategy';
   imports: [
     UsersModule,
     EmailModule,
+    TwoFactorModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
+      global: true,
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow<string>('JWT_SECRET'),

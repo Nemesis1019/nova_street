@@ -10,6 +10,18 @@ export interface TemplateConfig {
   showIdentitySection?: boolean;
   productCardVariant?: 'default' | 'minimal';
   headerVariant?: 'default' | 'centered' | 'minimal';
+  /** Badge circular giratorio del hero. */
+  showHeroBadge?: boolean;
+  heroBadgeText?: string;
+  heroBadgeCenter?: string;
+  /** Kicker sobre el título del hero. */
+  heroEyebrow?: string;
+  heroPrimaryLabel?: string;
+  heroPrimaryHref?: string;
+  heroSecondaryLabel?: string;
+  heroSecondaryHref?: string;
+  /** Kicker del detalle de producto (por defecto "{tienda} Original"). */
+  productEyebrow?: string;
 }
 
 export interface StoreConfig {
@@ -48,6 +60,17 @@ export interface StoreConfig {
   storefrontConfig?: Record<string, unknown> | null;
   shippingBaseCost?: number;
   freeShippingThreshold?: number | null;
+  termsPageId?: string | null;
+  termsVersion?: number;
+  minOrderAmount?: number | null;
+  productionEstimateDays?: number | null;
+  deliveryEstimateDays?: number | null;
+  emailSenderName?: string | null;
+  emailSenderAddress?: string | null;
+  googleOAuthEnabled?: boolean;
+  googleClientId?: string | null;
+  appleOAuthEnabled?: boolean;
+  appleClientId?: string | null;
 }
 
 const ConfigContext = createContext<StoreConfig | null>(null);

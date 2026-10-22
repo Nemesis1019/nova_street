@@ -1,4 +1,4 @@
-import { IsBoolean, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsArray, IsBoolean, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class UpdateShippingOptionDto {
   @IsString()
@@ -25,6 +25,11 @@ export class UpdateShippingOptionDto {
   @IsInt()
   @IsOptional()
   freeShippingThreshold?: number;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  coverageZones?: string[];
 
   @IsBoolean()
   @IsOptional()

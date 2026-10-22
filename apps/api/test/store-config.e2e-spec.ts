@@ -82,6 +82,31 @@ describe('StoreConfigController (e2e)', () => {
     expect(publicRes.body.enableCustomDesigns).toBe(false);
   });
 
+  it('clears optional url/email fields when empty strings are sent', async () => {
+    const token = await createAdminUser(app);
+
+    await request(app.getHttpServer())
+      .patch('/store-config')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        logoUrl: 'https://example.com/logo.png',
+        emailSenderAddress: 'hola@tienda.com',
+      })
+      .expect(200);
+
+    return request(app.getHttpServer())
+      .patch('/store-config')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ logoUrl: '', faviconUrl: '', heroImageUrl: '', emailSenderAddress: '' })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.logoUrl).toBeNull();
+        expect(res.body.faviconUrl).toBeNull();
+        expect(res.body.heroImageUrl).toBeNull();
+        expect(res.body.emailSenderAddress).toBeNull();
+      });
+  });
+
   it('updates template and templateConfig as admin', async () => {
     const token = await createAdminUser(app);
 

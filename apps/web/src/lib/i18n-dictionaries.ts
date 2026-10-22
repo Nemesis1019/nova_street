@@ -58,6 +58,15 @@ export const esDictionary = {
   language: {
     select: 'Idioma',
   },
+  cookies: {
+    title: 'Utilizamos cookies',
+    description:
+      'Usamos cookies para mejorar tu experiencia de navegación, mostrarte contenido personalizado y analizar el tráfico del sitio.',
+    policy: 'Ver política de cookies',
+    accept: 'Aceptar',
+    reject: 'Rechazar',
+    manage: 'Cookies',
+  },
   common: {
     loading: 'Cargando...',
     error: 'Error',
@@ -126,6 +135,15 @@ export const enDictionary = {
   language: {
     select: 'Language',
   },
+  cookies: {
+    title: 'We use cookies',
+    description:
+      'We use cookies to improve your browsing experience, show you personalised content and analyse site traffic.',
+    policy: 'View cookie policy',
+    accept: 'Accept',
+    reject: 'Reject',
+    manage: 'Cookies',
+  },
   common: {
     loading: 'Loading...',
     error: 'Error',
@@ -193,6 +211,15 @@ export const ptDictionary = {
   },
   language: {
     select: 'Idioma',
+  },
+  cookies: {
+    title: 'Utilizamos cookies',
+    description:
+      'Usamos cookies para melhorar sua experiência de navegação, mostrar conteúdo personalizado e analisar o tráfego do site.',
+    policy: 'Ver política de cookies',
+    accept: 'Aceitar',
+    reject: 'Rejeitar',
+    manage: 'Cookies',
   },
   common: {
     loading: 'Carregando...',

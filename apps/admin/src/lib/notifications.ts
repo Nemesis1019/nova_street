@@ -1,5 +1,17 @@
 import { notifications } from '@mantine/notifications';
 
+const FALLBACK_ERROR_MESSAGES: Record<string, string> = {
+  es: 'Ocurrió un error inesperado',
+  en: 'An unexpected error occurred',
+  pt: 'Ocorreu um erro inesperado',
+};
+
+function getFallbackErrorMessage(): string {
+  if (typeof window === 'undefined') return FALLBACK_ERROR_MESSAGES.es;
+  const locale = window.localStorage.getItem('nova-admin-locale') ?? 'es';
+  return FALLBACK_ERROR_MESSAGES[locale] ?? FALLBACK_ERROR_MESSAGES.es;
+}
+
 export function notifySuccess({ title, message }: { title: string; message?: string }) {
   notifications.show({
     title,
@@ -47,11 +59,11 @@ function extractMessage(value: unknown): string | undefined {
 
 export function getApiErrorMessage(error: unknown): string {
   if (error === null || error === undefined) {
-    return 'Ocurrió un error inesperado';
+    return getFallbackErrorMessage();
   }
 
   if (typeof error === 'string') return error;
-  if (error instanceof Error) return error.message || 'Ocurrió un error inesperado';
+  if (error instanceof Error) return error.message || getFallbackErrorMessage();
 
   const direct = extractMessage(error);
   if (direct) return direct;
@@ -65,6 +77,6 @@ export function getApiErrorMessage(error: unknown): string {
   try {
     return JSON.stringify(error);
   } catch {
-    return 'Ocurrió un error inesperado';
+    return getFallbackErrorMessage();
   }
 }

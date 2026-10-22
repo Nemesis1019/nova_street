@@ -1,7 +1,7 @@
 import { CacheModule } from '@nestjs/cache-manager';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import cookieParser from 'cookie-parser';
 
@@ -22,6 +22,8 @@ import { BackupModule } from './backup/backup.module';
 import { CartModule } from './cart/cart.module';
 import { CatalogModule } from './catalog/catalog.module';
 import { CheckoutModule } from './checkout/checkout.module';
+import { CorsPolicyModule } from './common/cors-policy.module';
+import { ReadOnlyImpersonationInterceptor } from './common/readonly-impersonation.interceptor';
 import { RedisCacheStore } from './common/redis-cache.store';
 import { CurrenciesModule } from './currencies/currencies.module';
 import { CustomDesignsModule } from './custom-designs/custom-designs.module';
@@ -34,6 +36,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { OrdersModule } from './orders/orders.module';
 import { PagesModule } from './pages/pages.module';
 import { PaymentModule } from './payment/payment.module';
+import { PlatformModule } from './platform/platform.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProductionModule } from './production/production.module';
 import { QueuesModule } from './queues/queues.module';
@@ -41,6 +44,10 @@ import { RefundsModule } from './refunds/refunds.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { ShipmentsModule } from './shipments/shipments.module';
 import { StoreConfigModule } from './store-config/store-config.module';
+import { StoreRedirectsModule } from './store-redirects/store-redirects.module';
+import { TenantMiddleware } from './tenant/tenant.middleware';
+import { TenantModule } from './tenant/tenant.module';
+import { TwoFactorModule } from './two-factor/two-factor.module';
 import { UsersModule } from './users/users.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 
@@ -56,28 +63,35 @@ import { WishlistModule } from './wishlist/wishlist.module';
           return { ttl: 300_000 };
         }
         const store = new RedisCacheStore(config.get<string>('REDIS_URL') ?? 'redis://localhost:6379');
-        return { store, ttl: 300_000 };
+        return { stores: [store], ttl: 300_000 };
       },
       inject: [ConfigService],
     }),
     ThrottlerModule.forRoot([
       {
         ttl: 60_000,
-        limit: 30,
+        // Producción: 120 req/min. Desarrollo: 300 req/min (SSR del storefront + pruebas manuales).
+        limit: process.env.NODE_ENV === 'production' ? 120 : 300,
         skipIf: (context) => {
           if (process.env.NODE_ENV === 'test') {
             return true;
           }
           const request = context.switchToHttp().getRequest<{ url?: string }>();
           const url = request.url ?? '';
-          // Skip payment gateway routes.
+          // El panel admin (autenticado) dispara ráfagas de consultas por navegación.
+          // Pagos, webhooks y checkout se omiten explícitamente.
           return (
-            url.startsWith('/checkout') || url.startsWith('/webhooks') || url.startsWith('/payments')
+            url.startsWith('/admin') ||
+            url.startsWith('/checkout') ||
+            url.startsWith('/webhooks') ||
+            url.startsWith('/payments')
           );
         },
       },
     ]),
     PrismaModule,
+    CorsPolicyModule,
+    TenantModule,
     UsersModule,
     WishlistModule,
     AuthModule,
@@ -100,12 +114,15 @@ import { WishlistModule } from './wishlist/wishlist.module';
     AssetsModule,
     OrdersModule,
     PaymentModule,
+    PlatformModule,
     ProductionModule,
     QueuesModule,
     ShipmentsModule,
     ReviewsModule,
     RefundsModule,
     StoreConfigModule,
+    StoreRedirectsModule,
+    TwoFactorModule,
     EmailModule,
     ExportModule,
     HealthModule,
@@ -120,10 +137,16 @@ import { WishlistModule } from './wishlist/wishlist.module';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ReadOnlyImpersonationInterceptor,
+    },
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(cookieParser()).forRoutes('*');
+    // El orden importa: primero cookies y luego la resolución del tenant
+    // (el resto del request corre dentro del AsyncLocalStorage del tenant).
+    consumer.apply(cookieParser(), TenantMiddleware).forRoutes('*');
   }
 }

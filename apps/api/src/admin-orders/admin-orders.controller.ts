@@ -9,7 +9,9 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Permission } from '../auth/permissions';
 import { AdminOrdersService } from './admin-orders.service';
+import { BulkOrderPaymentStatusDto } from './dto/bulk-order-payment-status.dto';
 import { BulkOrderStatusDto } from './dto/bulk-order-status.dto';
+import { CreateManualOrderDto } from './dto/create-manual-order.dto';
 import { AssignOrderDto, CancelOrderDto, RefundOrderDto, UpdateOrderNotesDto } from './dto/order-management.dto';
 import { AdminOrderDetailResponseDto, AdminOrderListResponseDto } from './dto/order-response.dto';
 import { UpdateOrderStatusDto, UpdatePaymentStatusDto } from './dto/update-order-status.dto';
@@ -53,6 +55,13 @@ export class AdminOrdersController {
   @ApiOkResponse({ description: 'Order audit timeline', type: AuditLogListResponseDto })
   findTimeline(@Param('id') id: string) {
     return this.adminOrdersService.findTimeline(id);
+  }
+
+  @Patch('bulk/payment-status')
+  @RequirePermission(Permission.ORDERS_WRITE)
+  @ApiOkResponse({ description: 'Bulk payment status updated', type: Object })
+  bulkUpdatePaymentStatus(@Req() req: Request, @Body() dto: BulkOrderPaymentStatusDto) {
+    return this.adminOrdersService.bulkUpdatePaymentStatus(dto.ids, dto.paymentStatus, this.extractUserId(req));
   }
 
   @Patch(':id/status')
@@ -102,6 +111,13 @@ export class AdminOrdersController {
   @ApiOkResponse({ description: 'Order refunded', type: AdminOrderDetailResponseDto })
   refundOrder(@Req() req: Request, @Param('id') id: string, @Body() dto: RefundOrderDto) {
     return this.adminOrdersService.refundOrder(id, dto.reason, dto.amount, this.extractUserId(req));
+  }
+
+  @Post('manual')
+  @RequirePermission(Permission.ORDERS_WRITE)
+  @ApiOkResponse({ description: 'Manual order created', type: AdminOrderDetailResponseDto })
+  createManual(@Req() req: Request, @Body() dto: CreateManualOrderDto) {
+    return this.adminOrdersService.createManualOrder(dto, this.extractUserId(req));
   }
 
   @Post('bulk/status')

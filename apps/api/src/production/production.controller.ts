@@ -8,6 +8,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Permission } from '../auth/permissions';
 import { AssignProductionItemDto } from './dto/assign-production-item.dto';
+import { BulkAssignProductionDto } from './dto/bulk-assign-production.dto';
 import { ProductionItemListResponseDto, ProductionItemResponseDto } from './dto/production-item-response.dto';
 import { UpdateProductionStatusDto } from './dto/update-production-status.dto';
 import { ProductionService } from './production.service';
@@ -50,6 +51,13 @@ export class ProductionController {
   @ApiOkResponse({ description: 'Production status updated', type: ProductionItemResponseDto })
   updateStatus(@Req() req: Request, @Param('id') id: string, @Body() dto: UpdateProductionStatusDto) {
     return this.productionService.updateStatus(id, dto.status, this.extractUserId(req));
+  }
+
+  @Patch('bulk/assign')
+  @RequirePermission(Permission.PRODUCTION_WRITE)
+  @ApiOkResponse({ description: 'Production items assigned in bulk' })
+  bulkAssign(@Req() req: Request, @Body() dto: BulkAssignProductionDto) {
+    return this.productionService.bulkAssign(dto.ids, dto.assignedToId, this.extractUserId(req));
   }
 
   @Patch('items/:id/assign')

@@ -14,6 +14,7 @@ import {
 } from "recharts";
 
 import { apiClient } from "../lib/api";
+import { useTranslation } from "../providers/i18n-provider";
 
 const daysAgo = (days: number) => {
   const d = new Date();
@@ -25,6 +26,7 @@ const daysAgo = (days: number) => {
 const today = () => new Date().toISOString().split("T")[0];
 
 export function AnalyticsSection() {
+  const { t } = useTranslation();
   const [range, setRange] = useState<"7" | "30" | "90">("30");
   const from = daysAgo(Number(range));
   const to = today();
@@ -70,12 +72,12 @@ export function AnalyticsSection() {
   return (
     <Box mt="xl">
       <Group justify="space-between" mb="md">
-        <Title order={3}>Analytics</Title>
+        <Title order={3}>{t('pages.analytics.title')}</Title>
         <SegmentedControl
           data={[
-            { value: "7", label: "7 días" },
-            { value: "30", label: "30 días" },
-            { value: "90", label: "90 días" },
+            { value: "7", label: t('pages.analytics.periodDays').replace('{{count}}', '7') },
+            { value: "30", label: t('pages.analytics.periodDays').replace('{{count}}', '30') },
+            { value: "90", label: t('pages.analytics.periodDays').replace('{{count}}', '90') },
           ]}
           value={range}
           onChange={(value) => setRange(value as "7" | "30" | "90")}
@@ -83,15 +85,18 @@ export function AnalyticsSection() {
       </Group>
 
       <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} mb="md">
-        <MetricCard label="Ingresos" value={`$${(sales?.totalRevenue ?? 0).toLocaleString()}`} />
-        <MetricCard label="Órdenes" value={sales?.totalOrders ?? 0} />
-        <MetricCard label="Ticket promedio" value={`$${(sales?.averageOrderValue ?? 0).toLocaleString()}`} />
-        <MetricCard label="Conversión" value={`${((conversion?.cartToOrderRate ?? 0) * 100).toFixed(1)}%`} />
+        <MetricCard label={t('pages.analytics.revenue')} value={`$${(sales?.totalRevenue ?? 0).toLocaleString()}`} />
+        <MetricCard label={t('pages.analytics.orders')} value={sales?.totalOrders ?? 0} />
+        <MetricCard label={t('pages.analytics.averageTicket')} value={`$${(sales?.averageOrderValue ?? 0).toLocaleString()}`} />
+        <MetricCard
+          label={t('pages.analytics.conversion')}
+          value={`${((conversion?.cartToOrderRate ?? 0) * 100).toFixed(1)}%`}
+        />
       </SimpleGrid>
 
       <Paper p="md" withBorder radius="md" mb="md">
         <Title order={4} mb="md">
-          Top productos
+          {t('pages.analytics.topProducts')}
         </Title>
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height={240}>
@@ -99,13 +104,13 @@ export function AnalyticsSection() {
               <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
               <XAxis dataKey="name" tick={{ fontSize: 12 }} axisLine={{ stroke: "#E5E5E5" }} tickLine={false} />
               <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v.toLocaleString()}`} />
-              <Tooltip formatter={(value) => [`$${Number(value).toLocaleString()}`, "Ingresos"]} />
+              <Tooltip formatter={(value) => [`$${Number(value).toLocaleString()}`, t('pages.analytics.revenue')]} />
               <Bar dataKey="revenue" fill="#000000" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
           <Text ta="center" c="dimmed" py="xl">
-            No hay datos suficientes.
+            {t('pages.analytics.noData')}
           </Text>
         )}
       </Paper>
@@ -114,9 +119,9 @@ export function AnalyticsSection() {
         <Table withTableBorder striped highlightOnHover>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Producto</Table.Th>
-              <Table.Th>Cantidad</Table.Th>
-              <Table.Th>Ingresos</Table.Th>
+              <Table.Th>{t('pages.analytics.columnProduct')}</Table.Th>
+              <Table.Th>{t('pages.analytics.columnQuantity')}</Table.Th>
+              <Table.Th>{t('pages.analytics.columnRevenue')}</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>

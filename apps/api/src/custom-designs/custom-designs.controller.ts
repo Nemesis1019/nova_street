@@ -25,6 +25,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Permission } from '../auth/permissions';
 import { CustomDesignsService } from './custom-designs.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
+import { BulkUpdateStatusDto } from './dto/bulk-update-status.dto';
 import { CreateCustomDesignDto } from './dto/create-custom-design.dto';
 import { CustomDesignListResponseDto, CustomDesignResponseDto } from './dto/custom-design-response.dto';
 import { UpdateCustomDesignDto } from './dto/update-custom-design.dto';
@@ -101,6 +102,16 @@ export class CustomDesignsController {
       limit: limit ? Number(limit) : 20,
       status,
     });
+  }
+
+  @Patch('admin/bulk-status')
+  @UseGuards(RolesGuard)
+  @RequirePermission(Permission.CUSTOM_DESIGNS_WRITE)
+  @ApiOperation({ summary: 'Bulk update custom design status (admin)' })
+  @ApiOkResponse({ description: 'Custom designs status updated' })
+  bulkUpdateStatus(@Body() dto: BulkUpdateStatusDto, @Req() req: Request) {
+    const user = req.user as { userId: string };
+    return this.customDesignsService.bulkUpdateStatus(dto, user.userId);
   }
 
   @Patch('admin/:id/status')

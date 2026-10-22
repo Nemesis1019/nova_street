@@ -1,76 +1,88 @@
 'use client';
 
-import { Paper, Text, Title } from '@mantine/core';
-import {
-  Bar,
-  CartesianGrid,
-  ComposedChart,
-  Legend,
-  Line,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import { Area, Bar, CartesianGrid, ComposedChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 
-interface TrendPoint {
+import { useTranslation } from '../providers/i18n-provider';
+
+export interface TrendPoint {
   date: string;
   orders: number;
   revenue: number;
 }
 
-interface TrendsChartProps {
-  data: TrendPoint[];
+function formatDay(date: string) {
+  const parsed = new Date(`${date}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return date;
+  return parsed
+    .toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })
+    .replace('.', '')
+    .replace(/^\w/, (letter) => letter.toUpperCase());
 }
 
-export function TrendsChart({ data }: TrendsChartProps) {
+function formatCurrency(value: number) {
+  return `$${value.toLocaleString('es-CO')}`;
+}
+
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: TrendPoint }>;
+}
+
+function ChartTooltip({ active, payload }: TooltipProps) {
+  const { t } = useTranslation();
+  if (!active || !payload?.length) return null;
+  const point = payload[0].payload;
   return (
-    <Paper p="md" withBorder radius="md">
-      <Title order={3} mb="md">
-        Tendencias (últimos 7 días)
-      </Title>
-      <ResponsiveContainer width="100%" height={320}>
-        <ComposedChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
-          <XAxis dataKey="date" tick={{ fontSize: 12 }} axisLine={{ stroke: '#E5E5E5' }} tickLine={false} />
-          <YAxis
-            yAxisId="left"
-            tick={{ fontSize: 12 }}
+    <div className="rounded-lg border border-outline-variant/40 bg-surface-container-lowest px-3 py-2 shadow-pop">
+      <div className="font-label-uppercase text-label-uppercase uppercase text-on-surface-variant">
+        {formatDay(point.date)}
+      </div>
+      <div className="mt-1 flex items-center gap-2 font-numeric-tabular text-label-sm text-on-surface">
+        <span className="h-2 w-2 rounded-sm bg-primary" />
+        {t('pages.dashboard.tooltipRevenue')} {formatCurrency(point.revenue)}
+      </div>
+      <div className="mt-0.5 flex items-center gap-2 font-numeric-tabular text-label-sm text-secondary">
+        <span className="h-0.5 w-3 bg-secondary" />
+        {t('pages.dashboard.tooltipOrders')} {point.orders}
+      </div>
+    </div>
+  );
+}
+
+export function TrendsChart({ data }: { data: TrendPoint[] }) {
+  return (
+    <div className="relative h-64 w-full sm:h-72">
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id="revenueGradient" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#141b2b" stopOpacity={0.12} />
+              <stop offset="100%" stopColor="#141b2b" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid vertical={false} stroke="#e9edff" strokeDasharray="4 4" />
+          <XAxis
+            dataKey="date"
+            tickFormatter={formatDay}
             axisLine={false}
             tickLine={false}
-            allowDecimals={false}
+            tick={{ fill: '#747878', fontSize: 12 }}
+            dy={8}
+            minTickGap={24}
           />
-          <YAxis
-            yAxisId="right"
-            orientation="right"
-            tick={{ fontSize: 12 }}
-            axisLine={false}
-            tickLine={false}
-            tickFormatter={(value) => `$${value.toLocaleString()}`}
+          <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(233, 237, 255, 0.45)' }} />
+          <Bar dataKey="orders" fill="#dce2f7" radius={[3, 3, 0, 0]} maxBarSize={28} />
+          <Area
+            type="monotone"
+            dataKey="revenue"
+            stroke="#141b2b"
+            strokeWidth={2.5}
+            fill="url(#revenueGradient)"
+            dot={{ r: 3.5, fill: '#ffffff', stroke: '#141b2b', strokeWidth: 2 }}
+            activeDot={{ r: 4.5 }}
           />
-          <Tooltip
-            contentStyle={{
-              border: '1px solid #E5E5E5',
-              borderRadius: '8px',
-              boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
-            }}
-            formatter={(value, name) =>
-              name === 'revenue' ? [`$${Number(value).toLocaleString()}`, 'Ingresos'] : [value, 'Órdenes']
-            }
-          />
-          <Legend
-            formatter={(value) => (value === 'revenue' ? 'Ingresos' : 'Órdenes')}
-            wrapperStyle={{ paddingTop: 16 }}
-          />
-          <Bar yAxisId="left" dataKey="orders" fill="#000000" radius={[4, 4, 0, 0]} />
-          <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="#5d5f5f" strokeWidth={2} dot={false} />
         </ComposedChart>
       </ResponsiveContainer>
-      {data.length === 0 && (
-        <Text ta="center" c="dimmed" py="xl">
-          No hay datos de tendencias disponibles.
-        </Text>
-      )}
-    </Paper>
+    </div>
   );
 }

@@ -1,3 +1,5 @@
+import '../common/swagger-path-shim';
+
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as fs from 'fs';

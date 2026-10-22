@@ -2,6 +2,7 @@ import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 
+import { MasterPrismaService } from '../prisma/master-prisma.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 @ApiTags('health')
@@ -9,7 +10,10 @@ import { PrismaService } from '../prisma/prisma.service';
 export class HealthController {
   private readonly startTime = Date.now();
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly master: MasterPrismaService,
+  ) {}
 
   @Get()
   health() {
@@ -28,6 +32,20 @@ export class HealthController {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       return res.status(HttpStatus.SERVICE_UNAVAILABLE).json({ status: 'error', db: 'disconnected', message });
+    }
+  }
+
+  /** Readiness de la BD maestra (resolución de tenants). */
+  @Get('platform')
+  async platform(@Res() res: Response) {
+    try {
+      await this.master.$queryRaw`SELECT 1`;
+      return res.status(HttpStatus.OK).json({ status: 'ok', master: 'connected' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return res
+        .status(HttpStatus.SERVICE_UNAVAILABLE)
+        .json({ status: 'error', master: 'disconnected', message });
     }
   }
 }

@@ -1,27 +1,23 @@
 'use client';
 
-import '@mantine/notifications/styles.css';
-
 import { MantineProvider, MantineThemeOverride } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { ReactNode } from 'react';
 
-import { useStoreConfig } from './config-provider';
+const FONT_FAMILY = 'var(--font-plus-jakarta), Plus Jakarta Sans, system-ui, sans-serif';
 
 function solidScale(color: string): [string, string, string, string, string, string, string, string, string, string] {
   return Array(10).fill(color) as [string, string, string, string, string, string, string, string, string, string];
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const config = useStoreConfig();
-
   const theme: MantineThemeOverride = {
     primaryColor: 'dark',
     primaryShade: 9,
     defaultRadius: 'md',
-    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+    fontFamily: FONT_FAMILY,
     headings: {
-      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+      fontFamily: FONT_FAMILY,
       sizes: {
         h1: { fontSize: '32px', lineHeight: '40px', fontWeight: '700' },
         h2: { fontSize: '24px', lineHeight: '32px', fontWeight: '700' },
@@ -70,13 +66,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       Button: {
         defaultProps: {
           radius: 'md',
-        },
-        styles: {
-          root: {
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            fontWeight: 600,
-          },
         },
       },
       Table: {
@@ -132,8 +121,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       <Notifications position="top-right" zIndex={1000} />
       <div
         style={{
-          backgroundColor: config.backgroundColor ?? '#f9f9f9',
-          color: config.textColor ?? '#1a1c1c',
+          backgroundColor: '#f9f9ff',
+          color: '#141b2b',
           minHeight: '100vh',
         }}
       >

@@ -1,21 +1,59 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { OrderStatus, PaymentStatus, RefundStatus } from '@prisma/client';
 
 import { CheckoutService } from '../checkout/checkout.service';
 import { PrismaService } from '../prisma/prisma.service';
-import type { PaymentProvider } from './providers/payment-provider.interface';
-import { PAYMENT_PROVIDER } from './providers/payment-provider.token';
+import type { PaymentButtonConfig } from './providers/payment-provider.interface';
+import { PaymentProviderResolver } from './providers/payment-provider.resolver';
 
 @Injectable()
 export class PaymentService {
+  private readonly logger = new Logger(PaymentService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly checkoutService: CheckoutService,
-    @Inject(PAYMENT_PROVIDER) private readonly provider: PaymentProvider,
+    private readonly paymentProviderResolver: PaymentProviderResolver,
   ) {}
 
-  isEnabled(): boolean {
-    return this.provider !== null;
+  /** Info del proveedor activo para que el storefront elija el flujo de pago. */
+  async getActiveProviderInfo() {
+    const provider = await this.paymentProviderResolver.resolve();
+    return {
+      provider: provider.name,
+      supportsButton: typeof provider.createButtonCheckout === 'function',
+    };
+  }
+
+  /** Config del botón de pagos embebido (Bold) para una orden del usuario. */
+  async getButtonCheckout(orderId: string, userId: string): Promise<PaymentButtonConfig> {
+    const provider = await this.paymentProviderResolver.resolve();
+    if (typeof provider.createButtonCheckout !== 'function') {
+      throw new BadRequestException('El proveedor de pagos activo no soporta el botón de pagos embebido');
+    }
+
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, userId },
+      include: { user: true },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    if (order.status !== OrderStatus.PENDING_PAYMENT) {
+      throw new BadRequestException('Order is not pending payment');
+    }
+
+    const storeConfig = await this.prisma.storeConfig.findFirst({ where: { isActive: true } });
+    const currency = storeConfig?.currencyCode ?? 'COP';
+
+    return provider.createButtonCheckout({
+      id: order.id,
+      totalAmount: order.totalAmount,
+      currency,
+      userEmail: order.user.email,
+    });
   }
 
   async createCheckoutSession(orderId: string, userId: string) {
@@ -42,8 +80,9 @@ export class PaymentService {
 
     const storeConfig = await this.prisma.storeConfig.findFirst({ where: { isActive: true } });
     const currency = (storeConfig?.currencyCode ?? 'COP').toLowerCase();
+    const provider = await this.paymentProviderResolver.resolve();
 
-    const session = await this.provider.createCheckoutSession({
+    const session = await provider.createCheckoutSession({
       id: order.id,
       totalAmount: order.totalAmount,
       currency,
@@ -66,7 +105,7 @@ export class PaymentService {
     await this.prisma.payment.create({
       data: {
         orderId: order.id,
-        provider: this.provider.name,
+        provider: provider.name,
         providerTransactionId: session.providerTransactionId,
         amount: order.totalAmount,
         status: PaymentStatus.PENDING,
@@ -77,10 +116,21 @@ export class PaymentService {
   }
 
   async handleWebhook(payload: string | Buffer, signature: string | undefined) {
-    const event = await this.provider.handleWebhook(payload, signature);
+    const provider = await this.paymentProviderResolver.resolve();
+    const event = await provider.handleWebhook(payload, signature);
 
     if (event.type === 'checkout.session.completed' && event.orderId) {
-      await this.checkoutService.markOrderPaid(event.orderId, this.provider.name, event.providerTransactionId);
+      try {
+        await this.checkoutService.markOrderPaid(event.orderId, provider.name, event.providerTransactionId);
+      } catch (error) {
+        // Idempotencia: Bold reintenta webhooks y puede notificar una orden ya pagada.
+        // Respondemos 200 igualmente para evitar reintentos infinitos.
+        this.logger.warn(
+          `Webhook ${provider.name}: no se pudo marcar la orden ${event.orderId} como pagada (${
+            error instanceof Error ? error.message : String(error)
+          })`,
+        );
+      }
     }
 
     if (event.type === 'payment_failed') {
@@ -135,7 +185,7 @@ export class PaymentService {
       },
     });
 
-    const result = await this.provider.refund({
+    const result = await (await this.paymentProviderResolver.resolve()).refund({
       orderId,
       paymentProviderTransactionId: payment?.providerTransactionId ?? undefined,
       amount,
@@ -153,5 +203,47 @@ export class PaymentService {
     });
 
     return { refundId: refund.id, success: result.success, errorMessage: result.errorMessage };
+  }
+
+  /**
+   * Procesa un reembolso ya registrado (PENDING o FAILED): llama al proveedor
+   * y actualiza estado + ID de proveedor. Se usa al aprobar/reintentar desde el panel.
+   */
+  async processExistingRefund(refundId: string) {
+    const refund = await this.prisma.refund.findUnique({
+      where: { id: refundId },
+      include: { order: { include: { payments: true } } },
+    });
+
+    if (!refund) {
+      throw new NotFoundException('Refund not found');
+    }
+    if (refund.status === RefundStatus.COMPLETED) {
+      throw new BadRequestException('Refund is already completed');
+    }
+
+    const payment = refund.order.payments.find(
+      (p) => p.status === PaymentStatus.PAID || p.status === PaymentStatus.PENDING,
+    );
+
+    const result = await (await this.paymentProviderResolver.resolve()).refund({
+      orderId: refund.orderId,
+      paymentProviderTransactionId: payment?.providerTransactionId ?? undefined,
+      amount: refund.amount,
+      reason: refund.reason,
+    });
+
+    return this.prisma.refund.update({
+      where: { id: refundId },
+      data: {
+        status: result.success ? RefundStatus.COMPLETED : RefundStatus.FAILED,
+        providerRefundId: result.providerTransactionId ?? null,
+        paymentId: payment?.id ?? refund.paymentId,
+      },
+      include: {
+        order: { select: { id: true, totalAmount: true, status: true, paymentStatus: true } },
+        createdBy: { select: { id: true, email: true, firstName: true, lastName: true } },
+      },
+    });
   }
 }

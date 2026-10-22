@@ -147,9 +147,9 @@ pnpm --filter @ecommerce/api-client build
 
 ### Verificación de email
 
-- Después del registro, el usuario va a `/verify-email?email=...`.
-- Ingresa el código OTP de 6 dígitos.
-- Al verificar, `setEmailVerified(true)` y redirige al catálogo.
+- Al registrarse, el usuario queda logueado y continúa navegando; el banner `EmailVerificationBanner` le recuerda confirmar la cuenta y permite reenviar el email.
+- El correo incluye un link a `/verify-email?token=...` (24 h). La página valida el token automáticamente al abrirse (funciona con o sin sesión) y muestra el resultado.
+- Sin token, `/verify-email` muestra las instrucciones y permite reenviar el email si hay sesión.
 - El checkout bloquea si `emailVerified === false`.
 
 ---

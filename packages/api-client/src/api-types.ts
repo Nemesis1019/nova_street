@@ -20,6 +20,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["UsersController_updateMe"];
+        trace?: never;
+    };
     "/wishlist": {
         parameters: {
             query?: never;
@@ -79,6 +95,150 @@ export interface paths {
         put?: never;
         post: operations["AuthController_login"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/2fa/setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_twoFactorSetup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/2fa/setup/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_twoFactorSetupConfirm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/2fa/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_twoFactorVerify"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/2fa/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_twoFactorDisable"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/2fa/recovery-codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_twoFactorRecoveryCodes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/2fa/setup/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_twoFactorSetupCurrent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/2fa/setup/confirm/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_twoFactorSetupConfirmCurrent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/2fa/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AuthController_twoFactorDevices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/2fa/devices/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["AuthController_twoFactorRevokeDevice"];
         options?: never;
         head?: never;
         patch?: never;
@@ -164,6 +324,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_forgotPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_resetPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/accept-terms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_acceptTerms"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_googleLogin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/apple": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_appleLogin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/change-password": {
         parameters: {
             query?: never;
@@ -178,6 +418,86 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["AuthController_changePassword"];
+        trace?: never;
+    };
+    "/admin/email-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["EmailTemplatesController_findAll"];
+        put?: never;
+        post: operations["EmailTemplatesController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/email-templates/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["EmailTemplatesController_findOne"];
+        put: operations["EmailTemplatesController_upsert"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/email-templates/{key}/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["EmailTemplatesController_reset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/email-templates/{key}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["EmailTemplatesController_preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/email-templates/{key}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["EmailTemplatesController_sendTest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/catalog/categories": {
@@ -290,6 +610,22 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["AdminCategoryController_update"];
+        trace?: never;
+    };
+    "/admin/categories/reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["AdminCategoryController_reorder"];
         trace?: never;
     };
     "/admin/products": {
@@ -564,6 +900,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/assets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["AssetsController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/assets/presign": {
         parameters: {
             query?: never;
@@ -740,6 +1092,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/orders/bulk/payment-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["AdminOrdersController_bulkUpdatePaymentStatus"];
+        trace?: never;
+    };
     "/admin/orders/{id}/status": {
         parameters: {
             query?: never;
@@ -852,6 +1220,22 @@ export interface paths {
         patch: operations["AdminOrdersController_refundOrder"];
         trace?: never;
     };
+    "/admin/orders/manual": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminOrdersController_createManual"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/orders/bulk/status": {
         parameters: {
             query?: never;
@@ -868,6 +1252,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/payments/active-provider": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Proveedor de pagos activo (stripe | bold) */
+        get: operations["PaymentController_activeProvider"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/payments/create-checkout-session/{orderId}": {
         parameters: {
             query?: never;
@@ -877,8 +1278,25 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a Stripe Checkout session for an order */
+        /** Create a checkout session (link de pago) for an order */
         post: operations["PaymentController_createCheckoutSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/payments/button-checkout/{orderId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Config del botón de pagos embebido (Bold) para una orden */
+        get: operations["PaymentController_buttonCheckout"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -896,6 +1314,23 @@ export interface paths {
         put?: never;
         /** Stripe webhook endpoint */
         post: operations["PaymentController_webhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/payments/webhook/bold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bold webhook endpoint (firma x-bold-signature) */
+        post: operations["PaymentController_boldWebhook"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1060,6 +1495,22 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/shipping-options/admin/credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ShippingOptionsController_getCredentials"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["ShippingOptionsController_updateCredentials"];
         trace?: never;
     };
     "/shipping-options/admin/{id}": {
@@ -1478,6 +1929,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/currencies/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminCurrenciesController_sync"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/currencies/{code}": {
         parameters: {
             query?: never;
@@ -1581,6 +2048,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/custom-designs/admin/bulk-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Bulk update custom design status (admin) */
+        patch: operations["CustomDesignsController_bulkUpdateStatus"];
+        trace?: never;
+    };
     "/custom-designs/admin/{id}/status": {
         parameters: {
             query?: never;
@@ -1648,6 +2132,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/addresses/{id}/default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["AddressesController_setDefault"];
+        trace?: never;
+    };
     "/addresses/{id}": {
         parameters: {
             query?: never;
@@ -1661,7 +2161,343 @@ export interface paths {
         delete: operations["AddressesController_remove"];
         options?: never;
         head?: never;
+        patch: operations["AddressesController_update"];
+        trace?: never;
+    };
+    "/platform/tenants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PlatformController_list"];
+        put?: never;
+        post: operations["PlatformController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/platform/tenants/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["PlatformController_update"];
+        trace?: never;
+    };
+    "/platform/tenants/{id}/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PlatformController_health"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/tenants/{id}/migrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PlatformController_migrations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/migrate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PlatformController_migrateAll"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/backups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PlatformController_backupAll"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/tenants/{id}/impersonate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PlatformController_impersonate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PlatformAuthController_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/auth/login/2fa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PlatformAuthController_loginTwoFactor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PlatformAuthController_refresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PlatformAuthController_logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/auth/step-up": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PlatformAuthController_stepUp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PlatformAuthController_me"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/auth/2fa/setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PlatformAuthController_setupTwoFactor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/auth/2fa/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PlatformAuthController_confirmTwoFactor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/auth/2fa/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PlatformAuthController_disableTwoFactor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/auth/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PlatformAuthController_sessions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/auth/sessions/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PlatformAuthController_revokeSessions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/auth/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PlatformAuthController_auditLog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PlatformUsersController_list"];
+        put?: never;
+        post: operations["PlatformUsersController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["PlatformUsersController_update"];
         trace?: never;
     };
     "/admin/production": {
@@ -1710,6 +2546,22 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["ProductionController_updateStatus"];
+        trace?: never;
+    };
+    "/admin/production/bulk/assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["ProductionController_bulkAssign"];
         trace?: never;
     };
     "/admin/production/items/{id}/assign": {
@@ -1808,6 +2660,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/reviews/bulk/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["AdminReviewsController_bulkApprove"];
+        trace?: never;
+    };
     "/admin/reviews/{id}/approve": {
         parameters: {
             query?: never;
@@ -1865,7 +2733,7 @@ export interface paths {
         };
         get: operations["RefundsController_findAll"];
         put?: never;
-        post?: never;
+        post: operations["RefundsController_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1888,6 +2756,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/refunds/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["RefundsController_findOne"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/refunds/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["RefundsController_approve"];
+        trace?: never;
+    };
+    "/admin/refunds/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["RefundsController_reject"];
+        trace?: never;
+    };
+    "/admin/refunds/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["RefundsController_retry"];
+        trace?: never;
+    };
     "/store-config": {
         parameters: {
             query?: never;
@@ -1902,6 +2834,54 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["StoreConfigController_updateConfig"];
+        trace?: never;
+    };
+    "/store-redirects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["StoreRedirectsController_findActive"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/store-redirects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminStoreRedirectsController_findAll"];
+        put?: never;
+        post: operations["AdminStoreRedirectsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/store-redirects/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["AdminStoreRedirectsController_remove"];
+        options?: never;
+        head?: never;
+        patch: operations["AdminStoreRedirectsController_update"];
         trace?: never;
     };
     "/admin/export/orders": {
@@ -1936,6 +2916,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/export/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ExportController_exportUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/export/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ExportController_exportAuditLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health/db": {
         parameters: {
             query?: never;
@@ -1944,6 +2956,23 @@ export interface paths {
             cookie?: never;
         };
         get: operations["HealthController_db"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/health/platform": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Readiness de la BD maestra (resolución de tenants). */
+        get: operations["HealthController_platform"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2053,6 +3082,26 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        UpdateProfileDto: {
+            firstName?: string;
+            lastName?: string;
+            phone?: string;
+            document?: string;
+        };
+        AuthUserDto: {
+            /** Format: uuid */
+            id: string;
+            email: string;
+            firstName: string;
+            lastName: string;
+            role: string;
+            emailVerified: boolean;
+            /** @description Indica si el usuario tiene 2FA activado */
+            twoFactorEnabled?: boolean;
+            phone?: string | null;
+            /** @description Documento de identidad */
+            document?: string | null;
+        };
         WishlistItemDto: {
             id: string;
             productVariantId: string;
@@ -2060,6 +3109,13 @@ export interface components {
             productSlug: string;
             price: number;
             imageUrl?: string;
+            /** @description false si el producto/variante está desactivado o sin stock */
+            isAvailable: boolean;
+            /**
+             * @description Motivo cuando no está disponible
+             * @enum {string}
+             */
+            unavailableReason?: "PRODUCT_INACTIVE" | "VARIANT_INACTIVE" | "OUT_OF_STOCK";
             /** Format: date-time */
             createdAt: string;
         };
@@ -2078,37 +3134,166 @@ export interface components {
             lastName: string;
             acceptedTerms: boolean;
         };
-        AuthUserDto: {
-            /** Format: uuid */
-            id: string;
-            email: string;
-            firstName: string;
-            lastName: string;
-            role: string;
-            emailVerified: boolean;
-        };
         RegisterResponseDto: {
-            accessToken: string;
-            user: components["schemas"]["AuthUserDto"];
+            /** @description Token de acceso (ausente cuando se requiere 2FA) */
+            accessToken?: string;
+            user?: components["schemas"]["AuthUserDto"];
+            /** @description true cuando la cuenta requiere verificación en dos pasos */
+            twoFactorRequired?: boolean;
+            /** @description true cuando el usuario debe configurar 2FA por primera vez */
+            twoFactorSetupRequired?: boolean;
+            /** @description Token temporal para completar el flujo 2FA */
+            challengeToken?: string;
+            /** @description Indica si el email de verificación se pudo enviar */
+            verificationEmailSent: boolean;
         };
         LoginDto: {
             /** Format: email */
             email: string;
             password: string;
+            /** @description true = cookie de sesión persistente; false = cookie de sesión (se borra al cerrar el navegador). */
+            remember?: boolean;
         };
         LoginResponseDto: {
+            /** @description Token de acceso (ausente cuando se requiere 2FA) */
+            accessToken?: string;
+            user?: components["schemas"]["AuthUserDto"];
+            /** @description true cuando la cuenta requiere verificación en dos pasos */
+            twoFactorRequired?: boolean;
+            /** @description true cuando el usuario debe configurar 2FA por primera vez */
+            twoFactorSetupRequired?: boolean;
+            /** @description Token temporal para completar el flujo 2FA */
+            challengeToken?: string;
+        };
+        TwoFactorChallengeDto: {
+            /** @description Token de desafío devuelto por /auth/login */
+            challengeToken: string;
+        };
+        TwoFactorSetupResponseDto: {
+            /** @description Secreto TOTP (para carga manual) */
+            secret: string;
+            /** @description URI otpauth:// para autenticadores */
+            otpauthUrl: string;
+            /** @description QR en formato data URL (PNG) */
+            qrDataUrl: string;
+        };
+        TwoFactorConfirmDto: {
+            /** @description Token de desafío devuelto por /auth/login */
+            challengeToken: string;
+            /**
+             * @description Código TOTP de 6 dígitos
+             * @example 123456
+             */
+            code: string;
+            /** @description Confiar en este dispositivo durante 30 días */
+            trustDevice?: boolean;
+        };
+        TwoFactorSessionResponseDto: {
             accessToken: string;
             user: components["schemas"]["AuthUserDto"];
+            /** @description Códigos de recuperación (solo al activar 2FA) */
+            recoveryCodes?: string[];
+        };
+        TwoFactorVerifyDto: {
+            /** @description Token de desafío devuelto por /auth/login */
+            challengeToken: string;
+            /**
+             * @description Código TOTP de 6 dígitos
+             * @example 123456
+             */
+            code: string;
+            /** @description Confiar en este dispositivo durante 30 días */
+            trustDevice?: boolean;
+            /** @description Usar un código de recuperación en lugar del TOTP */
+            backup?: boolean;
+        };
+        TwoFactorDisableDto: {
+            /** @description Código TOTP actual para confirmar la desactivación */
+            code: string;
+        };
+        TwoFactorRecoveryCodesResponseDto: {
+            recoveryCodes: string[];
+        };
+        TrustedDeviceDto: {
+            /** Format: uuid */
+            id: string;
+            /** @description User-Agent del navegador */
+            userAgent?: string | null;
+            /** @description IP desde la que se confió el dispositivo */
+            ip?: string | null;
+            /**
+             * Format: date-time
+             * @description Último uso del dispositivo
+             */
+            lastUsedAt: string;
+            /**
+             * Format: date-time
+             * @description Vencimiento de la confianza (30 días)
+             */
+            expiresAt: string;
+            /** Format: date-time */
+            createdAt: string;
         };
         RefreshResponseDto: {
             accessToken: string;
         };
         VerifyEmailDto: {
-            code: string;
+            token: string;
+        };
+        ForgotPasswordDto: {
+            /** Format: email */
+            email: string;
+        };
+        ResetPasswordDto: {
+            token: string;
+            password: string;
+        };
+        GoogleLoginDto: {
+            idToken: string;
+        };
+        AppleLoginDto: {
+            identityToken: string;
+            /** Format: email */
+            email?: string;
+            firstName?: string;
+            lastName?: string;
         };
         ChangePasswordDto: {
             currentPassword: string;
             newPassword: string;
+        };
+        CreateEmailTemplateDto: {
+            /**
+             * @description Clave técnica (minúsculas, números y guiones)
+             * @example promo-verano
+             */
+            key: string;
+            /** @description Nombre visible de la plantilla */
+            name: string;
+            /** @description Descripción / propósito */
+            description?: string;
+            /** @description Asunto por defecto (admite variables {{...}}) */
+            subject: string;
+            /** @description Contenido HTML (admite variables {{...}}) */
+            html: string;
+        };
+        UpsertEmailTemplateDto: {
+            name?: string;
+            subject: string;
+            html: string;
+            enabled?: boolean;
+        };
+        PreviewEmailTemplateDto: {
+            subject?: string;
+            html?: string;
+        };
+        TestEmailTemplateDto: {
+            /**
+             * Format: email
+             * @description Destinatario de la prueba
+             * @example admin@nova.co
+             */
+            to: string;
         };
         CategoryDto: {
             /** Format: uuid */
@@ -2223,6 +3408,7 @@ export interface components {
             isActive?: boolean;
             metaTitle?: string;
             metaDescription?: string;
+            sortOrder?: number;
         };
         CategoryResponseDto: {
             /** Format: uuid */
@@ -2235,6 +3421,8 @@ export interface components {
             /** Format: uuid */
             parentId?: string;
             isActive: boolean;
+            sortOrder: number;
+            productCount?: number;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -2251,11 +3439,21 @@ export interface components {
             /** Format: uuid */
             parentId?: string;
             isActive: boolean;
+            sortOrder: number;
+            productCount?: number;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
             children: components["schemas"]["CategoryResponseDto"][];
+        };
+        ReorderCategoryItemDto: {
+            /** Format: uuid */
+            id: string;
+            sortOrder: number;
+        };
+        ReorderCategoriesDto: {
+            items: components["schemas"]["ReorderCategoryItemDto"][];
         };
         UpdateCategoryDto: {
             name?: string;
@@ -2266,6 +3464,7 @@ export interface components {
             isActive?: boolean;
             metaTitle?: string;
             metaDescription?: string;
+            sortOrder?: number;
         };
         CreateProductDto: {
             name: string;
@@ -2320,6 +3519,7 @@ export interface components {
             updatedAt: string;
             category?: components["schemas"]["ProductCategorySummaryDto"];
             variants: components["schemas"]["ProductVariantResponseDto"][];
+            imageUrl?: string;
         };
         AdminProductListResponseDto: {
             data: components["schemas"]["ProductResponseDto"][];
@@ -2347,6 +3547,7 @@ export interface components {
             updatedAt: string;
             category?: components["schemas"]["ProductCategorySummaryDto"];
             variants: components["schemas"]["ProductVariantResponseDto"][];
+            imageUrl?: string;
             images: components["schemas"]["ProductImageDto"][];
         };
         UpdateProductDto: {
@@ -2415,6 +3616,7 @@ export interface components {
         };
         UpdateInventoryDto: {
             quantity: number;
+            reason?: string;
         };
         InventoryProductSummaryDto: {
             /** Format: uuid */
@@ -2608,6 +3810,7 @@ export interface components {
             quantity: number;
             unitPrice: number;
             productionStatus: string;
+            imageUrl?: string;
             productVariant?: components["schemas"]["AdminOrderProductVariantDto"];
             customDesign?: components["schemas"]["AdminOrderCustomDesignDto"];
         };
@@ -2686,13 +3889,18 @@ export interface components {
             refundReason?: string;
             refundedAt?: string;
         };
+        BulkOrderPaymentStatusDto: {
+            /** @enum {string} */
+            paymentStatus: "PAID" | "REFUNDED" | "PENDING" | "AUTHORIZED" | "FAILED";
+            ids: string[];
+        };
         UpdateOrderStatusDto: {
             /** @enum {string} */
-            status: "PAID" | "REFUNDED" | "PENDING_PAYMENT" | "IN_PRODUCTION" | "READY_TO_SHIP" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+            status: "PENDING_PAYMENT" | "PAID" | "IN_PRODUCTION" | "READY_TO_SHIP" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "REFUNDED";
         };
         UpdatePaymentStatusDto: {
             /** @enum {string} */
-            paymentStatus: "FAILED" | "PENDING" | "AUTHORIZED" | "PAID" | "REFUNDED";
+            paymentStatus: "PAID" | "REFUNDED" | "PENDING" | "AUTHORIZED" | "FAILED";
         };
         UpdateTrackingDto: {
             trackingNumber?: string;
@@ -2714,13 +3922,87 @@ export interface components {
             reason: string;
             amount?: number;
         };
+        ManualOrderItemDto: {
+            /**
+             * Format: uuid
+             * @description Variante del producto
+             */
+            variantId: string;
+            quantity: number;
+        };
+        ManualOrderAddressDto: {
+            /**
+             * @description Etiqueta de la dirección
+             * @example Casa
+             */
+            label?: string;
+            line1: string;
+            line2?: string;
+            city: string;
+            state: string;
+            country: string;
+            zipCode: string;
+            phone?: string;
+            company?: string;
+        };
+        CreateManualOrderDto: {
+            /**
+             * Format: uuid
+             * @description Cliente existente por id
+             */
+            userId?: string;
+            /**
+             * Format: email
+             * @description Cliente existente por email (alternativo a userId)
+             */
+            email?: string;
+            items: components["schemas"]["ManualOrderItemDto"][];
+            /**
+             * Format: uuid
+             * @description Dirección guardada del cliente
+             */
+            addressId?: string;
+            /** @description Dirección nueva (se crea para el cliente) */
+            address?: components["schemas"]["ManualOrderAddressDto"];
+            /**
+             * Format: uuid
+             * @description Opción de envío
+             */
+            shippingOptionId?: string;
+            /**
+             * @description Estado inicial del pago
+             * @enum {string}
+             */
+            paymentStatus?: "PENDING" | "PAID";
+            /** @description Notas internas */
+            adminNotes?: string;
+            /** @description Notas visibles para el cliente */
+            customerNotes?: string;
+        };
         BulkOrderStatusDto: {
             /** @enum {string} */
-            status: "PAID" | "REFUNDED" | "PENDING_PAYMENT" | "IN_PRODUCTION" | "READY_TO_SHIP" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+            status: "PENDING_PAYMENT" | "PAID" | "IN_PRODUCTION" | "READY_TO_SHIP" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "REFUNDED";
             ids: string[];
+        };
+        ActiveProviderResponseDto: {
+            /** @example bold */
+            provider: string;
+            /** @description true si el proveedor soporta botón de pagos embebido */
+            supportsButton: boolean;
         };
         CheckoutSessionResponseDto: {
             url: string;
+        };
+        BoldButtonConfigResponseDto: {
+            apiKey: string;
+            orderId: string;
+            amount: number;
+            currency: string;
+            /** @description Hash SHA256(orderId + amount + currency + secret) */
+            integritySignature: string;
+            redirectionUrl: string;
+            description?: string;
+            sandbox: boolean;
         };
         CalculateShippingCostDto: {
             /** Format: uuid */
@@ -2813,6 +4095,7 @@ export interface components {
             unitPrice: number;
             productVariantId?: string;
             name?: string;
+            imageUrl?: string;
         };
         ShipmentResponseDto: {
             /** Format: uuid */
@@ -2855,6 +4138,8 @@ export interface components {
             estimatedDaysMin?: number | null;
             estimatedDaysMax?: number | null;
             freeShippingThreshold?: number | null;
+            /** @description Zonas de cobertura de la opción */
+            coverageZones?: string[];
             isDefault: boolean;
             isActive: boolean;
             sortOrder: number;
@@ -2870,9 +4155,35 @@ export interface components {
             estimatedDaysMin?: number;
             estimatedDaysMax?: number;
             freeShippingThreshold?: number;
+            coverageZones?: string[];
             isDefault?: boolean;
             isActive?: boolean;
             sortOrder?: number;
+        };
+        ShippingCredentialsResponseDto: {
+            /**
+             * @description Proveedor de envíos activo
+             * @example flatRate
+             */
+            provider: string;
+            /** @description URL base de la API del carrier */
+            apiUrl?: string | null;
+            /** @description ID/cuenta del carrier */
+            accountId?: string | null;
+            /** @description Indica si hay una API key configurada */
+            hasApiKey: boolean;
+            /** @description Últimos 4 caracteres de la API key (para verificación visual) */
+            apiKeyLast4?: string | null;
+        };
+        UpdateShippingCredentialsDto: {
+            /** @description Proveedor de envíos (flatRate, externo, ...) */
+            provider?: string;
+            /** @description URL base de la API del carrier */
+            apiUrl?: string;
+            /** @description ID/cuenta del carrier */
+            accountId?: string;
+            /** @description API key del carrier (se guarda tal cual; nunca se devuelve completa) */
+            apiKey?: string;
         };
         UpdateShippingOptionDto: {
             name?: string;
@@ -2881,6 +4192,7 @@ export interface components {
             estimatedDaysMin?: number;
             estimatedDaysMax?: number;
             freeShippingThreshold?: number;
+            coverageZones?: string[];
             isDefault?: boolean;
             isActive?: boolean;
             sortOrder?: number;
@@ -3011,6 +4323,7 @@ export interface components {
             name: string;
             quantity: number;
             revenue: number;
+            imageUrl?: string;
         };
         TopProductsReportDto: {
             data: components["schemas"]["TopProductDto"][];
@@ -3044,6 +4357,8 @@ export interface components {
             unitPrice: number;
             subtotal: number;
             name?: string;
+            /** @description Imagen principal de la variante (si tiene) */
+            imageUrl?: string;
             productVariant?: components["schemas"]["CartProductVariantSummaryDto"];
             customDesign?: components["schemas"]["CartCustomDesignSummaryDto"];
         };
@@ -3168,6 +4483,12 @@ export interface components {
                 total: number;
             };
         };
+        BulkUpdateStatusDto: {
+            ids: string[];
+            /** @enum {string} */
+            status: "DRAFT" | "PENDING_REVIEW" | "APPROVED" | "REJECTED";
+            rejectionReason?: string;
+        };
         UpdateStatusDto: {
             /** @enum {string} */
             status: "DRAFT" | "PENDING_REVIEW" | "APPROVED" | "REJECTED";
@@ -3217,6 +4538,81 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
+        UpdateAddressDto: {
+            label?: string;
+            line1?: string;
+            line2?: string;
+            city?: string;
+            state?: string;
+            country?: string;
+            zipCode?: string;
+            phone?: string;
+            company?: string;
+            isDefault?: boolean;
+        };
+        CreateTenantDto: {
+            /** @example acme */
+            slug: string;
+            /** @example Acme Store */
+            name: string;
+            /** @example acme.nova.app */
+            domain?: string;
+            /**
+             * Format: email
+             * @example admin@acme.com
+             */
+            adminEmail: string;
+            /** @example Password1234 */
+            adminPassword: string;
+            /** @description Usar una BD existente en lugar de crear tenant_<slug> */
+            databaseUrl?: string;
+        };
+        UpdateTenantDto: {
+            name?: string;
+            /** @enum {string} */
+            status?: "ACTIVE" | "SUSPENDED";
+        };
+        ImpersonateTenantDto: {
+            /** @description Motivo de la impersonación (auditoría) */
+            reason: string;
+            /** @description Sesión de solo lectura (sin mutaciones) */
+            readOnly?: boolean;
+            /** @description Contraseña del operador (step-up) */
+            password?: string;
+            /** @description Token de step-up vigente (evita pedir la contraseña de nuevo) */
+            stepUpToken?: string;
+        };
+        PlatformLoginDto: {
+            /** Format: email */
+            email: string;
+            password: string;
+            /** @description Código TOTP si el operador tiene 2FA */
+            code?: string;
+        };
+        PlatformTwoFactorDto: {
+            challengeToken: string;
+            code: string;
+        };
+        PlatformPasswordDto: {
+            password: string;
+        };
+        PlatformCodeDto: {
+            code: string;
+        };
+        CreatePlatformUserDto: {
+            /** Format: email */
+            email: string;
+            name: string;
+            password: string;
+            /** @enum {string} */
+            role?: "OWNER" | "OPERATOR" | "SUPPORT";
+        };
+        UpdatePlatformUserDto: {
+            name?: string;
+            /** @enum {string} */
+            role?: "OWNER" | "OPERATOR" | "SUPPORT";
+            isActive?: boolean;
+        };
         ProductionItemResponseDto: {
             /** Format: uuid */
             id: string;
@@ -3259,6 +4655,11 @@ export interface components {
             /** @enum {string} */
             status: "IN_PRODUCTION" | "READY_TO_SHIP" | "PENDING_PRODUCTION" | "QUALITY_CHECK";
         };
+        BulkAssignProductionDto: {
+            ids: string[];
+            /** Format: uuid */
+            assignedToId?: string | null;
+        };
         AssignProductionItemDto: {
             /** Format: uuid */
             assignedToId?: string | null;
@@ -3300,7 +4701,7 @@ export interface components {
         };
         UpdateShipmentStatusDto: {
             /** @enum {string} */
-            status: "PENDING" | "DELIVERED" | "CANCELLED" | "IN_TRANSIT";
+            status: "DELIVERED" | "CANCELLED" | "PENDING" | "IN_TRANSIT";
         };
         ReviewProductResponseDto: {
             /** Format: uuid */
@@ -3356,6 +4757,9 @@ export interface components {
             orderId?: string;
             assetIds?: string[];
         };
+        BulkReviewApprovalDto: {
+            ids: string[];
+        };
         RefundResponseDto: {
             /** Format: uuid */
             id: string;
@@ -3381,10 +4785,23 @@ export interface components {
                 total: number;
             };
         };
+        CreateRefundDto: {
+            /**
+             * Format: uuid
+             * @description Orden a reembolsar
+             */
+            orderId: string;
+            /** @description Monto en centavos; por defecto el total de la orden */
+            amount?: number;
+            /** @description Motivo del reembolso */
+            reason: string;
+        };
         StoreConfigResponseDto: {
             /** Format: uuid */
             id: string;
             name: string;
+            /** @description URL pública del storefront del tenant actual */
+            storefrontUrl?: string;
             description?: string;
             logoUrl?: string;
             faviconUrl?: string;
@@ -3420,25 +4837,64 @@ export interface components {
             storefrontConfig?: Record<string, never>;
             emailProvider: string;
             paymentProvider: string;
+            /** @description Llave de identidad de Bold (botón de pagos) */
+            boldApiKey?: string | null;
+            /** @description true si hay una llave secreta de Bold configurada (nunca se devuelve) */
+            boldSecretConfigured?: boolean;
+            /** @description Modo pruebas de Bold (firma de webhook con clave vacía) */
+            boldSandbox?: boolean;
+            /** @description Llave publicable de Stripe (segura para el cliente) */
+            stripePublishableKey?: string | null;
+            /** @description true si hay una secret key de Stripe configurada (nunca se devuelve) */
+            stripeSecretConfigured?: boolean;
+            /** @description true si hay un webhook secret de Stripe configurado (nunca se devuelve) */
+            stripeWebhookConfigured?: boolean;
+            /** @description Host SMTP del tenant (si no, se usa el de la plataforma) */
+            smtpHost?: string | null;
+            /** @description Puerto SMTP del tenant */
+            smtpPort?: number | null;
+            /** @description Usuario SMTP del tenant */
+            smtpUser?: string | null;
+            /** @description true si hay una contraseña SMTP configurada (nunca se devuelve) */
+            smtpPassConfigured?: boolean;
+            /** @description TLS/SSL del SMTP del tenant */
+            smtpSecure?: boolean | null;
+            /** @description Remitente SMTP del tenant */
+            smtpFrom?: string | null;
+            /** @description true si hay una API key de Resend configurada (nunca se devuelve) */
+            resendApiKeyConfigured?: boolean;
+            /** @description Remitente de Resend del tenant */
+            resendFrom?: string | null;
             shippingProvider: string;
             shippingBaseCost: number;
             freeShippingThreshold?: number | null;
             shippingDiscountPercentage?: number | null;
             shippingDiscountFixedAmount?: number | null;
+            termsPageId?: string | null;
+            termsVersion: number;
+            minOrderAmount?: number | null;
+            productionEstimateDays?: number | null;
+            deliveryEstimateDays?: number | null;
+            emailSenderName?: string;
+            emailSenderAddress?: string;
+            googleOAuthEnabled: boolean;
+            googleClientId?: string;
+            appleOAuthEnabled: boolean;
+            appleClientId?: string;
         };
         UpdateStoreConfigDto: {
             name?: string;
             description?: string;
             /** Format: uri */
-            logoUrl?: string;
+            logoUrl?: string | null;
             /** Format: uri */
-            faviconUrl?: string;
+            faviconUrl?: string | null;
             primaryColor?: string;
             secondaryColor?: string;
             backgroundColor?: string;
             textColor?: string;
             /** Format: uri */
-            heroImageUrl?: string;
+            heroImageUrl?: string | null;
             heroTitle?: string;
             heroSubtitle?: string;
             contactEmail?: string;
@@ -3468,11 +4924,52 @@ export interface components {
             storefrontConfig?: string;
             emailProvider?: string;
             paymentProvider?: string;
+            boldApiKey?: string | null;
+            boldSecretKey?: string;
+            boldSandbox?: boolean;
+            stripePublishableKey?: string | null;
+            stripeSecretKey?: string;
+            stripeWebhookSecret?: string;
+            smtpHost?: string | null;
+            smtpPort?: number;
+            smtpUser?: string | null;
+            smtpPass?: string;
+            smtpSecure?: boolean;
+            smtpFrom?: string | null;
+            resendApiKey?: string;
+            resendFrom?: string | null;
             shippingProvider?: string;
             shippingBaseCost?: number;
             freeShippingThreshold?: number;
             shippingDiscountPercentage?: number;
             shippingDiscountFixedAmount?: number;
+            /** Format: uuid */
+            termsPageId?: string;
+            termsVersion?: number;
+            minOrderAmount?: number;
+            productionEstimateDays?: number;
+            deliveryEstimateDays?: number;
+            emailSenderName?: string;
+            /** Format: email */
+            emailSenderAddress?: string | null;
+            googleOAuthEnabled?: boolean;
+            googleClientId?: string;
+            appleOAuthEnabled?: boolean;
+            appleClientId?: string;
+        };
+        CreateStoreRedirectDto: {
+            fromPath: string;
+            toUrl: string;
+            /** @enum {number} */
+            statusCode?: 301 | 302 | 307 | 308;
+            isActive?: boolean;
+        };
+        UpdateStoreRedirectDto: {
+            fromPath?: string;
+            toUrl?: string;
+            /** @enum {number} */
+            statusCode?: 301 | 302 | 307 | 308;
+            isActive?: boolean;
         };
         SubscribeNewsletterDto: {
             /** Format: email */
@@ -3539,6 +5036,29 @@ export interface operations {
             };
         };
     };
+    UsersController_updateMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProfileDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthUserDto"];
+                };
+            };
+        };
+    };
     WishlistController_findAll: {
         parameters: {
             query?: never;
@@ -3571,12 +5091,12 @@ export interface operations {
             };
         };
         responses: {
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["WishlistListDto"];
+                    "application/json": components["schemas"]["WishlistItemDto"];
                 };
             };
         };
@@ -3646,6 +5166,199 @@ export interface operations {
             };
         };
     };
+    AuthController_twoFactorSetup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TwoFactorChallengeDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwoFactorSetupResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_twoFactorSetupConfirm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TwoFactorConfirmDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwoFactorSessionResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_twoFactorVerify: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TwoFactorVerifyDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwoFactorSessionResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_twoFactorDisable: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TwoFactorDisableDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AuthController_twoFactorRecoveryCodes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TwoFactorDisableDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwoFactorRecoveryCodesResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_twoFactorSetupCurrent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwoFactorSetupResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_twoFactorSetupConfirmCurrent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TwoFactorDisableDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwoFactorRecoveryCodesResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_twoFactorDevices: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrustedDeviceDto"][];
+                };
+            };
+        };
+    };
+    AuthController_twoFactorRevokeDevice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     AuthController_refresh: {
         parameters: {
             query?: never;
@@ -3696,7 +5409,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["AuthUserDto"];
                 };
             };
         };
@@ -3743,6 +5456,113 @@ export interface operations {
             };
         };
     };
+    AuthController_forgotPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForgotPasswordDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AuthController_resetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetPasswordDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AuthController_acceptTerms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    AuthController_googleLogin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GoogleLoginDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_appleLogin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppleLoginDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResponseDto"];
+                };
+            };
+        };
+    };
     AuthController_changePassword: {
         parameters: {
             query?: never;
@@ -3757,6 +5577,159 @@ export interface operations {
         };
         responses: {
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    EmailTemplatesController_findAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>[];
+                };
+            };
+        };
+    };
+    EmailTemplatesController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateEmailTemplateDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    EmailTemplatesController_findOne: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    EmailTemplatesController_upsert: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertEmailTemplateDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    EmailTemplatesController_reset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    EmailTemplatesController_preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreviewEmailTemplateDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    EmailTemplatesController_sendTest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TestEmailTemplateDto"];
+            };
+        };
+        responses: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3987,12 +5960,38 @@ export interface operations {
             };
         };
     };
+    AdminCategoryController_reorder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReorderCategoriesDto"];
+            };
+        };
+        responses: {
+            /** @description Categories reordered */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     AdminProductController_findAll: {
         parameters: {
             query?: {
                 page?: string;
                 limit?: string;
                 search?: string;
+                categoryId?: string;
+                isActive?: string;
+                sortBy?: string;
+                sortOrder?: string;
             };
             header?: never;
             path?: never;
@@ -4486,6 +6485,25 @@ export interface operations {
             };
         };
     };
+    AssetsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     CustomerAssetsController_presign: {
         parameters: {
             query?: never;
@@ -4815,6 +6833,30 @@ export interface operations {
             };
         };
     };
+    AdminOrdersController_bulkUpdatePaymentStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkOrderPaymentStatusDto"];
+            };
+        };
+        responses: {
+            /** @description Bulk payment status updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
     AdminOrdersController_updateStatus: {
         parameters: {
             query?: never;
@@ -4997,6 +7039,30 @@ export interface operations {
             };
         };
     };
+    AdminOrdersController_createManual: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateManualOrderDto"];
+            };
+        };
+        responses: {
+            /** @description Manual order created */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOrderDetailResponseDto"];
+                };
+            };
+        };
+    };
     AdminOrdersController_bulkUpdateStatus: {
         parameters: {
             query?: never;
@@ -5017,6 +7083,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    PaymentController_activeProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActiveProviderResponseDto"];
                 };
             };
         };
@@ -5042,6 +7127,27 @@ export interface operations {
             };
         };
     };
+    PaymentController_buttonCheckout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoldButtonConfigResponseDto"];
+                };
+            };
+        };
+    };
     PaymentController_webhook: {
         parameters: {
             query?: never;
@@ -5051,7 +7157,24 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            201: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PaymentController_boldWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5298,6 +7421,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ShippingOptionResponseDto"];
+                };
+            };
+        };
+    };
+    ShippingOptionsController_getCredentials: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShippingCredentialsResponseDto"];
+                };
+            };
+        };
+    };
+    ShippingOptionsController_updateCredentials: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateShippingCredentialsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShippingCredentialsResponseDto"];
                 };
             };
         };
@@ -5713,14 +7878,16 @@ export interface operations {
     };
     AdminDashboardController_getTrends: {
         parameters: {
-            query?: never;
+            query?: {
+                days?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Daily trends for the last 7 days */
+            /** @description Daily trends for the selected period */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -5987,6 +8154,24 @@ export interface operations {
             };
         };
     };
+    AdminCurrenciesController_sync: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Exchange rates synced from the provider */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     AdminCurrenciesController_remove: {
         parameters: {
             query?: never;
@@ -6195,6 +8380,28 @@ export interface operations {
             };
         };
     };
+    CustomDesignsController_bulkUpdateStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkUpdateStatusDto"];
+            };
+        };
+        responses: {
+            /** @description Custom designs status updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     CustomDesignsController_updateStatus: {
         parameters: {
             query?: never;
@@ -6303,6 +8510,27 @@ export interface operations {
             };
         };
     };
+    AddressesController_setDefault: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddressResponseDto"];
+                };
+            };
+        };
+    };
     AddressesController_remove: {
         parameters: {
             query?: never;
@@ -6320,6 +8548,492 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AddressResponseDto"];
+                };
+            };
+        };
+    };
+    AddressesController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAddressDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddressResponseDto"];
+                };
+            };
+        };
+    };
+    PlatformController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Listado de clientes de la plataforma */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTenantDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTenantDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformController_health: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Conectividad y métricas básicas del cliente */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformController_migrations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Historial de migraciones/ejecuciones del cliente */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformController_migrateAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Aplica migraciones pendientes a todos los clientes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformController_backupAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Respalda la BD de cada cliente activo */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformController_impersonate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImpersonateTenantDto"];
+            };
+        };
+        responses: {
+            /** @description Sesión de administrador del cliente indicado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformAuthController_login: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlatformLoginDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    PlatformAuthController_loginTwoFactor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlatformTwoFactorDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformAuthController_refresh: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformAuthController_logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformAuthController_stepUp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlatformPasswordDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformAuthController_me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    PlatformAuthController_setupTwoFactor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformAuthController_confirmTwoFactor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlatformCodeDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformAuthController_disableTwoFactor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlatformCodeDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformAuthController_sessions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    PlatformAuthController_revokeSessions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformAuthController_auditLog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>[];
+                };
+            };
+        };
+    };
+    PlatformUsersController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>[];
+                };
+            };
+        };
+    };
+    PlatformUsersController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePlatformUserDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    PlatformUsersController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePlatformUserDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
                 };
             };
         };
@@ -6395,6 +9109,28 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ProductionItemResponseDto"];
                 };
+            };
+        };
+    };
+    ProductionController_bulkAssign: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkAssignProductionDto"];
+            };
+        };
+        responses: {
+            /** @description Production items assigned in bulk */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -6596,6 +9332,28 @@ export interface operations {
             };
         };
     };
+    AdminReviewsController_bulkApprove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkReviewApprovalDto"];
+            };
+        };
+        responses: {
+            /** @description Reviews approved in bulk */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     AdminReviewsController_approve: {
         parameters: {
             query?: never;
@@ -6685,6 +9443,30 @@ export interface operations {
             };
         };
     };
+    RefundsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRefundDto"];
+            };
+        };
+        responses: {
+            /** @description Manual refund created (PENDING) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefundResponseDto"];
+                };
+            };
+        };
+    };
     RefundsController_findByOrder: {
         parameters: {
             query?: {
@@ -6706,6 +9488,94 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RefundListResponseDto"];
+                };
+            };
+        };
+    };
+    RefundsController_findOne: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Refund detail */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefundResponseDto"];
+                };
+            };
+        };
+    };
+    RefundsController_approve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Refund approved and processed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefundResponseDto"];
+                };
+            };
+        };
+    };
+    RefundsController_reject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Refund rejected (FAILED) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefundResponseDto"];
+                };
+            };
+        };
+    };
+    RefundsController_retry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Failed refund retried */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefundResponseDto"];
                 };
             };
         };
@@ -6752,6 +9622,103 @@ export interface operations {
             };
         };
     };
+    StoreRedirectsController_findActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminStoreRedirectsController_findAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminStoreRedirectsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateStoreRedirectDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminStoreRedirectsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminStoreRedirectsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateStoreRedirectDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ExportController_exportOrders: {
         parameters: {
             query?: {
@@ -6789,7 +9756,67 @@ export interface operations {
             };
         };
     };
+    ExportController_exportUsers: {
+        parameters: {
+            query?: {
+                search?: string;
+                role?: string;
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ExportController_exportAuditLogs: {
+        parameters: {
+            query?: {
+                action?: string;
+                entity?: string;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     HealthController_db: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    HealthController_platform: {
         parameters: {
             query?: never;
             header?: never;

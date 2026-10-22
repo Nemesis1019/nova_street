@@ -1,4 +1,14 @@
-import { IsBoolean, IsEnum, IsInt, IsJSON, IsOptional, IsString, IsUrl, Length, Matches, Max, Min } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsBoolean, IsEmail, IsEnum, IsInt, IsJSON, IsOptional, IsString, IsUrl, IsUUID, Length, Matches, Max, MaxLength, Min } from 'class-validator';
+
+/**
+ * Convierte strings vacíos (o con solo espacios) en `null` para campos opcionales.
+ * `@IsOptional()` ignora `null`/`undefined` pero no `''`, por lo que sin esta
+ * transformación los validadores de formato (`@IsUrl`, `@IsEmail`, `@IsUUID`)
+ * rechazan el string vacío que envía el admin al dejar un campo sin completar.
+ */
+const EmptyToNull = () =>
+  Transform(({ value }) => (typeof value === 'string' && value.trim() === '' ? null : value));
 
 export class UpdateStoreConfigDto {
   @IsString()
@@ -9,13 +19,15 @@ export class UpdateStoreConfigDto {
   @IsOptional()
   description?: string;
 
+  @EmptyToNull()
   @IsUrl()
   @IsOptional()
-  logoUrl?: string;
+  logoUrl?: string | null;
 
+  @EmptyToNull()
   @IsUrl()
   @IsOptional()
-  faviconUrl?: string;
+  faviconUrl?: string | null;
 
   @IsString()
   @Length(4, 9)
@@ -49,9 +61,10 @@ export class UpdateStoreConfigDto {
   @IsOptional()
   textColor?: string;
 
+  @EmptyToNull()
   @IsUrl()
   @IsOptional()
-  heroImageUrl?: string;
+  heroImageUrl?: string | null;
 
   @IsString()
   @IsOptional()
@@ -190,6 +203,70 @@ export class UpdateStoreConfigDto {
   @IsOptional()
   paymentProvider?: string;
 
+  @EmptyToNull()
+  @IsString()
+  @IsOptional()
+  boldApiKey?: string | null;
+
+  @IsString()
+  @IsOptional()
+  boldSecretKey?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  boldSandbox?: boolean;
+
+  @EmptyToNull()
+  @IsString()
+  @IsOptional()
+  stripePublishableKey?: string | null;
+
+  @IsString()
+  @IsOptional()
+  stripeSecretKey?: string;
+
+  @IsString()
+  @IsOptional()
+  stripeWebhookSecret?: string;
+
+  @EmptyToNull()
+  @IsString()
+  @IsOptional()
+  smtpHost?: string | null;
+
+  @IsInt()
+  @Min(1)
+  @Max(65535)
+  @IsOptional()
+  smtpPort?: number;
+
+  @EmptyToNull()
+  @IsString()
+  @IsOptional()
+  smtpUser?: string | null;
+
+  @IsString()
+  @IsOptional()
+  smtpPass?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  smtpSecure?: boolean;
+
+  @EmptyToNull()
+  @IsString()
+  @IsOptional()
+  smtpFrom?: string | null;
+
+  @IsString()
+  @IsOptional()
+  resendApiKey?: string;
+
+  @EmptyToNull()
+  @IsString()
+  @IsOptional()
+  resendFrom?: string | null;
+
   @IsString()
   @IsOptional()
   shippingProvider?: string;
@@ -214,4 +291,56 @@ export class UpdateStoreConfigDto {
   @Min(0)
   @IsOptional()
   shippingDiscountFixedAmount?: number;
+
+  @IsUUID()
+  @IsOptional()
+  termsPageId?: string;
+
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  termsVersion?: number;
+
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  minOrderAmount?: number;
+
+  @IsInt()
+  @Min(0)
+  @Max(365)
+  @IsOptional()
+  productionEstimateDays?: number;
+
+  @IsInt()
+  @Min(0)
+  @Max(365)
+  @IsOptional()
+  deliveryEstimateDays?: number;
+
+  @IsString()
+  @MaxLength(200)
+  @IsOptional()
+  emailSenderName?: string;
+
+  @EmptyToNull()
+  @IsEmail()
+  @IsOptional()
+  emailSenderAddress?: string | null;
+
+  @IsBoolean()
+  @IsOptional()
+  googleOAuthEnabled?: boolean;
+
+  @IsString()
+  @IsOptional()
+  googleClientId?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  appleOAuthEnabled?: boolean;
+
+  @IsString()
+  @IsOptional()
+  appleClientId?: string;
 }

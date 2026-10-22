@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { AddToCartButton } from '../../../components/add-to-cart-button';
+import { CompareButton } from '../../../components/compare-button';
 import { PriceText } from '../../../components/price-text';
 import { ProductCard } from '../../../components/product-card';
 import { ProductRating } from '../../../components/product-rating';
@@ -56,6 +57,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const variants = product.variants ?? [];
   const price = product.displayPrice ?? product.basePrice;
   const storefront = parseStorefrontConfig((config as StoreConfig | undefined)?.storefrontConfig);
+  const templateConfig = (config as StoreConfig | undefined)?.templateConfig ?? {};
+  const productEyebrow = templateConfig.productEyebrow ?? `${config?.name || 'Tienda'} Original`;
   const relatedConfig = storefront.relatedProducts;
   const crossSellConfig = storefront.crossSell;
 
@@ -127,7 +130,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                       letterSpacing: '0.1em',
                     }}
                   >
-                    {config?.name || 'NÖVA'} Original
+                    {productEyebrow}
                   </Text>
                   <Title
                     order={1}
@@ -158,8 +161,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   />
                   {variants.some((v) => v.productionLeadTimeDays) && (
                     <Text size="sm" c="dimmed">
-                      Tiempo de producción:{' '}
+                      Tiempo de preparación:{' '}
                       {Math.max(...variants.map((v) => v.productionLeadTimeDays ?? 0))} días
+                    </Text>
+                  )}
+                  {config?.deliveryEstimateDays && (
+                    <Text size="sm" c="dimmed">
+                      Tiempo estimado de envío: {config.deliveryEstimateDays} días
                     </Text>
                   )}
                 </Stack>
@@ -185,13 +193,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
                       basePrice: product.displayPrice ?? product.basePrice,
                       variants,
                     }}
+                    imageUrl={product.images?.[0]?.mediumUrl ?? product.images?.[0]?.url}
                   />
+                  {storefront.featureFlags.enableCompare && (
+                    <div style={{ marginTop: 12 }}>
+                      <CompareButton slug={product.slug} />
+                    </div>
+                  )}
                 </div>
 
                 <Stack gap="xs">
                   <Group gap="xl">
                     <Text size="xs" c="dimmed">
-                      ENVÍOS GLOBAL
+                      ENVÍOS A TODO EL PAÍS
                     </Text>
                     <Text size="xs" c="dimmed">
                       SOPORTE 24/7

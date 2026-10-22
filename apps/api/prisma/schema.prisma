@@ -11,9 +11,12 @@ model User {
   id              String    @id @default(uuid()) @db.Uuid
   email           String    @unique
   passwordHash    String
+  /// Si es un usuario espejo de un PlatformUser (superadmin transversal), guarda su id.
+  platformUserId  String?   @unique @db.Uuid
   firstName       String
   lastName        String
   phone           String?
+  document        String?
   isActive        Boolean    @default(true)
   isSuspended     Boolean    @default(false)
   suspendedAt     DateTime?
@@ -32,7 +35,8 @@ model User {
   assignedOrders  Order[] @relation("AssignedOrders")
   assignedProductionItems OrderItem[] @relation("AssignedProductionItems")
   customDesigns   CustomDesign[]
-  emailVerificationCodes EmailVerificationCode[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens PasswordResetToken[]
   auditLogs       AuditLog[]
   couponUsages    CouponUsage[]
   reviews         Review[]
@@ -40,23 +44,84 @@ model User {
   wishlistItems   WishlistItem[]
   isGuest         Boolean   @default(false)
   guestToken      String?   @unique
+  googleId        String?   @unique
+  appleId         String?   @unique
+  twoFactorSecret String?
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorEnabledAt DateTime?
+  trustedDevices  TrustedDevice[]
+  twoFactorRecoveryCodes TwoFactorRecoveryCode[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
   @@map("users")
 }
 
-model EmailVerificationCode {
+model TrustedDevice {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String   @unique
+  userAgent  String?
+  ip         String?
+  lastUsedAt DateTime @default(now())
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@map("trusted_devices")
+}
+
+model TwoFactorRecoveryCode {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("two_factor_recovery_codes")
+}
+
+model EmailVerificationToken {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @db.Uuid
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  code      String
+  tokenHash String
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime @default(now())
 
   @@index([userId])
-  @@map("email_verification_codes")
+  @@map("email_verification_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model EmailTemplate {
+  id          String   @id @default(uuid()) @db.Uuid
+  key         String   @unique
+  name        String
+  description String?
+  subject     String
+  html        String
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("email_templates")
 }
 
 model Role {
@@ -78,6 +143,11 @@ model RefreshToken {
   tokenHash String
   expiresAt DateTime
   revokedAt DateTime?
+  /// Si la sesión se abrió por impersonación desde el panel de plataforma.
+  impersonatedBy String?   @db.Uuid
+  impersonatedAt DateTime?
+  /// Impersonación de solo lectura (sin mutaciones).
+  readOnly       Boolean   @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
@@ -119,6 +189,17 @@ model StoreConfig {
   id                  String   @id @default(uuid()) @db.Uuid
   name                String
   description         String?
+  termsPageId         String?  @db.Uuid
+  termsVersion        Int      @default(1)
+  minOrderAmount      Int?
+  productionEstimateDays Int?
+  deliveryEstimateDays   Int?
+  emailSenderName     String?
+  emailSenderAddress  String?
+  googleOAuthEnabled  Boolean  @default(false)
+  googleClientId      String?
+  appleOAuthEnabled   Boolean  @default(false)
+  appleClientId       String?
   logoUrl             String?
   faviconUrl          String?
   primaryColor        String   @default("#228be6")
@@ -157,6 +238,23 @@ model StoreConfig {
   freeShippingThreshold  Int?
   shippingDiscountPercentage Int?
   shippingDiscountFixedAmount  Int?
+  shippingApiUrl         String?
+  shippingAccountId      String?
+  shippingApiKey         String?
+  boldApiKey             String?
+  boldSecretKey          String?
+  boldSandbox            Boolean  @default(false)
+  stripePublishableKey   String?
+  stripeSecretKey        String?
+  stripeWebhookSecret    String?
+  smtpHost               String?
+  smtpPort               Int?
+  smtpUser               String?
+  smtpPass               String?
+  smtpSecure             Boolean?
+  smtpFrom               String?
+  resendApiKey           String?
+  resendFrom             String?
   updatedById         String?  @db.Uuid
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
@@ -179,6 +277,18 @@ model Page {
   @@map("pages")
 }
 
+model StoreRedirect {
+  id         String   @id @default(uuid()) @db.Uuid
+  fromPath   String   @unique
+  toUrl      String
+  statusCode Int      @default(301)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("store_redirects")
+}
+
 model Category {
   id              String    @id @default(uuid()) @db.Uuid
   name            String
@@ -192,6 +302,7 @@ model Category {
   products        Product[]
   coupons         Coupon[]
   isActive        Boolean   @default(true)
+  sortOrder       Int       @default(0)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -740,6 +851,7 @@ model ShippingOption {
   estimatedDaysMin      Int?
   estimatedDaysMax      Int?
   freeShippingThreshold Int?
+  coverageZones         String[] @default([])
   isDefault             Boolean  @default(false)
   isActive              Boolean  @default(true)
   sortOrder             Int      @default(0)

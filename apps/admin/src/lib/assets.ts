@@ -83,6 +83,22 @@ export async function uploadAsset(
   }
 }
 
+export async function deleteAsset(id: string): Promise<void> {
+  const token = getAuthToken();
+
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/admin/assets/${id}`, {
+    method: 'DELETE',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(body || 'Delete failed');
+  }
+}
+
 export async function createExternalAsset(url: string): Promise<{ id: string; url: string }> {
   const token = getAuthToken();
 

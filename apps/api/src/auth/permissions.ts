@@ -31,6 +31,8 @@ export enum Permission {
   PAGES_READ = 'pages:read',
   PAGES_WRITE = 'pages:write',
   REVIEWS_MODERATE = 'reviews:moderate',
+  EMAIL_TEMPLATES_READ = 'email_templates:read',
+  EMAIL_TEMPLATES_WRITE = 'email_templates:write',
 
   // Production
   PRODUCTION_READ = 'production:read',
@@ -56,6 +58,12 @@ export enum Permission {
   QUEUES_WRITE = 'queues:write',
   SHIPMENTS_READ = 'shipments:read',
   SHIPMENTS_WRITE = 'shipments:write',
+
+  // Provider credentials (API keys de pasarelas, email, OAuth y carriers) — Super Admin
+  PROVIDERS_READ = 'providers:read',
+  PROVIDERS_WRITE = 'providers:write',
+  REDIRECTS_READ = 'redirects:read',
+  REDIRECTS_WRITE = 'redirects:write',
 }
 
 export const DEFAULT_NEW_USER_PERMISSIONS: Permission[] = [

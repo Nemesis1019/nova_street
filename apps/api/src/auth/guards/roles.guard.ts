@@ -41,9 +41,11 @@ export class RolesGuard implements CanActivate {
 
     const roleOk = !hasRoleRequirement || requiredRoles.includes(role);
 
+    // Los permisos se evalúan siempre contra la lista efectiva del usuario
+    // (rol + overrides). El rol SUPER_ADMIN recibe todos los permisos al crearse,
+    // por lo que no necesita un bypass especial.
     const permissionsOk =
       !hasPermissionRequirement ||
-      role === 'ADMIN' ||
       permissions.some((permission) => requiredPermissions.includes(permission));
 
     return roleOk && permissionsOk;

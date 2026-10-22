@@ -1,5 +1,6 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { Cache } from 'cache-manager';
 import { parse } from 'csv-parse/sync';
 
@@ -68,37 +69,70 @@ export class AdminProductService {
     return product;
   }
 
-  async findAll(query: { page?: number; limit?: number; search?: string }) {
+  async findAll(query: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    categoryId?: string;
+    isActive?: boolean;
+    sortBy?: string;
+    sortOrder?: string;
+  }) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
     const search = query.search?.trim();
 
-    const where = search
-      ? {
-          OR: [
-            { name: { contains: search, mode: 'insensitive' as const } },
-            { slug: { contains: search, mode: 'insensitive' as const } },
-            { category: { name: { contains: search, mode: 'insensitive' as const } } },
-          ],
-        }
-      : {};
+    const filters: Prisma.ProductWhereInput[] = [];
+    if (search) {
+      filters.push({
+        OR: [
+          { name: { contains: search, mode: 'insensitive' as const } },
+          { slug: { contains: search, mode: 'insensitive' as const } },
+          { category: { name: { contains: search, mode: 'insensitive' as const } } },
+        ],
+      });
+    }
+    if (query.categoryId) {
+      filters.push({ categoryId: query.categoryId });
+    }
+    if (query.isActive !== undefined) {
+      filters.push({ isActive: query.isActive });
+    }
+    const where: Prisma.ProductWhereInput = filters.length ? { AND: filters } : {};
+
+    const sortableFields = ['name', 'basePrice', 'createdAt', 'updatedAt'] as const;
+    const sortBy = sortableFields.includes(query.sortBy as (typeof sortableFields)[number])
+      ? (query.sortBy as (typeof sortableFields)[number])
+      : 'createdAt';
+    const sortOrder = query.sortOrder === 'asc' ? 'asc' : 'desc';
 
     const [data, total] = await Promise.all([
       this.prisma.product.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { [sortBy]: sortOrder },
         skip,
         take: limit,
         include: {
           category: { select: { id: true, name: true, slug: true, metaTitle: true, metaDescription: true } },
           variants: true,
+          images: {
+            orderBy: { sortOrder: 'asc' },
+            take: 1,
+            include: { asset: { select: { bucket: true, objectKey: true } } },
+          },
         },
       }),
       this.prisma.product.count({ where }),
     ]);
 
-    return { data, meta: { page, limit, total } };
+    return {
+      data: data.map(({ images, ...product }) => ({
+        ...product,
+        imageUrl: images[0] ? buildAssetUrl(images[0].asset.bucket, images[0].asset.objectKey) : undefined,
+      })),
+      meta: { page, limit, total },
+    };
   }
 
   async findById(id: string) {

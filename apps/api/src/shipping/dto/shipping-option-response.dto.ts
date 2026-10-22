@@ -22,6 +22,9 @@ export class ShippingOptionResponseDto {
   @ApiPropertyOptional()
   freeShippingThreshold?: number | null;
 
+  @ApiPropertyOptional({ type: [String], description: 'Zonas de cobertura de la opción' })
+  coverageZones?: string[];
+
   @ApiProperty()
   isDefault!: boolean;
 

@@ -1,5 +1,5 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { render } from '../test/render';
 import { LoginForm } from './login-form';
@@ -20,7 +20,7 @@ vi.mock('../lib/auth', () => ({
 vi.mock('../lib/api', () => ({
   apiClient: {
     POST: vi.fn().mockResolvedValue({
-      data: { accessToken: 'access-token' },
+      data: { accessToken: 'access-token', user: { email: 'admin@example.com' } },
       error: null,
     }),
   },
@@ -28,12 +28,16 @@ vi.mock('../lib/api', () => ({
 }));
 
 describe('LoginForm', () => {
+  beforeEach(() => {
+    pushMock.mockClear();
+  });
+
   it('shows validation error for invalid email', async () => {
     render(<LoginForm />);
 
-    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'invalid' } });
+    fireEvent.change(screen.getByLabelText('Correo corporativo'), { target: { value: 'invalid' } });
     fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: '123456' } });
-    fireEvent.click(screen.getByRole('button', { name: /entrar/i }));
+    fireEvent.click(screen.getByRole('button', { name: /ingresar sesión/i }));
 
     await waitFor(() => {
       expect(screen.getByText('Email inválido')).toBeInTheDocument();
@@ -43,9 +47,9 @@ describe('LoginForm', () => {
   it('submits valid credentials and redirects', async () => {
     render(<LoginForm />);
 
-    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'admin@example.com' } });
+    fireEvent.change(screen.getByLabelText('Correo corporativo'), { target: { value: 'admin@example.com' } });
     fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'password123' } });
-    fireEvent.click(screen.getByRole('button', { name: /entrar/i }));
+    fireEvent.click(screen.getByRole('button', { name: /ingresar sesión/i }));
 
     await waitFor(() => {
       expect(pushMock).toHaveBeenCalledWith('/');

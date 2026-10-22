@@ -22,7 +22,7 @@ export function buildSeoMetadata(
 ): Metadata {
   const storefront = parseStorefrontConfig(config?.storefrontConfig);
   const seo = storefront.seo;
-  const storeName = config?.name ?? 'NÖVA';
+  const storeName = config?.name ?? 'Tienda';
 
   const templateKey = options.template === 'product'
     ? seo.productTitleTemplate
@@ -58,7 +58,7 @@ export function buildProductSeoMetadata(
   const seo = storefront.seo;
   const title = product.metaTitle || applyTemplate(seo.productTitleTemplate, {
     productName: product.name,
-    storeName: config?.name ?? 'NÖVA',
+    storeName: config?.name ?? 'Tienda',
   });
   const description = product.metaDescription || seo.defaultDescription || config?.description || '';
   const image = product.images?.[0]?.url || seo.ogImageUrl || config?.logoUrl || undefined;
@@ -78,7 +78,7 @@ export function buildCategorySeoMetadata(
   const seo = storefront.seo;
   const title = category.metaTitle || applyTemplate(seo.categoryTitleTemplate, {
     categoryName: category.name,
-    storeName: config?.name ?? 'NÖVA',
+    storeName: config?.name ?? 'Tienda',
   });
   const description = category.metaDescription || seo.defaultDescription || `Productos de ${category.name}`;
 
@@ -101,7 +101,7 @@ export function buildPageSeoMetadata(
   const seo = storefront.seo;
   const title = page.metaTitle || applyTemplate(seo.pageTitleTemplate, {
     pageTitle: page.title,
-    storeName: config?.name ?? 'NÖVA',
+    storeName: config?.name ?? 'Tienda',
   });
   const description = page.metaDescription || seo.defaultDescription || '';
 

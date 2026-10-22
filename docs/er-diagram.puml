@@ -49,11 +49,11 @@ entity RefreshToken {
   revokedAt : datetime
 }
 
-entity EmailVerificationCode {
+entity EmailVerificationToken {
   * id : uuid <<PK>>
   --
   * userId : uuid <<FK>>
-  * code : string
+  * tokenHash : string
   * expiresAt : datetime
   usedAt : datetime
 }
@@ -295,7 +295,7 @@ entity AuditLog {
 User ||--o{ Address
 User }o--|| Role
 User ||--o{ RefreshToken
-User ||--o{ EmailVerificationCode
+User ||--o{ EmailVerificationToken
 User ||--o| Cart
 User ||--o{ Order
 User ||--o{ CustomDesign

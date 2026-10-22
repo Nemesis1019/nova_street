@@ -1,11 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client';
+import { CartItemType, OrderStatus, PaymentStatus, Prisma } from '@prisma/client';
 
+import { buildAssetUrl } from '../assets/asset-url.util';
 import { AuditService } from '../audit/audit.service';
 import { buildCarrierTrackingUrl } from '../common/tracking.util';
 import { EmailService } from '../email/email.service';
 import { PaymentService } from '../payment/payment.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateManualOrderDto } from './dto/create-manual-order.dto';
 import { UpdateTrackingDto } from './dto/update-tracking.dto';
 
 @Injectable()
@@ -50,7 +52,25 @@ export class AdminOrdersService {
           assignedTo: { select: { id: true, email: true, firstName: true, lastName: true } },
           items: {
             include: {
-              productVariant: { include: { product: { select: { name: true } } } },
+              productVariant: {
+                include: {
+                  product: {
+                    select: {
+                      name: true,
+                      images: {
+                        orderBy: { sortOrder: 'asc' },
+                        take: 1,
+                        include: { asset: { select: { bucket: true, objectKey: true } } },
+                      },
+                    },
+                  },
+                  images: {
+                    orderBy: { sortOrder: 'asc' },
+                    take: 1,
+                    include: { asset: { select: { bucket: true, objectKey: true } } },
+                  },
+                },
+              },
               customDesign: { include: { designTemplate: { select: { name: true } } } },
             },
           },
@@ -59,7 +79,13 @@ export class AdminOrdersService {
       this.prisma.order.count({ where }),
     ]);
 
-    return { data, meta: { page, limit, total } };
+    return {
+      data: data.map((order) => ({
+        ...order,
+        items: this.mapItemImages(order.items),
+      })),
+      meta: { page, limit, total },
+    };
   }
 
   async findOne(id: string) {
@@ -70,7 +96,25 @@ export class AdminOrdersService {
         assignedTo: { select: { id: true, email: true, firstName: true, lastName: true } },
         items: {
           include: {
-            productVariant: { include: { product: { select: { name: true } } } },
+            productVariant: {
+              include: {
+                product: {
+                  select: {
+                    name: true,
+                    images: {
+                      orderBy: { sortOrder: 'asc' },
+                      take: 1,
+                      include: { asset: { select: { bucket: true, objectKey: true } } },
+                    },
+                  },
+                },
+                images: {
+                  orderBy: { sortOrder: 'asc' },
+                  take: 1,
+                  include: { asset: { select: { bucket: true, objectKey: true } } },
+                },
+              },
+            },
             customDesign: { include: { designTemplate: { select: { name: true } } } },
           },
         },
@@ -90,7 +134,165 @@ export class AdminOrdersService {
     const shippingAddress = addresses.find((a) => a.id === order.shippingAddressId);
     const billingAddress = addresses.find((a) => a.id === order.billingAddressId);
 
-    return { ...order, shippingAddress, billingAddress };
+    return {
+      ...order,
+      items: this.mapItemImages(order.items),
+      shippingAddress,
+      billingAddress,
+    };
+  }
+
+  /** Agrega la imagen (variante o producto) a los ítems de una orden. */
+  private mapItemImages<
+    T extends {
+      productVariant?: {
+        images?: Array<{ asset: { bucket: string; objectKey: string } | null }>;
+        product?: { images?: Array<{ asset: { bucket: string; objectKey: string } | null }> };
+      } | null;
+    },
+  >(items: T[]) {
+    return items.map((item) => {
+      const image =
+        item.productVariant?.images?.[0]?.asset ?? item.productVariant?.product?.images?.[0]?.asset;
+      return {
+        ...item,
+        imageUrl: image ? buildAssetUrl(image.bucket, image.objectKey) : undefined,
+      };
+    });
+  }
+
+  /**
+   * Crea una orden manual para un cliente existente (por id o email) con variantes
+   * del catálogo. Es una carga administrativa: no reserva stock ni crea pagos.
+   */
+  async createManualOrder(dto: CreateManualOrderDto, adminUserId?: string) {
+    const user = dto.userId
+      ? await this.prisma.user.findUnique({ where: { id: dto.userId } })
+      : dto.email
+        ? await this.prisma.user.findUnique({ where: { email: dto.email } })
+        : null;
+
+    if (!user) {
+      throw new NotFoundException('Customer not found');
+    }
+
+    // Dirección de envío/facturación: guardada, nueva o la default del cliente.
+    let shippingAddressId: string;
+    if (dto.addressId) {
+      const address = await this.prisma.address.findFirst({
+        where: { id: dto.addressId, userId: user.id },
+      });
+      if (!address) {
+        throw new BadRequestException('Address does not belong to the customer');
+      }
+      shippingAddressId = address.id;
+    } else if (dto.address) {
+      const created = await this.prisma.address.create({
+        data: {
+          userId: user.id,
+          label: dto.address.label?.trim() || 'Manual',
+          line1: dto.address.line1,
+          line2: dto.address.line2 ?? null,
+          city: dto.address.city,
+          state: dto.address.state,
+          country: dto.address.country,
+          zipCode: dto.address.zipCode,
+          phone: dto.address.phone ?? null,
+          company: dto.address.company ?? null,
+        },
+      });
+      shippingAddressId = created.id;
+    } else {
+      const address = await this.prisma.address.findFirst({
+        where: { userId: user.id },
+        orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }],
+      });
+      if (!address) {
+        throw new BadRequestException('Customer has no saved addresses; provide one');
+      }
+      shippingAddressId = address.id;
+    }
+
+    // Variantes y precios (misma regla que checkout: basePrice + priceAdjustment).
+    const variantIds = [...new Set(dto.items.map((item) => item.variantId))];
+    const variants = await this.prisma.productVariant.findMany({
+      where: { id: { in: variantIds } },
+      include: { product: { select: { name: true, basePrice: true, isActive: true } } },
+    });
+    const byId = new Map(variants.map((variant) => [variant.id, variant]));
+
+    const missing = variantIds.filter((id) => !byId.has(id));
+    if (missing.length > 0) {
+      throw new BadRequestException(`Unknown variants: ${missing.join(', ')}`);
+    }
+
+    const items = dto.items.map((item) => {
+      const variant = byId.get(item.variantId)!;
+      return {
+        variant,
+        quantity: item.quantity,
+        unitPrice: variant.product.basePrice + (variant.priceAdjustment ?? 0),
+      };
+    });
+
+    const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+
+    let shippingCost = 0;
+    if (dto.shippingOptionId) {
+      const option = await this.prisma.shippingOption.findUnique({
+        where: { id: dto.shippingOptionId },
+      });
+      if (!option) {
+        throw new BadRequestException('Shipping option not found');
+      }
+      shippingCost = option.price;
+    }
+
+    const totalAmount = subtotal + shippingCost;
+    const paid = dto.paymentStatus === 'PAID';
+
+    const order = await this.prisma.order.create({
+      data: {
+        userId: user.id,
+        status: paid ? OrderStatus.PAID : OrderStatus.PENDING_PAYMENT,
+        paymentStatus: paid ? PaymentStatus.PAID : PaymentStatus.PENDING,
+        paidAt: paid ? new Date() : null,
+        subtotal,
+        shippingCost,
+        discountAmount: 0,
+        totalAmount,
+        shippingAddressId,
+        billingAddressId: shippingAddressId,
+        shippingOptionId: dto.shippingOptionId ?? null,
+        adminNotes: dto.adminNotes?.trim() || null,
+        customerNotes: dto.customerNotes?.trim() || null,
+        items: {
+          create: items.map((item) => ({
+            type: CartItemType.STANDARD,
+            productVariantId: item.variant.id,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+          })),
+        },
+      },
+    });
+
+    await this.auditService.log({
+      userId: adminUserId,
+      action: 'CREATE_MANUAL_ORDER',
+      entity: 'Order',
+      entityId: order.id,
+      after: {
+        userId: user.id,
+        itemCount: items.length,
+        subtotal,
+        shippingCost,
+        totalAmount,
+        paymentStatus: order.paymentStatus,
+      },
+    });
+
+    return this.findOne(order.id);
   }
 
   async updateStatus(id: string, status: OrderStatus, adminUserId?: string) {
@@ -153,6 +355,23 @@ export class AdminOrdersService {
     });
 
     return { status, count: ids.length };
+  }
+
+  async bulkUpdatePaymentStatus(ids: string[], paymentStatus: PaymentStatus, adminUserId?: string) {
+    await this.prisma.order.updateMany({
+      where: { id: { in: ids } },
+      data: { paymentStatus },
+    });
+
+    await this.auditService.log({
+      userId: adminUserId,
+      action: 'BULK_UPDATE_PAYMENT_STATUS',
+      entity: 'Order',
+      entityId: ids.join(','),
+      after: { ids, paymentStatus },
+    });
+
+    return { paymentStatus, count: ids.length };
   }
 
   async updatePaymentStatus(id: string, paymentStatus: PaymentStatus, adminUserId?: string) {

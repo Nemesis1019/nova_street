@@ -11,7 +11,7 @@ Este documento describe cómo está armada la API, cómo se organizan las rutas,
 - **Auth:** JWT (access + refresh tokens) con Passport
 - **Documentación:** Swagger generado automáticamente (`apps/api/swagger.json`)
 - **Tests:** Jest con Supertest (e2e)
-- **Email:** Nodemailer (templates HTML en `src/email/templates`)
+- **Email:** Nodemailer/Resend intercambiables (defaults de plantillas en `src/email/templates`, overrides en DB vía `/admin/email-templates`)
 - **Monorepo:** pnpm workspace + Turborepo
 
 ---
@@ -110,7 +110,9 @@ Los controllers se importan en su módulo (`*.module.ts`) y el módulo se import
 2. **Login (`POST /auth/login`)**: valida credenciales y devuelve access + refresh token.
 3. **Refresh (`POST /auth/refresh`)**: recibe un refresh token válido y devuelve un nuevo par de tokens.
 4. **Logout (`POST /auth/logout`)**: revoca el refresh token enviado.
-5. **Verificación de email (`POST /auth/verify-email` y `POST /auth/resend-verification`)**: envía un código OTP de 6 dígitos.
+5. **Verificación de email (`POST /auth/verify-email` y `POST /auth/resend-verification`)**: envía un link con token de un solo uso (SHA-256, 24 h) al correo.
+   - `verify-email` es público y recibe `{ token }`, para poder confirmar desde cualquier dispositivo.
+   - `resend-verification` requiere sesión, regenera el link e invalida el anterior.
 6. **Cambio de contraseña (`PATCH /auth/change-password`)**: verifica password actual, actualiza hash y revoca todos los refresh tokens.
 
 ### Guards

@@ -5,6 +5,7 @@ import { CartService } from '../cart/cart.service';
 import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
+import { BulkUpdateStatusDto } from './dto/bulk-update-status.dto';
 import { CreateCustomDesignDto } from './dto/create-custom-design.dto';
 import { UpdateCustomDesignDto } from './dto/update-custom-design.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
@@ -128,8 +129,7 @@ export class CustomDesignsService {
     } as never);
   }
 
-  async updateStatus(id: string, dto: UpdateStatusDto, reviewedById?: string) {
-    const design = await this.prisma.customDesign.findUnique({
+  async updateStatus(id: string, dto: UpdateStatusDto, reviewedById?: string) {    const design = await this.prisma.customDesign.findUnique({
       where: { id },
       include: { user: { select: { email: true, firstName: true } }, designTemplate: { select: { name: true } } },
     });
@@ -172,6 +172,15 @@ export class CustomDesignsService {
     }
 
     return updated;
+  }
+
+  async bulkUpdateStatus(dto: BulkUpdateStatusDto, reviewedById?: string) {
+    const updatedIds: string[] = [];
+    for (const id of dto.ids) {
+      await this.updateStatus(id, { status: dto.status, rejectionReason: dto.rejectionReason }, reviewedById);
+      updatedIds.push(id);
+    }
+    return { updated: updatedIds.length, ids: updatedIds };
   }
 
   async findAllForAdmin(query: { page: number; limit: number; status?: CustomDesignStatus }) {

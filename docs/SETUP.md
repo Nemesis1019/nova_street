@@ -61,6 +61,14 @@ pnpm --filter @ecommerce/api exec prisma migrate dev
 
 ## 6. Seeds (opcional pero recomendado)
 
+> **Prerequisito:** los seeds corren con `ts-node` e importan `@ecommerce/shared`, que se resuelve desde `packages/shared/dist`. Si el paquete no está compilado (instalación fresca o después de `pnpm clean`), fallará con `TS2307: Cannot find module '@ecommerce/shared'`. Compílalo primero:
+>
+> ```bash
+> pnpm --filter @ecommerce/shared build
+> ```
+>
+> (o `pnpm turbo run build` en la raíz, que respeta el orden de dependencias).
+
 El proyecto incluye seeds para roles, admins demo, catálogo y datos de ejemplo:
 
 ```bash
@@ -75,6 +83,11 @@ pnpm --filter @ecommerce/api seed:catalog
 
 # Dataset completo de demo (roles, admins, config, categorías, productos, cupones, plantilla de diseño)
 pnpm --filter @ecommerce/api seed:demo
+
+# Demo visual completo (idempotente, no destructivo; requiere R2 configurado):
+# genera imágenes de marca con sharp, 12 productos con stock, páginas, envíos, cupones,
+# órdenes en todos los estados, reseñas, wishlist y storefront configurado.
+pnpm --filter @ecommerce/api seed:visual-demo
 ```
 
 ## 7. Verificar la base del monorepo
@@ -100,7 +113,7 @@ pnpm --filter @ecommerce/web run lint && pnpm --filter @ecommerce/web run typech
 ### Backend (`apps/api`)
 
 ```bash
-pnpm --filter @ecommerce/api dev
+ pnpm --filter @ecommerce/api dev
 ```
 
 Por defecto escucha en el puerto `4000`.
@@ -283,6 +296,18 @@ o verifica que `pnpm-workspace.yaml` contenga la sección `settings.onlyBuiltDep
 ### Error de autenticación de Prisma (`P1000`)
 
 Si tienes una instancia local de PostgreSQL en el puerto `5432`, el contenedor de Docker usa `5433` para evitar conflictos. Asegúrate de que `DATABASE_URL` apunte a `localhost:5433`.
+
+### `TS2307: Cannot find module '@ecommerce/shared'` al correr seeds
+
+Los comandos `pnpm --filter @ecommerce/api seed:*` ejecutan `ts-node` directamente, sin pasar por Turbo, así que no compilan las dependencias del workspace automáticamente. El `package.json` de `@ecommerce/shared` apunta a `packages/shared/dist`, que no existe si nunca se compiló o si se borró con `pnpm clean`.
+
+Solución:
+
+```bash
+pnpm --filter @ecommerce/shared build
+```
+
+y luego reintenta el seed. Si usas Doppler, el comando es el mismo con el prefijo habitual: `doppler run -- pnpm --filter @ecommerce/api seed:demo`.
 
 ### TypeScript no encuentra decoradores en `apps/api`
 

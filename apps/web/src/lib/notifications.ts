@@ -20,6 +20,16 @@ export function notifyError({ title, message }: { title: string; message?: strin
   });
 }
 
+export function notifyWarning({ title, message }: { title: string; message?: string }) {
+  notifications.show({
+    title,
+    message: message ?? '',
+    color: 'yellow',
+    autoClose: 8000,
+    withCloseButton: true,
+  });
+}
+
 function extractMessage(value: unknown): string | undefined {
   if (typeof value === 'string') return value;
   if (value && typeof value === 'object') {

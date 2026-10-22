@@ -1,11 +1,54 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { StockMode } from '@prisma/client';
 
 import { buildAssetUrl } from '../assets/asset-url.util';
 import { PrismaService } from '../prisma/prisma.service';
 
+/** Motivos por los que un favorito puede dejar de estar disponible. */
+export type WishlistUnavailableReason = 'PRODUCT_INACTIVE' | 'VARIANT_INACTIVE' | 'OUT_OF_STOCK';
+
+interface VariantAvailabilityInput {
+  isActive: boolean;
+  stockMode: StockMode;
+  inventory: { quantity: number; reservedQuantity: number } | null;
+}
+
+interface WishlistVariantRecord {
+  id: string;
+  productVariantId: string;
+  createdAt: Date;
+  productVariant: {
+    priceAdjustment: number | null;
+    isActive: boolean;
+    stockMode: StockMode;
+    inventory: { quantity: number; reservedQuantity: number } | null;
+    product: { id: string; name: string; slug: string; basePrice: number; isActive: boolean };
+    images: Array<{ asset: { id: string; bucket: string; objectKey: string } | null }>;
+  };
+}
+
 @Injectable()
 export class WishlistService {
   constructor(private readonly prisma: PrismaService) {}
+
+  private availability(
+    product: { isActive: boolean },
+    variant: VariantAvailabilityInput,
+  ): { isAvailable: boolean; unavailableReason?: WishlistUnavailableReason } {
+    if (!product.isActive) {
+      return { isAvailable: false, unavailableReason: 'PRODUCT_INACTIVE' };
+    }
+    if (!variant.isActive) {
+      return { isAvailable: false, unavailableReason: 'VARIANT_INACTIVE' };
+    }
+    if (variant.stockMode === StockMode.TRACKED) {
+      const available = (variant.inventory?.quantity ?? 0) - (variant.inventory?.reservedQuantity ?? 0);
+      if (available <= 0) {
+        return { isAvailable: false, unavailableReason: 'OUT_OF_STOCK' };
+      }
+    }
+    return { isAvailable: true };
+  }
 
   async findAll(userId: string) {
     const items = await this.prisma.wishlistItem.findMany({
@@ -15,8 +58,9 @@ export class WishlistService {
         productVariant: {
           include: {
             product: {
-              select: { id: true, name: true, slug: true, basePrice: true },
+              select: { id: true, name: true, slug: true, basePrice: true, isActive: true },
             },
+            inventory: { select: { quantity: true, reservedQuantity: true } },
             images: {
               orderBy: { sortOrder: 'asc' },
               take: 1,
@@ -29,25 +73,32 @@ export class WishlistService {
       },
     });
 
-    return items.map((item) => {
-      const product = item.productVariant.product;
-      const image = item.productVariant.images[0]?.asset;
-      return {
-        id: item.id,
-        productVariantId: item.productVariantId,
-        productName: product.name,
-        productSlug: product.slug,
-        price: product.basePrice + (item.productVariant.priceAdjustment ?? 0),
-        imageUrl: image ? buildAssetUrl(image.bucket, image.objectKey) : undefined,
-        createdAt: item.createdAt,
-      };
-    });
+    return items.map((item) => this.mapItem(item as WishlistVariantRecord));
   }
 
   async add(userId: string, productVariantId: string) {
-    const variantExists = await this.prisma.productVariant.count({ where: { id: productVariantId } });
-    if (variantExists === 0) {
+    const variant = await this.prisma.productVariant.findUnique({
+      where: { id: productVariantId },
+      include: {
+        product: { select: { id: true, name: true, slug: true, basePrice: true, isActive: true } },
+        inventory: { select: { quantity: true, reservedQuantity: true } },
+        images: {
+          orderBy: { sortOrder: 'asc' },
+          take: 1,
+          include: {
+            asset: { select: { id: true, bucket: true, objectKey: true } },
+          },
+        },
+      },
+    });
+
+    if (!variant) {
       throw new NotFoundException('Product variant not found');
+    }
+
+    const { isAvailable } = this.availability(variant.product, variant);
+    if (!isAvailable) {
+      throw new BadRequestException('El producto no está disponible');
     }
 
     const item = await this.prisma.wishlistItem.upsert({
@@ -57,7 +108,10 @@ export class WishlistService {
       include: {
         productVariant: {
           include: {
-            product: { select: { id: true, name: true, slug: true, basePrice: true } },
+            product: {
+              select: { id: true, name: true, slug: true, basePrice: true, isActive: true },
+            },
+            inventory: { select: { quantity: true, reservedQuantity: true } },
             images: {
               orderBy: { sortOrder: 'asc' },
               take: 1,
@@ -70,7 +124,7 @@ export class WishlistService {
       },
     });
 
-    return this.mapItem(item);
+    return this.mapItem(item as WishlistVariantRecord);
   }
 
   async remove(userId: string, productVariantId: string) {
@@ -85,27 +139,22 @@ export class WishlistService {
     });
   }
 
-  private mapItem(item: {
-    id: string;
-    productVariantId: string;
-    createdAt: Date;
-    productVariant: {
-      priceAdjustment: number | null;
-      product: { id: string; name: string; slug: string; basePrice: number };
-      images: Array<{ asset: { id: string; bucket: string; objectKey: string } | null }>;
-    };
-  }) {
-    const product = item.productVariant.product;
-    const image = item.productVariant.images[0]?.asset;
+  private mapItem(item: WishlistVariantRecord) {
+    const variant = item.productVariant;
+    const product = variant.product;
+    const image = variant.images[0]?.asset;
+    const { isAvailable, unavailableReason } = this.availability(product, variant);
+
     return {
       id: item.id,
       productVariantId: item.productVariantId,
       productName: product.name,
       productSlug: product.slug,
-      price: product.basePrice + (item.productVariant.priceAdjustment ?? 0),
-        imageUrl: image ? buildAssetUrl(image.bucket, image.objectKey) : undefined,
+      price: product.basePrice + (variant.priceAdjustment ?? 0),
+      imageUrl: image ? buildAssetUrl(image.bucket, image.objectKey) : undefined,
+      isAvailable,
+      unavailableReason,
       createdAt: item.createdAt,
     };
   }
-
 }

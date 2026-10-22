@@ -41,6 +41,8 @@ export const permissionLabels: Record<string, string> = {
   'queues:write': 'Colas: editar',
   'shipments:read': 'Envíos de orden: ver',
   'shipments:write': 'Envíos de orden: editar',
+  'providers:read': 'Proveedores: ver credenciales',
+  'providers:write': 'Proveedores: gestionar API keys',
 };
 
 export const defaultNewUserPermissions = [
@@ -51,3 +53,13 @@ export const defaultNewUserPermissions = [
 ];
 
 export const allPermissions = Object.keys(permissionLabels);
+
+/**
+ * Etiqueta visible de un permiso en el idioma activo.
+ * Cae al label en español (o al id crudo) si no hay traducción.
+ */
+export function getPermissionLabel(permission: string, t: (key: string) => string): string {
+  const key = `permissions.${permission}`;
+  const translated = t(key);
+  return translated === key ? permissionLabels[permission] ?? permission : translated;
+}

@@ -58,6 +58,9 @@ export class CartItemResponseDto {
   @ApiPropertyOptional()
   name?: string;
 
+  @ApiPropertyOptional({ description: 'Imagen principal de la variante (si tiene)' })
+  imageUrl?: string;
+
   @ApiPropertyOptional()
   productVariant?: CartProductVariantSummaryDto;
 

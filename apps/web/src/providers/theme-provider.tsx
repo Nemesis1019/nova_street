@@ -10,8 +10,44 @@ import { useStoreConfig } from './config-provider';
 
 export type AppearanceMode = 'LIGHT' | 'DARK' | 'SYSTEM';
 
-function solidScale(color: string): [string, string, string, string, string, string, string, string, string, string] {
-  return Array(10).fill(color) as [string, string, string, string, string, string, string, string, string, string];
+function mixWithWhite(hex: string, amount: number): string {
+  const normalized = hex.replace('#', '');
+  const full =
+    normalized.length === 3
+      ? normalized
+          .split('')
+          .map((char) => char + char)
+          .join('')
+      : normalized;
+  const channels = [0, 2, 4].map((offset) => Number.parseInt(full.slice(offset, offset + 2), 16));
+  if (channels.some((channel) => Number.isNaN(channel))) return hex;
+  return `#${channels
+    .map((channel) => Math.round(channel + (255 - channel) * amount))
+    .map((channel) => channel.toString(16).padStart(2, '0'))
+    .join('')}`;
+}
+
+/**
+ * Escala estilo Mantine para un color:
+ * - tonos 0-5: tintes claros (los usan los variants `light` y `subtle` en hover)
+ * - tonos 6-9: el color base sólido (filled/outline/text conservan el diseño actual)
+ *
+ * Con una escala 100% sólida (`Array(10).fill(color)`) el hover de `subtle`
+ * quedaba negro sobre negro (el texto desaparecía).
+ */
+function novaScale(color: string): [string, string, string, string, string, string, string, string, string, string] {
+  return [
+    mixWithWhite(color, 0.96),
+    mixWithWhite(color, 0.92),
+    mixWithWhite(color, 0.85),
+    mixWithWhite(color, 0.74),
+    mixWithWhite(color, 0.55),
+    mixWithWhite(color, 0.32),
+    color,
+    color,
+    color,
+    color,
+  ];
 }
 
 // Design system NÖVA / Urban Autonomy
@@ -129,10 +165,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         },
       },
       colors: {
-        primary: solidScale(primary),
-        secondary: solidScale(secondary),
-        olive: solidScale(NOVA_COLORS.olive),
-        dark: solidScale(NOVA_COLORS.primary),
+        primary: novaScale(primary),
+        secondary: novaScale(secondary),
+        olive: novaScale(NOVA_COLORS.olive),
+        dark: novaScale(NOVA_COLORS.primary),
       },
       black: NOVA_COLORS.primary,
       white: NOVA_COLORS.surface,

@@ -35,7 +35,7 @@ export function StorefrontHome({ config, products, categories }: StorefrontHomeP
             No hay secciones configuradas para el home.
           </div>
         )}
-        <Marquee />
+        {config.templateConfig?.showMarquee !== false && <Marquee />}
       </main>
       <StoreFooter />
     </>

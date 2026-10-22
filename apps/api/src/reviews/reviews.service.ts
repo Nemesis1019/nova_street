@@ -261,6 +261,15 @@ export class ReviewsService {
     return { ...updated, assets: mapReviewAssets(updated.assets) };
   }
 
+  async bulkUpdateApproval(ids: string[], isApproved: boolean, adminUserId?: string) {
+    const updatedIds: string[] = [];
+    for (const id of ids) {
+      await this.updateApproval(id, isApproved, adminUserId);
+      updatedIds.push(id);
+    }
+    return { updated: updatedIds.length, ids: updatedIds, isApproved };
+  }
+
   async remove(id: string, adminUserId?: string) {
     const existing = await this.prisma.review.findUnique({ where: { id } });
     if (!existing) {

@@ -193,6 +193,30 @@ export class ProductionService {
     return this.mapToResponse(updated);
   }
 
+  async bulkAssign(ids: string[], assignedToId: string | null | undefined, adminUserId?: string) {
+    if (assignedToId) {
+      const userExists = await this.prisma.user.count({ where: { id: assignedToId } });
+      if (userExists === 0) {
+        throw new BadRequestException('Assigned user does not exist');
+      }
+    }
+
+    await this.prisma.orderItem.updateMany({
+      where: { id: { in: ids } },
+      data: { assignedToId: assignedToId ?? null },
+    });
+
+    await this.auditService.log({
+      userId: adminUserId,
+      action: 'BULK_ASSIGN_PRODUCTION_ITEMS',
+      entity: 'OrderItem',
+      entityId: ids.join(','),
+      after: { ids, assignedToId: assignedToId ?? null },
+    });
+
+    return { updated: ids.length, ids, assignedToId: assignedToId ?? null };
+  }
+
   private async maybeAdvanceOrderStatus(orderId: string, currentStatus: OrderStatus) {
     if (currentStatus !== OrderStatus.PAID && currentStatus !== OrderStatus.IN_PRODUCTION) {
       return;

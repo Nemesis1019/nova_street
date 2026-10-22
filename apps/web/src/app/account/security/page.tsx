@@ -1,5 +1,6 @@
 'use client';
 
+import { isValidPassword, PASSWORD_POLICY_HINT, PASSWORD_POLICY_MESSAGE } from '@ecommerce/shared';
 import { Button, PasswordInput, Stack, Text, Title } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useMutation } from '@tanstack/react-query';
@@ -19,7 +20,7 @@ export default function SecurityPage() {
     initialValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
     validate: {
       currentPassword: (value) => (value.length > 0 ? null : 'Ingresá tu contraseña actual'),
-      newPassword: (value) => (value.length >= 6 ? null : 'Mínimo 6 caracteres'),
+      newPassword: (value) => (isValidPassword(value) ? null : PASSWORD_POLICY_MESSAGE),
       confirmPassword: (value, values) =>
         value === values.newPassword ? null : 'Las contraseñas no coinciden',
     },
@@ -70,6 +71,7 @@ export default function SecurityPage() {
               />
               <PasswordInput
                 label="Nueva contraseña"
+                description={PASSWORD_POLICY_HINT}
                 {...form.getInputProps('newPassword')}
                 styles={{ input: inputStyles }}
               />

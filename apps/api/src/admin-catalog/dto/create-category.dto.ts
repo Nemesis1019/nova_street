@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
+import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Matches, MaxLength, Min } from 'class-validator';
 
 export class CreateCategoryDto {
   @IsString()
@@ -33,4 +33,9 @@ export class CreateCategoryDto {
   @IsOptional()
   @MaxLength(500)
   metaDescription?: string;
+
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  sortOrder?: number;
 }

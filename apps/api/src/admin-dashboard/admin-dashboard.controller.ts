@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { RequirePermission } from '../auth/decorators/require-permission.decorator';
@@ -25,8 +25,8 @@ export class AdminDashboardController {
 
   @Get('trends')
   @RequirePermission(Permission.DASHBOARD_READ)
-  @ApiOkResponse({ description: 'Daily trends for the last 7 days', type: AdminTrendsResponseDto })
-  getTrends() {
-    return this.adminDashboardService.getTrends();
+  @ApiOkResponse({ description: 'Daily trends for the selected period', type: AdminTrendsResponseDto })
+  getTrends(@Query('days') days?: string) {
+    return this.adminDashboardService.getTrends(days ? Number(days) : 7);
   }
 }

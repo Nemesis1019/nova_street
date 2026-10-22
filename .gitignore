@@ -19,6 +19,12 @@ next-env.d.ts
 # NestJS
 apps/api/dist/
 
+# Imágenes demo generadas a mano (se suben a R2, no se versionan)
+apps/api/demo-images/**/*.png
+apps/api/demo-images/**/*.jpg
+apps/api/demo-images/**/*.jpeg
+apps/api/demo-images/**/*.webp
+
 # Logs
 logs/
 *.log
@@ -33,8 +39,7 @@ lerna-debug.log*
 .env.local
 .env.*.local
 
-# Doppler local config (per-dev)
-doppler.yaml
+
 
 # Testing
 coverage/
@@ -60,3 +65,8 @@ Thumbs.db
 .opencode/
 opencode.jsonc
 opencode.jsonc.*
+
+# Stitch design exports (contexto de UI, archivos pesados — no se versionan)
+docs/stitch/
+# Backups locales de BD (dumps con datos reales)
+backups/

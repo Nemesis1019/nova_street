@@ -20,6 +20,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useState } from 'react';
 
+import { type BoldButtonConfig,BoldPaymentButton } from '../../components/bold-payment-button';
 import { StoreFooter } from '../../components/store-footer';
 import { StoreHeader } from '../../components/store-header';
 import { apiClient } from '../../lib/api';
@@ -183,6 +184,34 @@ export default function CheckoutPage() {
     },
   });
 
+  // Proveedor de pagos activo (Bold → botón embebido; Stripe → redirect).
+  const { data: providerInfo } = useQuery({
+    queryKey: ['payment-provider'],
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await apiClient.GET('/payments/active-provider');
+      if (error) throw error;
+      return data as unknown as { provider: string; supportsButton: boolean };
+    },
+  });
+
+  const useBoldButton = Boolean(order?.orderId) && providerInfo?.supportsButton === true;
+
+  const { data: boldButtonConfig, isLoading: isBoldButtonLoading, isError: isBoldButtonError } = useQuery({
+    queryKey: ['bold-button-checkout', order?.orderId],
+    enabled: useBoldButton,
+    retry: false,
+    queryFn: async () => {
+      const { data, error } = await apiClient.GET('/payments/button-checkout/{orderId}', {
+        params: { path: { orderId: order!.orderId } },
+      });
+      if (error || !data) throw error ?? new Error('Bold button config failed');
+      return data as unknown as BoldButtonConfig;
+    },
+  });
+
+  const showBoldButton = useBoldButton && !isBoldButtonError;
+
   if (!isAuthenticated) {
     return (
       <>
@@ -210,10 +239,10 @@ export default function CheckoutPage() {
             Checkout
           </Title>
           <Text mt="md">
-            Debés verificar tu email antes de realizar una compra. Te enviamos un código de verificación.
+            Debés confirmar tu email antes de realizar una compra. Te enviamos un link de verificación a tu correo.
           </Text>
-          <Button component={Link} href={`/verify-email?email=${encodeURIComponent(useAuthStore.getState().email ?? '')}`} mt="md" style={{ fontFamily: 'var(--font-bebas-neue)' }}>
-            Verificar email
+          <Button component={Link} href="/verify-email" mt="md" style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+            Ver instrucciones
           </Button>
         </Container>
         <StoreFooter />
@@ -453,15 +482,39 @@ export default function CheckoutPage() {
                     </Button>
                   </Group>
 
-                  <Button
-                    onClick={() => createCheckoutSession.mutate()}
-                    loading={createCheckoutSession.isPending}
-                    size="lg"
-                    rightSection={<IconArrowForward size={18} />}
-                    style={{ backgroundColor: '#0d0d0d', color: '#fcf9f8', fontFamily: 'var(--font-bebas-neue)' }}
-                  >
-                    Confirmar y pagar
-                  </Button>
+                  {showBoldButton ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {boldButtonConfig ? (
+                        <BoldPaymentButton config={boldButtonConfig} />
+                      ) : (
+                        <Button
+                          loading={isBoldButtonLoading}
+                          size="lg"
+                          disabled
+                          style={{
+                            backgroundColor: '#0d0d0d',
+                            color: '#fcf9f8',
+                            fontFamily: 'var(--font-bebas-neue)',
+                          }}
+                        >
+                          Preparando pago…
+                        </Button>
+                      )}
+                      <Text size="xs" c="dimmed" ta="center">
+                        Pago seguro con Bold: tarjetas, PSE, Nequi y Botón Bancolombia.
+                      </Text>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={() => createCheckoutSession.mutate()}
+                      loading={createCheckoutSession.isPending}
+                      size="lg"
+                      rightSection={<IconArrowForward size={18} />}
+                      style={{ backgroundColor: '#0d0d0d', color: '#fcf9f8', fontFamily: 'var(--font-bebas-neue)' }}
+                    >
+                      Confirmar y pagar
+                    </Button>
+                  )}
                 </Stack>
               </GridCol>
               <GridCol span={{ base: 12, md: 5 }}>
@@ -580,7 +633,7 @@ function OrderSummaryPanel({
   loading,
   disabled,
 }: {
-  items: { id: string; productVariantId: string | null; quantity: number; unitPrice: number; name?: string; type?: string }[];
+  items: { id: string; productVariantId: string | null; quantity: number; unitPrice: number; name?: string; type?: string; imageUrl?: string }[];
   localItems: { productVariantId: string; quantity: number; price?: number; name?: string }[];
   total: number;
   shippingOptions: components['schemas']['EstimatedShippingOptionResponseDto'][];
@@ -609,11 +662,38 @@ function OrderSummaryPanel({
 
         {items.length > 0 ? (
           items.map((item) => (
-            <Group key={item.id} justify="space-between" py="xs" style={{ borderBottom: '1px solid rgba(13,13,13,0.1)' }}>
-              <Text size="sm">
+            <Group key={item.id} justify="space-between" py="xs" wrap="nowrap" style={{ borderBottom: '1px solid rgba(13,13,13,0.1)' }}>
+              <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
+                {item.imageUrl ? (
+                  <img
+                    src={item.imageUrl}
+                    alt=""
+                    loading="lazy"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      objectFit: 'cover',
+                      border: '1px solid rgba(13,13,13,0.2)',
+                      flexShrink: 0,
+                    }}
+                  />
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      backgroundColor: '#f6f3f2',
+                      border: '1px solid rgba(13,13,13,0.2)',
+                      flexShrink: 0,
+                    }}
+                  />
+                )}
+                <Text size="sm">
                   {item.name ?? item.productVariantId ?? item.type} x {item.quantity}
-              </Text>
-              <Text size="sm" style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>
+                </Text>
+              </Group>
+              <Text size="sm" style={{ fontFamily: 'var(--font-jetbrains-mono)', flexShrink: 0 }}>
                 {format(item.unitPrice * item.quantity)}
               </Text>
             </Group>

@@ -58,6 +58,9 @@ export class AdminOrderItemDto {
   productionStatus!: string;
 
   @ApiPropertyOptional()
+  imageUrl?: string;
+
+  @ApiPropertyOptional()
   productVariant?: AdminOrderProductVariantDto;
 
   @ApiPropertyOptional()

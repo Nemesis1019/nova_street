@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
+import { buildAssetUrl } from '../assets/asset-url.util';
 import { PrismaService } from '../prisma/prisma.service';
 
 interface DateRange {
@@ -61,6 +62,13 @@ export class AnalyticsService {
               select: {
                 id: true,
                 name: true,
+                images: {
+                  select: {
+                    asset: { select: { bucket: true, objectKey: true } },
+                  },
+                  orderBy: { sortOrder: 'asc' },
+                  take: 1,
+                },
               },
             },
           },
@@ -68,11 +76,18 @@ export class AnalyticsService {
       },
     });
 
-    const grouped = new Map<string, { name: string; quantity: number; revenue: number }>();
+    const grouped = new Map<string, { name: string; quantity: number; revenue: number; imageUrl?: string }>();
     for (const item of items) {
       const product = item.productVariant?.product;
       if (!product) continue;
-      const current = grouped.get(product.id) ?? { name: product.name, quantity: 0, revenue: 0 };
+      const current = grouped.get(product.id) ?? {
+        name: product.name,
+        quantity: 0,
+        revenue: 0,
+        imageUrl: product.images[0]
+          ? buildAssetUrl(product.images[0].asset.bucket, product.images[0].asset.objectKey)
+          : undefined,
+      };
       current.quantity += item.quantity;
       current.revenue += item.unitPrice * item.quantity;
       grouped.set(product.id, current);

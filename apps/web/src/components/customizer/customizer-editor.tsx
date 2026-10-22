@@ -1,16 +1,18 @@
 'use client';
 
-import { Button, ColorSwatch, FileButton, Grid, GridCol, Group, Select, Slider, Stack, Text as MantineText, TextInput, Title } from '@mantine/core';
+import { Button, ColorSwatch, Container, FileButton, Grid, GridCol, Group, Loader, Select, Slider, Stack, Text as MantineText, TextInput, Title } from '@mantine/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
+import { type ReactNode,useEffect, useMemo, useRef, useState } from 'react';
 
 import { apiClient } from '../../lib/api';
 import { uploadAsset } from '../../lib/assets';
 import type { CustomDesign, CustomDesignElement, DesignTemplate } from '../../lib/customizer-types';
-import { getApiErrorMessage, notifyError, notifySuccess } from '../../lib/notifications';
+import { getApiErrorMessage, notifyError, notifySuccess, notifyWarning } from '../../lib/notifications';
 import { useCurrency } from '../../providers/currency-provider';
 import { useAuthStore } from '../../store/auth-store';
+import { AuthShell } from '../auth-shell';
 
 const Stage = dynamic(() => import('react-konva').then((mod) => mod.Stage), { ssr: false });
 const Layer = dynamic(() => import('react-konva').then((mod) => mod.Layer), { ssr: false });
@@ -41,6 +43,9 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
   const [stageSize, setStageSize] = useState({ width: 400, height: 400 });
   const [designId, setDesignId] = useState<string | null>(null);
   const [baseImage, setBaseImage] = useState<HTMLImageElement | null>(null);
+  const [baseImageStatus, setBaseImageStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [crossOriginBlocked, setCrossOriginBlocked] = useState(false);
+  const [baseImageNonce, setBaseImageNonce] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [elements, setElements] = useState<EditorElement[]>([]);
@@ -53,7 +58,7 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
     [elements, selectedId],
   );
 
-  const { data: template } = useQuery<DesignTemplate>({
+  const { data: template, isError: templateError, refetch: refetchTemplate } = useQuery<DesignTemplate>({
     queryKey: ['design-template', templateId],
     queryFn: async () => {
       const { data, error } = await apiClient.GET('/design-templates/{id}', {
@@ -66,28 +71,59 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
   });
 
   useEffect(() => {
-    if (template?.baseImageUrl) {
+    if (!template?.baseImageUrl) return;
+    let cancelled = false;
+    setBaseImageStatus('loading');
+    setCrossOriginBlocked(false);
+
+    const load = (withCrossOrigin: boolean, allowFallback: boolean) => {
       const img = new window.Image();
-      img.crossOrigin = 'anonymous';
-      img.src = template.baseImageUrl;
+      if (withCrossOrigin) img.crossOrigin = 'anonymous';
       img.onload = () => {
+        if (cancelled) return;
         setBaseImage(img);
+        setBaseImageStatus('ready');
+        setCrossOriginBlocked(!withCrossOrigin);
         const maxWidth = Math.min(600, stageRef.current?.clientWidth ?? 600);
-        const scale = maxWidth / img.width;
+        const scale = img.width > 0 ? maxWidth / img.width : 1;
         setStageSize({ width: maxWidth, height: img.height * scale });
       };
-    }
-  }, [template?.baseImageUrl]);
+      img.onerror = () => {
+        if (cancelled) return;
+        // Si el bucket no tiene CORS habilitado para este dominio, reintenta
+        // sin `crossOrigin`: la prenda se muestra igual (el canvas queda
+        // "tainted" y la vista previa no se podrá exportar, ver saveDesign).
+        if (allowFallback) {
+          load(false, false);
+        } else {
+          setBaseImageStatus('error');
+        }
+      };
+      img.src = template.baseImageUrl;
+    };
+
+    load(true, true);
+    return () => {
+      cancelled = true;
+    };
+  }, [template?.baseImageUrl, baseImageNonce]);
 
   useEffect(() => {
     elements.forEach((element) => {
       if (element.type === 'UPLOADED_IMAGE' && element.assetUrl && !imageMap[element.assetUrl]) {
-        const img = new window.Image();
-        img.crossOrigin = 'anonymous';
-        img.src = element.assetUrl;
-        img.onload = () => {
-          setImageMap((prev) => ({ ...prev, [element.assetUrl as string]: img }));
+        const url = element.assetUrl;
+        const load = (withCrossOrigin: boolean, allowFallback: boolean) => {
+          const img = new window.Image();
+          if (withCrossOrigin) img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            setImageMap((prev) => ({ ...prev, [url]: img }));
+          };
+          img.onerror = () => {
+            if (allowFallback) load(false, false);
+          };
+          img.src = url;
         };
+        load(true, true);
       }
     });
   }, [elements, imageMap]);
@@ -132,8 +168,20 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
   const saveDesign = useMutation({
     mutationFn: async () => {
       if (!designId) throw new Error('Missing design');
-      const dataUrl = konvaStageRef.current?.toDataURL();
-      const previewUrl = dataUrl ? (await uploadPreview.mutateAsync(dataUrl)).url : undefined;
+      let previewUrl: string | undefined;
+      try {
+        const dataUrl = konvaStageRef.current?.toDataURL();
+        if (dataUrl) {
+          previewUrl = (await uploadPreview.mutateAsync(dataUrl)).url;
+        }
+      } catch {
+        // Canvas "tainted" (imagen sin CORS): se guarda sin vista previa.
+        notifyWarning({
+          title: 'Diseño sin vista previa',
+          message:
+            'No se pudo exportar la vista previa porque la imagen base no permite CORS para este dominio. El diseño se guardará igual.',
+        });
+      }
 
       const { data, error } = await apiClient.PATCH('/custom-designs/{id}', {
         params: { path: { id: designId } },
@@ -245,25 +293,73 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
     });
   }
 
+  const pageShell = (content: ReactNode) => (
+    <main style={{ backgroundColor: '#fcf9f8', padding: '96px 16px 128px' }}>
+      <Container size="xl" px={0}>
+        {content}
+      </Container>
+    </main>
+  );
+
   if (!isAuthenticated) {
     return (
-      <Stack align="center" py="xl">
-        <Title order={3} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
-          Personalización
-        </Title>
-        <MantineText>Debes iniciar sesión para crear diseños personalizados.</MantineText>
-        <Button component="a" href="/login" style={{ backgroundColor: '#0d0d0d', color: '#fcf9f8', fontFamily: 'var(--font-bebas-neue)' }}>
-          Iniciar sesión
+      <AuthShell
+        withChrome={false}
+        eyebrow="Studio NÖVA"
+        title={
+          <>
+            INGRESA PARA<br />PERSONALIZAR.
+          </>
+        }
+        description="Necesitás una cuenta para crear diseños, guardarlos y agregarlos al carrito."
+      >
+        <Stack gap="lg">
+          <Title order={3} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+            PERSONALIZACIÓN
+          </Title>
+          <MantineText size="sm" c="dimmed">
+            Iniciá sesión o creá una cuenta para empezar a diseñar tu prenda.
+          </MantineText>
+          <Button
+            component="a"
+            href="/login"
+            fullWidth
+            size="lg"
+            style={{ backgroundColor: '#0d0d0d', color: '#fcf9f8', fontFamily: 'var(--font-bebas-neue)' }}
+          >
+            Iniciar sesión
+          </Button>
+          <MantineText size="sm" ta="center">
+            ¿No tenés cuenta?{' '}
+            <Link href="/register" style={{ color: '#0d0d0d', fontWeight: 600 }}>
+              Crear cuenta
+            </Link>
+          </MantineText>
+        </Stack>
+      </AuthShell>
+    );
+  }
+
+  if (templateError) {
+    return pageShell(
+      <Stack align="center" py="xl" gap="sm">
+        <MantineText c="dimmed">No se pudo cargar la plantilla.</MantineText>
+        <Button
+          variant="outline"
+          style={{ borderColor: '#0d0d0d', color: '#0d0d0d', fontFamily: 'var(--font-bebas-neue)' }}
+          onClick={() => void refetchTemplate()}
+        >
+          Reintentar
         </Button>
-      </Stack>
+      </Stack>,
     );
   }
 
   if (!template) {
-    return (
+    return pageShell(
       <Stack align="center" py="xl">
         <MantineText c="dimmed">Cargando plantilla...</MantineText>
-      </Stack>
+      </Stack>,
     );
   }
 
@@ -293,10 +389,34 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
     return map[colorName.toLowerCase()] ?? '#cccccc';
   }
 
-  return (
+  return pageShell(
     <Grid gap="xl">
       <GridCol span={{ base: 12, md: 8 }}>
-        <div ref={stageRef} style={{ border: '1px solid #0d0d0d', backgroundColor: '#f6f3f2' }}>
+        <div
+          ref={stageRef}
+          style={{
+            border: '1px solid #0d0d0d',
+            backgroundColor: '#f6f3f2',
+            ...(baseImage
+              ? {}
+              : { minHeight: 360, display: 'flex', alignItems: 'center', justifyContent: 'center' }),
+          }}
+        >
+          {!baseImage && baseImageStatus === 'error' && (
+            <Stack align="center" gap="sm" p="xl">
+              <MantineText c="dimmed" size="sm">
+                No se pudo cargar la prenda base.
+              </MantineText>
+              <Button
+                variant="outline"
+                style={{ borderColor: '#0d0d0d', color: '#0d0d0d', fontFamily: 'var(--font-bebas-neue)' }}
+                onClick={() => setBaseImageNonce((nonce) => nonce + 1)}
+              >
+                Reintentar
+              </Button>
+            </Stack>
+          )}
+          {!baseImage && baseImageStatus !== 'error' && <Loader color="dark" />}
           {baseImage && (
             <Stage
               width={stageSize.width}
@@ -416,6 +536,12 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
         <MantineText size="xs" c="dimmed" mt="xs">
           El área punteada indica la zona recomendada de impresión.
         </MantineText>
+        {crossOriginBlocked && (
+          <MantineText size="xs" c="yellow.8" mt={4}>
+            La imagen base se cargó sin CORS para este dominio: podés editar y guardar, pero la vista previa no se
+            generará.
+          </MantineText>
+        )}
       </GridCol>
 
       <GridCol span={{ base: 12, md: 4 }}>
@@ -577,6 +703,6 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
           )}
         </Stack>
       </GridCol>
-    </Grid>
+    </Grid>,
   );
 }

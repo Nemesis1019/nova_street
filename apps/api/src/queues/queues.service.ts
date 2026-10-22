@@ -2,6 +2,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bullmq';
 
+import { getCurrentTenantSlug } from '../tenant/tenant-runtime';
 import { QueueJobType } from './dto/enqueue-job.dto';
 import { QUEUE_NAMES } from './queue-names';
 
@@ -15,7 +16,9 @@ export class QueuesService {
 
   async enqueue(type: QueueJobType, payload: Record<string, unknown>) {
     const queue = this.resolveQueue(type);
-    const job = await queue.add(type, payload);
+    // El worker necesita saber a qué BD/credenciales pertenece el job.
+    const tenantSlug = getCurrentTenantSlug();
+    const job = await queue.add(type, { ...payload, ...(tenantSlug ? { tenantSlug } : {}) });
     return { jobId: job.id };
   }
 

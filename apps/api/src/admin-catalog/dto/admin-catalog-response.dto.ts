@@ -28,6 +28,12 @@ export class CategoryResponseDto {
   isActive!: boolean;
 
   @ApiProperty()
+  sortOrder!: number;
+
+  @ApiPropertyOptional()
+  productCount?: number;
+
+  @ApiProperty()
   createdAt!: Date;
 
   @ApiProperty()
@@ -124,6 +130,9 @@ export class ProductResponseDto {
 
   @ApiProperty({ type: () => [ProductVariantResponseDto] })
   variants!: ProductVariantResponseDto[];
+
+  @ApiPropertyOptional()
+  imageUrl?: string;
 }
 
 export class AdminProductDetailDto extends ProductResponseDto {
@@ -159,6 +168,9 @@ export class InventoryProductSummaryDto {
 
   @ApiProperty()
   slug!: string;
+
+  @ApiPropertyOptional()
+  imageUrl?: string;
 }
 
 export class InventoryListItemDto extends ProductVariantResponseDto {

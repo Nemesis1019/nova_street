@@ -2,6 +2,7 @@ import { DEFAULT_CURRENCY_CODE } from '@ecommerce/shared';
 import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { encryptSecret } from '../tenant/crypto.util';
 import { UpdateStoreConfigDto } from './dto/update-store-config.dto';
 
 @Injectable()
@@ -45,6 +46,10 @@ export class StoreConfigService {
         paymentProvider: 'stripe',
         shippingProvider: 'flatRate',
         shippingBaseCost: 10_000,
+        termsVersion: 1,
+        minOrderAmount: null,
+        googleOAuthEnabled: false,
+        appleOAuthEnabled: false,
       },
     });
   }
@@ -90,11 +95,39 @@ export class StoreConfigService {
         storefrontConfig: dto.storefrontConfig ? JSON.parse(dto.storefrontConfig) : undefined,
         emailProvider: dto.emailProvider,
         paymentProvider: dto.paymentProvider,
+        boldApiKey: dto.boldApiKey,
+        // Credenciales cifradas en reposo (AES-256-GCM); vacío = no cambiar.
+        boldSecretKey: dto.boldSecretKey ? encryptSecret(dto.boldSecretKey) : undefined,
+        boldSandbox: dto.boldSandbox,
+        stripePublishableKey: dto.stripePublishableKey,
+        stripeSecretKey: dto.stripeSecretKey ? encryptSecret(dto.stripeSecretKey) : undefined,
+        stripeWebhookSecret: dto.stripeWebhookSecret
+          ? encryptSecret(dto.stripeWebhookSecret)
+          : undefined,
+        smtpHost: dto.smtpHost,
+        smtpPort: dto.smtpPort,
+        smtpUser: dto.smtpUser,
+        smtpPass: dto.smtpPass ? encryptSecret(dto.smtpPass) : undefined,
+        smtpSecure: dto.smtpSecure,
+        smtpFrom: dto.smtpFrom,
+        resendApiKey: dto.resendApiKey ? encryptSecret(dto.resendApiKey) : undefined,
+        resendFrom: dto.resendFrom,
         shippingProvider: dto.shippingProvider,
         shippingBaseCost: dto.shippingBaseCost,
         freeShippingThreshold: dto.freeShippingThreshold,
         shippingDiscountPercentage: dto.shippingDiscountPercentage,
         shippingDiscountFixedAmount: dto.shippingDiscountFixedAmount,
+        termsPageId: dto.termsPageId,
+        termsVersion: dto.termsVersion,
+        minOrderAmount: dto.minOrderAmount,
+        productionEstimateDays: dto.productionEstimateDays,
+        deliveryEstimateDays: dto.deliveryEstimateDays,
+        emailSenderName: dto.emailSenderName,
+        emailSenderAddress: dto.emailSenderAddress,
+        googleOAuthEnabled: dto.googleOAuthEnabled,
+        googleClientId: dto.googleClientId,
+        appleOAuthEnabled: dto.appleOAuthEnabled,
+        appleClientId: dto.appleClientId,
         updatedById,
       },
     });

@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -15,6 +16,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AddressesService } from './addresses.service';
 import { AddressResponseDto } from './dto/address-response.dto';
 import { CreateAddressDto } from './dto/create-address.dto';
+import { UpdateAddressDto } from './dto/update-address.dto';
 
 @ApiTags('addresses')
 @ApiBearerAuth()
@@ -35,6 +37,20 @@ export class AddressesController {
   findAll(@Req() req: Request) {
     const userId = (req.user as { userId: string }).userId;
     return this.addressesService.findAll(userId);
+  }
+
+  @Patch(':id/default')
+  @ApiOkResponse({ type: AddressResponseDto })
+  setDefault(@Req() req: Request, @Param('id') id: string) {
+    const userId = (req.user as { userId: string }).userId;
+    return this.addressesService.setDefault(userId, id);
+  }
+
+  @Patch(':id')
+  @ApiOkResponse({ type: AddressResponseDto })
+  update(@Req() req: Request, @Param('id') id: string, @Body() dto: UpdateAddressDto) {
+    const userId = (req.user as { userId: string }).userId;
+    return this.addressesService.update(userId, id, dto);
   }
 
   @Delete(':id')

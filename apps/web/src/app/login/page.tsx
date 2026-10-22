@@ -1,19 +1,22 @@
 'use client';
 
-import { Button, Checkbox, Divider, Grid, GridCol, Group, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core';
+import { Button, Checkbox, Divider, Group, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useMutation } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-import { StoreFooter } from '../../components/store-footer';
+import { AuthShell } from '../../components/auth-shell';
+import { OAuthButtons } from '../../components/oauth-buttons';
 import { apiClient } from '../../lib/api';
 import { getApiErrorMessage, notifyError, notifySuccess } from '../../lib/notifications';
+import { useStoreConfig } from '../../providers/config-provider';
 import { useAuthStore } from '../../store/auth-store';
 import { useCartStore } from '../../store/cart-store';
 
 export default function LoginPage() {
   const router = useRouter();
+  const config = useStoreConfig();
   const setAuth = useAuthStore((state) => state.setAuth);
   const cartItems = useCartStore((state) => state.items);
   const clearCart = useCartStore((state) => state.clearCart);
@@ -32,10 +35,19 @@ export default function LoginPage() {
         body: values as never,
       });
       if (error || !data) throw error ?? new Error('Login failed');
-      return data as { accessToken: string; user: { emailVerified: boolean } };
+      return data as {
+        accessToken: string;
+        user: { emailVerified: boolean; acceptedTermsVersion?: string | null };
+      };
     },
     onSuccess: async (data) => {
-      setAuth(data.accessToken, form.values.email, data.user.emailVerified, form.values.remember);
+      setAuth(
+        data.accessToken,
+        form.values.email,
+        data.user.emailVerified,
+        form.values.remember,
+        data.user.acceptedTermsVersion ?? null,
+      );
       if (cartItems.length > 0) {
         const anonymousItems = cartItems.map((item) => ({
           type: item.type as 'STANDARD' | 'CUSTOM',
@@ -59,55 +71,16 @@ export default function LoginPage() {
   });
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#fcf9f8' }}>
-      <header style={{ borderBottom: '1px solid #0d0d0d', padding: '16px 64px' }}>
-        <Link
-          href="/"
-          style={{
-            fontFamily: 'var(--font-bebas-neue), Bebas Neue, Impact, sans-serif',
-            fontSize: '28px',
-            letterSpacing: '0.05em',
-            color: '#0d0d0d',
-            textDecoration: 'none',
-          }}
-        >
-          NÖVA
-        </Link>
-      </header>
-
-      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '64px 16px' }}>
-        <Grid gap="xl" maw={1100} w="100%">
-          <GridCol span={{ base: 12, md: 6 }}>
-            <Stack gap="xs">
-              <Text
-                size="xs"
-                style={{
-                  fontFamily: 'var(--font-jetbrains-mono), JetBrains Mono, monospace',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
-                }}
-              >
-                NÖVA Urban Autonomy Series 01
-              </Text>
-              <Title
-                order={1}
-                style={{
-                  fontFamily: 'var(--font-bebas-neue), Bebas Neue, Impact, sans-serif',
-                  fontSize: 'clamp(48px, 8vw, 96px)',
-                  lineHeight: 0.9,
-                }}
-              >
-                INGRESA A<br />TU ENERGÍA.
-              </Title>
-              <Text size="md" c="dimmed" maw={400}>
-                Accede a drops exclusivos, guarda tus direcciones y rastrea tus pedidos.
-              </Text>
-            </Stack>
-          </GridCol>
-
-          <GridCol span={{ base: 12, md: 6 }}>
-            <div style={{ padding: '48px', border: '1px solid #0d0d0d', backgroundColor: '#f6f3f2' }}>
-              <Stack gap="lg">
+    <AuthShell
+      eyebrow={`${config.name} Urban Autonomy Series 01`}
+      title={
+        <>
+          INGRESA A<br />TU ENERGÍA.
+        </>
+      }
+      description="Accede a drops exclusivos, guarda tus direcciones y rastrea tus pedidos."
+    >
+      <Stack gap="lg">
                 <Title order={3} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
                   INICIAR SESIÓN
                 </Title>
@@ -117,7 +90,7 @@ export default function LoginPage() {
                     <PasswordInput label="Contraseña" {...form.getInputProps('password')} />
                     <Group justify="space-between">
                       <Checkbox label="Recordarme" {...form.getInputProps('remember', { type: 'checkbox' })} />
-                      <Link href="#" style={{ fontSize: '12px', color: '#5f5f58' }}>
+                      <Link href="/forgot-password" style={{ fontSize: '12px', color: '#5f5f58' }}>
                         ¿Olvidaste tu contraseña?
                       </Link>
                     </Group>
@@ -139,14 +112,17 @@ export default function LoginPage() {
 
                 <Divider label="O continúa con" labelPosition="center" color="rgba(13,13,13,0.2)" />
 
-                <Group grow>
-                  <Button variant="outline" style={{ borderColor: '#0d0d0d', color: '#0d0d0d', fontFamily: 'var(--font-bebas-neue)' }}>
-                    Google
-                  </Button>
-                  <Button variant="outline" style={{ borderColor: '#0d0d0d', color: '#0d0d0d', fontFamily: 'var(--font-bebas-neue)' }}>
-                    Apple
-                  </Button>
-                </Group>
+                <OAuthButtons
+                  googleEnabled={config.googleOAuthEnabled}
+                  googleClientId={config.googleClientId}
+                  appleEnabled={config.appleOAuthEnabled}
+                  appleClientId={config.appleClientId}
+                  rememberMe={form.values.remember}
+                  onSuccess={() => {
+                    notifySuccess({ title: 'Bienvenido', message: 'Sesión iniciada' });
+                    router.push('/catalogo');
+                  }}
+                />
 
                 <Text size="sm" ta="center">
                   ¿No tenés cuenta?{' '}
@@ -154,12 +130,7 @@ export default function LoginPage() {
                     Crear cuenta
                   </Link>
                 </Text>
-              </Stack>
-            </div>
-          </GridCol>
-        </Grid>
-      </main>
-      <StoreFooter />
-    </div>
+      </Stack>
+    </AuthShell>
   );
 }

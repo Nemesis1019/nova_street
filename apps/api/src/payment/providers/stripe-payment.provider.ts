@@ -2,6 +2,9 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 
+import { PrismaService } from '../../prisma/prisma.service';
+import { decryptSecret } from '../../tenant/crypto.util';
+import { getTenantStorefrontUrl } from '../../tenant/tenant-url.util';
 import type {
   PaymentCheckoutSessionResult,
   PaymentProvider,
@@ -10,23 +13,56 @@ import type {
   RefundResult,
 } from './payment-provider.interface';
 
+interface StripeConfig {
+  secretKey: string | null;
+  webhookSecret: string | null;
+}
+
+/**
+ * Proveedor Stripe.
+ *
+ * Las credenciales se leen de `StoreConfig` en cada operación (con fallback a
+ * las envs `STRIPE_*`), así cada cliente puede usar su propia cuenta y los
+ * cambios del admin aplican sin reiniciar la API. Los clientes de Stripe se
+ * cachean por secret key.
+ */
 @Injectable()
 export class StripePaymentProvider implements PaymentProvider {
   readonly name = 'stripe';
   private readonly logger = new Logger(StripePaymentProvider.name);
-  private readonly stripe: Stripe | null = null;
+  private readonly clients = new Map<string, Stripe>();
 
-  constructor(private readonly configService: ConfigService) {
-    const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
-    if (secretKey) {
-      this.stripe = new Stripe(secretKey, { apiVersion: '2026-06-24.dahlia' });
-    } else {
-      this.logger.warn('STRIPE_SECRET_KEY not configured. Stripe payments are disabled.');
-    }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
+  ) {}
+
+  private async getConfig(): Promise<StripeConfig> {
+    const config = await this.prisma.storeConfig.findFirst({ where: { isActive: true } });
+    const storedSecret =
+      config?.stripeSecretKey ?? this.configService.get<string>('STRIPE_SECRET_KEY') ?? null;
+    const storedWebhook =
+      config?.stripeWebhookSecret ??
+      this.configService.get<string>('STRIPE_WEBHOOK_SECRET') ??
+      null;
+
+    return {
+      secretKey: storedSecret ? decryptSecret(storedSecret) : null,
+      webhookSecret: storedWebhook ? decryptSecret(storedWebhook) : null,
+    };
   }
 
-  isEnabled(): boolean {
-    return this.stripe !== null;
+  private getClient(secretKey: string): Stripe {
+    const cached = this.clients.get(secretKey);
+    if (cached) return cached;
+
+    const client = new Stripe(secretKey, { apiVersion: '2026-06-24.dahlia' });
+    this.clients.set(secretKey, client);
+    return client;
+  }
+
+  async isEnabled(): Promise<boolean> {
+    return Boolean((await this.getConfig()).secretKey);
   }
 
   async createCheckoutSession(order: {
@@ -41,12 +77,17 @@ export class StripePaymentProvider implements PaymentProvider {
       variantLabel?: string;
     }[];
   }): Promise<PaymentCheckoutSessionResult> {
-    if (!this.stripe) {
+    const config = await this.getConfig();
+    if (!config.secretKey) {
       throw new BadRequestException('Stripe is not configured');
     }
 
-    const successUrl = this.configService.get<string>('STRIPE_SUCCESS_URL') ?? 'http://localhost:3000/orders?paid=success';
-    const cancelUrl = this.configService.get<string>('STRIPE_CANCEL_URL') ?? `http://localhost:3000/checkout?order=${order.id}&canceled=1`;
+    const base = getTenantStorefrontUrl();
+    const successUrl =
+      this.configService.get<string>('STRIPE_SUCCESS_URL') ?? `${base}/orders?paid=success`;
+    const cancelUrl =
+      this.configService.get<string>('STRIPE_CANCEL_URL') ??
+      `${base}/checkout?order=${order.id}&canceled=1`;
 
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = order.items.map((item) => ({
       price_data: {
@@ -59,7 +100,7 @@ export class StripePaymentProvider implements PaymentProvider {
       quantity: item.quantity,
     }));
 
-    const session = await this.stripe.checkout.sessions.create({
+    const session = await this.getClient(config.secretKey).checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
@@ -73,16 +114,17 @@ export class StripePaymentProvider implements PaymentProvider {
   }
 
   async handleWebhook(payload: string | Buffer, signature?: string): Promise<PaymentWebhookEvent> {
-    if (!this.stripe) {
+    const config = await this.getConfig();
+    if (!config.secretKey) {
       throw new BadRequestException('Stripe is not configured');
     }
 
-    const webhookSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET');
+    const stripe = this.getClient(config.secretKey);
     let event: Stripe.Event;
 
-    if (webhookSecret && signature) {
+    if (config.webhookSecret && signature) {
       try {
-        event = this.stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+        event = stripe.webhooks.constructEvent(payload, signature, config.webhookSecret);
       } catch (error) {
         this.logger.error('Stripe webhook signature verification failed', error);
         throw new BadRequestException('Invalid signature');
@@ -123,7 +165,8 @@ export class StripePaymentProvider implements PaymentProvider {
   }
 
   async refund(params: RefundParams): Promise<RefundResult> {
-    if (!this.stripe) {
+    const config = await this.getConfig();
+    if (!config.secretKey) {
       this.logger.warn('Stripe is not configured; refund cannot be processed automatically');
       return { success: false, errorMessage: 'Stripe is not configured' };
     }
@@ -133,13 +176,16 @@ export class StripePaymentProvider implements PaymentProvider {
     }
 
     try {
-      const refund = await this.stripe.refunds.create({
+      const refund = await this.getClient(config.secretKey).refunds.create({
         payment_intent: params.paymentProviderTransactionId,
         amount: params.amount,
         reason: 'requested_by_customer',
         metadata: { orderId: params.orderId },
       });
-      return { success: refund.status === 'succeeded' || refund.status === 'pending', providerTransactionId: refund.id };
+      return {
+        success: refund.status === 'succeeded' || refund.status === 'pending',
+        providerTransactionId: refund.id,
+      };
     } catch (error) {
       this.logger.error('Stripe refund failed', error);
       return { success: false, errorMessage: error instanceof Error ? error.message : 'Unknown error' };

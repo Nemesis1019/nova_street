@@ -51,11 +51,19 @@ export class AdminProductController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('search') search?: string,
+    @Query('categoryId') categoryId?: string,
+    @Query('isActive') isActive?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: string,
   ) {
     return this.adminProductService.findAll({
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 20,
       search,
+      categoryId,
+      isActive: isActive === undefined ? undefined : isActive === 'true',
+      sortBy,
+      sortOrder,
     });
   }
 

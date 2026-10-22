@@ -1,6 +1,8 @@
 import {
   Body,
   Controller,
+  Delete,
+  Param,
   Post,
   Req,
   UploadedFile,
@@ -60,5 +62,11 @@ export class AssetsController {
   async presign(@Req() req: Request, @Body() dto: PresignAssetDto) {
     const userId = (req.user as { userId: string }).userId;
     return this.assetsService.presign(userId, dto.filename, dto.mimeType, dto.purpose, dto.size);
+  }
+
+  @Delete(':id')
+  @RequirePermission(Permission.ASSETS_WRITE)
+  async remove(@Param('id') id: string) {
+    return this.assetsService.remove(id);
   }
 }

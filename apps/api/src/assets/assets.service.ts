@@ -1,8 +1,9 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AssetPurpose, Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { createWriteStream, mkdirSync } from 'fs';
+import { unlink } from 'fs/promises';
 import { extname, join } from 'path';
 
 import { PrismaService } from '../prisma/prisma.service';
@@ -99,6 +100,29 @@ export class AssetsService {
       mimeType: asset.mimeType,
       size: asset.size,
     };
+  }
+
+  async remove(assetId: string) {
+    const asset = await this.prisma.asset.findUnique({ where: { id: assetId } });
+    if (!asset) {
+      throw new NotFoundException('Asset not found');
+    }
+
+    try {
+      if (asset.bucket === 'r2' && this.r2Storage.isEnabled()) {
+        await this.r2Storage.delete(asset.objectKey);
+      } else if (asset.bucket === 'local') {
+        await unlink(join(UPLOAD_DIR, asset.objectKey));
+      }
+    } catch (error) {
+      this.logger.warn(
+        `Failed to delete object ${asset.objectKey} from ${asset.bucket} storage: ${String(error)}`,
+      );
+    }
+
+    await this.prisma.asset.delete({ where: { id: assetId } });
+
+    return { id: assetId, deleted: true };
   }
 
   private validateFile(mimeType: string, size: number, purpose: AssetPurpose) {

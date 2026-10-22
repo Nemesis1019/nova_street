@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { buildAssetUrl } from '../assets/asset-url.util';
 import { PrismaService } from '../prisma/prisma.service';
 
 function addDays(date: Date, days: number): Date {
@@ -25,7 +26,25 @@ export class OrdersService {
         include: {
           items: {
             include: {
-              productVariant: { include: { product: { select: { name: true } } } },
+              productVariant: {
+                include: {
+                  product: {
+                    select: {
+                      name: true,
+                      images: {
+                        orderBy: { sortOrder: 'asc' },
+                        take: 1,
+                        include: { asset: { select: { bucket: true, objectKey: true } } },
+                      },
+                    },
+                  },
+                  images: {
+                    orderBy: { sortOrder: 'asc' },
+                    take: 1,
+                    include: { asset: { select: { bucket: true, objectKey: true } } },
+                  },
+                },
+              },
               customDesign: { include: { designTemplate: { select: { name: true } } } },
             },
           },
@@ -45,7 +64,25 @@ export class OrdersService {
         include: {
           items: {
             include: {
-              productVariant: { include: { product: { select: { name: true } } } },
+              productVariant: {
+                include: {
+                  product: {
+                    select: {
+                      name: true,
+                      images: {
+                        orderBy: { sortOrder: 'asc' },
+                        take: 1,
+                        include: { asset: { select: { bucket: true, objectKey: true } } },
+                      },
+                    },
+                  },
+                  images: {
+                    orderBy: { sortOrder: 'asc' },
+                    take: 1,
+                    include: { asset: { select: { bucket: true, objectKey: true } } },
+                  },
+                },
+              },
               customDesign: { include: { designTemplate: { select: { name: true } } } },
             },
           },
@@ -72,13 +109,19 @@ export class OrdersService {
       ...order,
       estimatedDeliveryDate: estimatedDate,
       trackingUrl: orderTrackingUrl ?? shipments[0]?.trackingUrl,
-      items: order.items.map((item) => ({
-        ...item,
-        name:
-          item.productVariant?.product?.name ??
-          item.customDesign?.designTemplate?.name ??
-          item.type,
-      })),
+      items: order.items.map((item) => {
+        // La imagen puede colgar de la variante o del producto (caso habitual).
+        const image =
+          item.productVariant?.images?.[0]?.asset ?? item.productVariant?.product?.images?.[0]?.asset;
+        return {
+          ...item,
+          name:
+            item.productVariant?.product?.name ??
+            item.customDesign?.designTemplate?.name ??
+            item.type,
+          imageUrl: image ? buildAssetUrl(image.bucket, image.objectKey) : undefined,
+        };
+      }),
     };
   }
 
@@ -104,7 +147,14 @@ interface OrderWithItems extends Record<string, unknown> {
   items: Array<
     Record<string, unknown> & {
       type?: string;
-      productVariant?: { productionLeadTimeDays?: number; product?: { name?: string } } | null;
+      productVariant?: {
+        productionLeadTimeDays?: number;
+        product?: {
+          name?: string;
+          images?: Array<{ asset: { bucket: string; objectKey: string } | null }>;
+        };
+        images?: Array<{ asset: { bucket: string; objectKey: string } | null }>;
+      } | null;
       customDesign?: { designTemplate?: { name?: string } } | null;
     }
   >;

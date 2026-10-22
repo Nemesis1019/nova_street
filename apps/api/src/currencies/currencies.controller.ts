@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { RequirePermission } from '../auth/decorators/require-permission.decorator';
@@ -45,6 +45,14 @@ export class AdminCurrenciesController {
   @ApiOkResponse({ type: [CurrencyResponseDto] })
   findAll(): Promise<CurrencyRecord[]> {
     return this.currenciesService.findAll();
+  }
+
+  @Post('sync')
+  @RequirePermission(Permission.CURRENCIES_WRITE)
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ description: 'Exchange rates synced from the provider' })
+  sync() {
+    return this.currenciesService.syncExchangeRates();
   }
 
   @Post()

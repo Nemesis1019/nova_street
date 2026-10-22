@@ -1,4 +1,10 @@
 import {
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_PATTERN,
+  PASSWORD_POLICY_MESSAGE,
+} from '@ecommerce/shared';
+import {
   IsBoolean,
   IsEmail,
   IsNotEmpty,
@@ -14,10 +20,10 @@ export class RegisterDto {
   email!: string;
 
   @IsString()
-  @MinLength(8)
-  @MaxLength(100)
-  @Matches(/^(?=.*[A-Za-z])(?=.*\d).+$/, {
-    message: 'Password must contain at least one letter and one number',
+  @MinLength(PASSWORD_MIN_LENGTH)
+  @MaxLength(PASSWORD_MAX_LENGTH)
+  @Matches(PASSWORD_PATTERN, {
+    message: PASSWORD_POLICY_MESSAGE,
   })
   password!: string;
 

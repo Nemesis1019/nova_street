@@ -1,34 +1,48 @@
 'use client';
 
 import { Container, Grid, GridCol, Stack, Text } from '@mantine/core';
-import { IconLocation, IconPackage, IconShield, IconUser } from '@tabler/icons-react';
+import { IconHeart, IconLocation, IconPackage, IconShield, IconUser } from '@tabler/icons-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ReactNode, useEffect } from 'react';
 
+import { parseStorefrontConfig } from '../lib/storefront-config';
+import { useStoreConfig } from '../providers/config-provider';
 import { useAuthStore } from '../store/auth-store';
 import { StoreFooter } from './store-footer';
 import { StoreHeader } from './store-header';
 
-const menuItems = [
+const baseMenuItems = [
   { href: '/account', label: 'Perfil', icon: IconUser },
   { href: '/account/addresses', label: 'Direcciones', icon: IconLocation },
   { href: '/orders', label: 'Pedidos', icon: IconPackage },
-  { href: '/account/security', label: 'Seguridad', icon: IconShield },
 ];
+
+const securityItem = { href: '/account/security', label: 'Seguridad', icon: IconShield };
+const wishlistItem = { href: '/account/wishlist', label: 'Favoritos', icon: IconHeart };
 
 export function AccountLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, isHydrated } = useAuthStore();
+  const { isAuthenticated, sessionReady } = useAuthStore();
+  const config = useStoreConfig();
+  const storefrontConfig = parseStorefrontConfig(config.storefrontConfig);
+
+  const menuItems = [
+    ...baseMenuItems,
+    ...(storefrontConfig.featureFlags.enableWishlist ? [wishlistItem] : []),
+    securityItem,
+  ];
 
   useEffect(() => {
-    if (isHydrated && !isAuthenticated) {
+    // Espera a que se intente restaurar la sesión (cookie/persistencia) antes
+    // de redirigir: si no, un reload expulsaría a un usuario con sesión válida.
+    if (sessionReady && !isAuthenticated) {
       router.push('/login');
     }
-  }, [isHydrated, isAuthenticated, router]);
+  }, [sessionReady, isAuthenticated, router]);
 
-  if (!isAuthenticated) {
+  if (!sessionReady || !isAuthenticated) {
     return null;
   }
 

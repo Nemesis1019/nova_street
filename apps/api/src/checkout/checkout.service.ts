@@ -97,6 +97,12 @@ export class CheckoutService {
     }
 
     const subtotal = cart.items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+
+    const storeConfig = await this.prisma.storeConfig.findFirst({ where: { isActive: true } });
+    if (storeConfig?.minOrderAmount && subtotal < storeConfig.minOrderAmount) {
+      throw new BadRequestException(`Order total must be at least ${storeConfig.minOrderAmount}`);
+    }
+
     const estimatedOptions = await this.shippingOptionsService.calculateEstimatedOptions(subtotal);
     const selectedOption = dto.shippingOptionId
       ? estimatedOptions.find((o) => o.id === dto.shippingOptionId)

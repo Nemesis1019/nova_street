@@ -65,16 +65,93 @@ export const StorefrontConfigSchema = z.object({
       link: z.string().optional(),
       backgroundColor: z.string().default('#0d0d0d'),
       textColor: z.string().default('#ffffff'),
+      startsAt: z.string().optional(),
+      endsAt: z.string().optional(),
+    })
+    .default({}),
+  freeShippingNotice: z
+    .object({
+      enabled: z.boolean().default(false),
+      message: z.string().default(''),
     })
     .default({}),
   navigation: z.array(NavigationItemSchema).default([
-    { label: 'Inicio', href: '/', newTab: false },
     { label: 'Catálogo', href: '/catalogo', newTab: false },
     { label: 'Personalizar', href: '/personalizar', newTab: false },
   ]),
   homeSections: z
-    .array(z.enum(['hero', 'categories', 'featuredProducts', 'promoBanner', 'newsletter', 'identity']))
-    .default(['hero', 'categories', 'featuredProducts', 'promoBanner', 'newsletter', 'identity']),
+    .array(
+      z.enum([
+        'hero',
+        'collectionShowcase',
+        'categories',
+        'featuredProducts',
+        'promoBanner',
+        'countdown',
+        'newsletter',
+        'productSpotlight',
+        'identity',
+      ]),
+    )
+    .default([
+      'hero',
+      'collectionShowcase',
+      'featuredProducts',
+      'promoBanner',
+      'countdown',
+      'newsletter',
+      'productSpotlight',
+    ]),
+  collectionShowcase: z
+    .object({
+      title: z.string().default('Nueva Colección'),
+      linkLabel: z.string().default('Ver toda la colección'),
+      linkHref: z.string().default('/catalogo'),
+      categorySlug: z.string().optional(),
+      story: z
+        .object({
+          enabled: z.boolean().default(true),
+          title: z.string().default('La Fusión Definitiva'),
+          text: z
+            .string()
+            .default(
+              'Nuestra colección intersecta la pasión del fútbol sudamericano con la intensidad visual del anime contemporáneo. Siluetas oversized construidas con algodón premium, diseñadas para dominar las calles.',
+            ),
+          linkLabel: z.string().default('Descubre el proceso'),
+          linkHref: z.string().default('/pagina/sobre-nosotros'),
+        })
+        .default({}),
+    })
+    .default({}),
+  featuredProducts: z
+    .object({
+      title: z.string().default('Destacados'),
+      categorySlug: z.string().optional(),
+      limit: z.number().int().min(1).max(24).default(8),
+      /** Columnas en desktop (2-6). */
+      columns: z.number().int().min(2).max(6).default(4),
+      sort: z.enum(['newest', 'price_asc', 'price_desc', 'name_asc']).default('newest'),
+    })
+    .default({}),
+  productSpotlight: z
+    .object({
+      eyebrow: z.string().default('Prenda de la semana'),
+      /** Slug del producto destacado; si está vacío usa el primer destacado del home. */
+      productSlug: z.string().optional(),
+      title: z.string().default(''),
+      text: z.string().default(''),
+      ctaLabel: z.string().default('Comprar ahora'),
+      imagePosition: z.enum(['left', 'right']).default('right'),
+      showPrice: z.boolean().default(true),
+    })
+    .default({}),
+  countdown: z
+    .object({
+      enabled: z.boolean().default(false),
+      title: z.string().default('Próximo drop'),
+      targetAt: z.string().default(''),
+    })
+    .default({}),
   promoBanner: z
     .object({
       enabled: z.boolean().default(true),
@@ -198,11 +275,25 @@ export const StorefrontConfigSchema = z.object({
       position: z.enum(['bottomRight', 'bottomLeft']).default('bottomRight'),
     })
     .default({}),
+  notFound: z
+    .object({
+      title: z.string().default('Página no encontrada'),
+      message: z.string().default('La página que buscás no existe o fue movida.'),
+    })
+    .default({}),
   fonts: z
     .object({
       heading: z.string().default('Bebas Neue'),
       body: z.string().default('Inter'),
       mono: z.string().default('JetBrains Mono'),
+    })
+    .default({}),
+  legal: z
+    .object({
+      /** Razón social para el pie y documentos legales. */
+      legalName: z.string().default(''),
+      /** NIT / identificador fiscal. */
+      taxId: z.string().default(''),
     })
     .default({}),
   popups: z

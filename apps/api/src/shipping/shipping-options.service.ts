@@ -1,7 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { decryptSecret, encryptSecret } from '../tenant/crypto.util';
 import { CreateShippingOptionDto } from './dto/create-shipping-option.dto';
+import { UpdateShippingCredentialsDto } from './dto/shipping-credentials.dto';
 import { UpdateShippingOptionDto } from './dto/update-shipping-option.dto';
 import { ShippingCostCalculator } from './shipping-cost.calculator';
 
@@ -77,6 +79,39 @@ export class ShippingOptionsService {
       throw new BadRequestException('Cannot delete shipping option used by orders');
     }
     return this.prisma.shippingOption.delete({ where: { id } });
+  }
+
+  /** Devuelve las credenciales del carrier sin exponer la API key completa. */
+  async getCredentials() {
+    const config = await this.prisma.storeConfig.findFirst({ where: { isActive: true } });
+    const apiKey = config?.shippingApiKey ? decryptSecret(config.shippingApiKey) : null;
+    return {
+      provider: config?.shippingProvider ?? 'flatRate',
+      apiUrl: config?.shippingApiUrl ?? null,
+      accountId: config?.shippingAccountId ?? null,
+      hasApiKey: Boolean(apiKey),
+      apiKeyLast4: apiKey ? apiKey.slice(-4) : null,
+    };
+  }
+
+  /** Actualiza proveedor/credenciales del carrier (la API key nunca se devuelve). */
+  async updateCredentials(dto: UpdateShippingCredentialsDto) {
+    const config = await this.prisma.storeConfig.findFirst({ where: { isActive: true } });
+    if (!config) {
+      throw new NotFoundException('Store config not found');
+    }
+
+    await this.prisma.storeConfig.update({
+      where: { id: config.id },
+      data: {
+        ...(dto.provider !== undefined ? { shippingProvider: dto.provider } : {}),
+        ...(dto.apiUrl !== undefined ? { shippingApiUrl: dto.apiUrl || null } : {}),
+        ...(dto.accountId !== undefined ? { shippingAccountId: dto.accountId || null } : {}),
+        ...(dto.apiKey ? { shippingApiKey: encryptSecret(dto.apiKey) } : {}),
+      },
+    });
+
+    return this.getCredentials();
   }
 
   async calculateEstimatedOptions(subtotal: number): Promise<EstimatedShippingOption[]> {

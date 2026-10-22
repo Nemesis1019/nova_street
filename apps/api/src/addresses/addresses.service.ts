@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAddressDto } from './dto/create-address.dto';
+import { UpdateAddressDto } from './dto/update-address.dto';
 
 @Injectable()
 export class AddressesService {
@@ -36,6 +37,47 @@ export class AddressesService {
     return this.prisma.address.findMany({
       where: { userId },
       orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }],
+    });
+  }
+
+  async setDefault(userId: string, id: string) {
+    const address = await this.prisma.address.findFirst({ where: { id, userId } });
+    if (!address) {
+      throw new NotFoundException('Address not found');
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.address.updateMany({ where: { userId }, data: { isDefault: false } }),
+      this.prisma.address.update({ where: { id }, data: { isDefault: true } }),
+    ]);
+
+    return this.prisma.address.findUnique({ where: { id } });
+  }
+
+  async update(userId: string, id: string, dto: UpdateAddressDto) {
+    const address = await this.prisma.address.findFirst({ where: { id, userId } });
+    if (!address) {
+      throw new NotFoundException('Address not found');
+    }
+
+    if (dto.isDefault) {
+      await this.prisma.address.updateMany({ where: { userId }, data: { isDefault: false } });
+    }
+
+    return this.prisma.address.update({
+      where: { id },
+      data: {
+        label: dto.label,
+        line1: dto.line1,
+        line2: dto.line2,
+        city: dto.city,
+        state: dto.state,
+        country: dto.country,
+        zipCode: dto.zipCode,
+        phone: dto.phone,
+        company: dto.company,
+        isDefault: dto.isDefault,
+      },
     });
   }
 
