@@ -124,9 +124,9 @@ export function AddToCartButton({ product, imageUrl }: AddToCartButtonProps) {
             letterSpacing: '0.05em',
           },
           input: {
-            border: '1px solid #0d0d0d',
+            border: '1px solid var(--sf-color-text, #0d0d0d)',
             borderRadius: 0,
-            backgroundColor: '#fcf9f8',
+            backgroundColor: 'var(--sf-color-surface, #fcf9f8)',
           },
         }}
       />
@@ -155,9 +155,9 @@ export function AddToCartButton({ product, imageUrl }: AddToCartButtonProps) {
             letterSpacing: '0.05em',
           },
           input: {
-            border: '1px solid #0d0d0d',
+            border: '1px solid var(--sf-color-text, #0d0d0d)',
             borderRadius: 0,
-            backgroundColor: '#fcf9f8',
+            backgroundColor: 'var(--sf-color-surface, #fcf9f8)',
           },
         }}
       />
@@ -176,8 +176,8 @@ export function AddToCartButton({ product, imageUrl }: AddToCartButtonProps) {
           )
         }
         style={{
-          backgroundColor: justAdded ? '#6f7a4e' : '#0d0d0d',
-          color: '#fcf9f8',
+          backgroundColor: justAdded ? 'var(--sf-color-accent, #6f7a4e)' : 'var(--sf-color-text, #0d0d0d)',
+          color: 'var(--sf-color-surface, #fcf9f8)',
           fontFamily: 'var(--font-bebas-neue), Bebas Neue, Impact, sans-serif',
           letterSpacing: '0.05em',
           transition: 'background-color 220ms ease',

@@ -2,8 +2,11 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
+  Patch,
   Post,
+  Query,
   Req,
   UploadedFile,
   UseGuards,
@@ -22,6 +25,7 @@ import { AssetResponseDto } from './dto/asset-response.dto';
 import { CreateExternalAssetDto } from './dto/create-external-asset.dto';
 import { PresignAssetDto } from './dto/presign-asset.dto';
 import { PresignAssetResponseDto } from './dto/presign-asset-response.dto';
+import { UpdateAssetCropDto } from './dto/update-asset-crop.dto';
 
 @ApiTags('admin-assets')
 @ApiBearerAuth()
@@ -29,6 +33,12 @@ import { PresignAssetResponseDto } from './dto/presign-asset-response.dto';
 @Controller('admin/assets')
 export class AssetsController {
   constructor(private readonly assetsService: AssetsService) {}
+
+  @Get()
+  @RequirePermission(Permission.ASSETS_READ)
+  list(@Query('purpose') purpose?: string, @Query('limit') limit?: string) {
+    return this.assetsService.list(purpose, limit ? Number(limit) : undefined);
+  }
 
   @Post('upload')
   @RequirePermission(Permission.ASSETS_WRITE)
@@ -62,6 +72,12 @@ export class AssetsController {
   async presign(@Req() req: Request, @Body() dto: PresignAssetDto) {
     const userId = (req.user as { userId: string }).userId;
     return this.assetsService.presign(userId, dto.filename, dto.mimeType, dto.purpose, dto.size);
+  }
+
+  @Patch(':id/crop')
+  @RequirePermission(Permission.ASSETS_WRITE)
+  async updateCrop(@Param('id') id: string, @Body() dto: UpdateAssetCropDto) {
+    return this.assetsService.updateCrop(id, dto);
   }
 
   @Delete(':id')

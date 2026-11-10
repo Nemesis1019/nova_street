@@ -228,10 +228,9 @@ export class CatalogService {
           },
           images: {
             orderBy: { sortOrder: 'asc' },
-            take: 1,
             include: {
               asset: {
-                select: { id: true, bucket: true, objectKey: true, mimeType: true },
+                select: { id: true, bucket: true, objectKey: true, mimeType: true, focalPointX: true, focalPointY: true, cropZoom: true },
               },
             },
           },
@@ -340,7 +339,7 @@ export class CatalogService {
           orderBy: { sortOrder: 'asc' },
           include: {
             asset: {
-              select: { id: true, bucket: true, objectKey: true, mimeType: true },
+              select: { id: true, bucket: true, objectKey: true, mimeType: true, focalPointX: true, focalPointY: true, cropZoom: true },
             },
           },
         },
@@ -419,13 +418,24 @@ export class CatalogService {
   private mapImage(image: {
     id: string;
     sortOrder: number;
-    asset: { id: string; bucket: string; objectKey: string; mimeType?: string | null };
+    asset: {
+      id: string;
+      bucket: string;
+      objectKey: string;
+      mimeType?: string | null;
+      focalPointX?: number;
+      focalPointY?: number;
+      cropZoom?: number;
+    };
   }) {
     const url = buildAssetUrl(image.asset.bucket, image.asset.objectKey);
     const isImage = image.asset.mimeType?.startsWith('image/') ?? true;
     return {
       ...image,
       url,
+      focalPointX: image.asset.focalPointX ?? 50,
+      focalPointY: image.asset.focalPointY ?? 50,
+      cropZoom: image.asset.cropZoom ?? 1,
       thumbnailUrl: isImage ? buildImageVariantUrl(image.asset.bucket, image.asset.objectKey, 300, 'webp') : url,
       smallUrl: isImage ? buildImageVariantUrl(image.asset.bucket, image.asset.objectKey, 600, 'webp') : url,
       mediumUrl: isImage ? buildImageVariantUrl(image.asset.bucket, image.asset.objectKey, 1200, 'webp') : url,

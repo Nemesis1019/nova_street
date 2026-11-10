@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 
 import { platformRequest } from '../../lib/platform-auth';
 import { getAdminTenantSlug, isPlatformMode } from '../../lib/tenant';
+import { useStoreConfig } from '../../providers/config-provider';
 import { useTranslation } from '../../providers/i18n-provider';
 import { usePlatformSession } from '../../providers/platform-provider';
 import { AppModal } from '../ui/app-modal';
@@ -35,6 +36,7 @@ export function ClientSwitcher({
 }) {
   const { t } = useTranslation();
   const router = useRouter();
+  const config = useStoreConfig();
   const { user, logout, switchTenant } = usePlatformSession();
   const [currentSlug, setCurrentSlug] = useState<string | undefined>();
   const [platformMode, setPlatformModeState] = useState(false);
@@ -107,6 +109,14 @@ export function ClientSwitcher({
                   : (current?.slug ?? '')}
               </span>
             </span>
+            {!platformMode ? (
+              <span
+                title={`${t('header.baseCurrency')}: ${config.currencyCode}`}
+                className="rounded bg-surface-container px-1.5 py-0.5 font-label-sm text-[10px] text-on-surface-variant"
+              >
+                {config.currencyCode}
+              </span>
+            ) : null}
             <Icon name="expand_more" className="text-[16px] text-on-surface-variant" />
           </button>
         </Menu.Target>
@@ -178,12 +188,6 @@ export function ClientSwitcher({
             <div className="flex items-center justify-between font-body-sm text-body-sm">
               <span className="text-on-surface-variant">{t('header.platformProfile2fa')}</span>
               <span className="text-on-surface">{user.twoFactorEnabled ? 'On' : 'Off'}</span>
-            </div>
-            <div className="flex items-center justify-between font-body-sm text-body-sm">
-              <span className="text-on-surface-variant">{t('header.currentClient')}</span>
-              <span className="text-on-surface">
-                {platformMode ? t('header.platformProfile') : (current?.name ?? currentSlug)}
-              </span>
             </div>
             <Button variant="danger" icon="logout" onClick={() => void handleLogout()}>
               {t('header.platformLogout')}

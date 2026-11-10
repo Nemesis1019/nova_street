@@ -3,7 +3,12 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 
 import { setRefreshTokenCookie } from '../auth/auth-cookies.util';
-import { CreateTenantDto, UpdateTenantDto } from './dto/platform.dto';
+import {
+  CreateTenantDto,
+  SubscriptionActionDto,
+  UpdateTenantDto,
+  UpdateTenantSubscriptionDto,
+} from './dto/platform.dto';
 import { ImpersonateTenantDto } from './dto/platform-auth.dto';
 import { PlatformService } from './platform.service';
 import { actorFromRequest,PlatformAuthGuard } from './platform-auth.guard';
@@ -35,6 +40,42 @@ export class PlatformController {
   @ApiOkResponse({ description: 'Cambia el cliente activo del superadmin (sin impersonar)' })
   select(@Req() req: Request, @Param('id') id: string) {
     return this.platformService.selectTenant(id, actorFromRequest(req), req);
+  }
+
+  @Get('tenants/:id/subscription')
+  @ApiOkResponse({ description: 'Plan, estado e historial de pagos de la suscripción' })
+  subscription(@Param('id') id: string) {
+    return this.platformService.getSubscription(id);
+  }
+
+  @Patch('tenants/:id/subscription')
+  @ApiOkResponse({ description: 'Asigna un plan de suscripción al cliente' })
+  updateSubscription(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() dto: UpdateTenantSubscriptionDto,
+  ) {
+    return this.platformService.updateSubscription(id, dto, actorFromRequest(req), req);
+  }
+
+  @Post('tenants/:id/subscription/suspend')
+  @ApiOkResponse({ description: 'Suspende la suscripción del cliente' })
+  suspendSubscription(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() dto: SubscriptionActionDto,
+  ) {
+    return this.platformService.suspendSubscription(id, actorFromRequest(req), dto.reason, req);
+  }
+
+  @Post('tenants/:id/subscription/reactivate')
+  @ApiOkResponse({ description: 'Reactiva la suscripción del cliente' })
+  reactivateSubscription(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() dto: SubscriptionActionDto,
+  ) {
+    return this.platformService.reactivateSubscription(id, actorFromRequest(req), dto.reason, req);
   }
 
   @Get('tenants/:id/health')

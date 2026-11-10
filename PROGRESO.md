@@ -2727,3 +2727,534 @@ Se auditó la pantalla de referencia contra la implementación. **17 secciones**
 
 ### Verificación
 - API 39 tests, admin 15 tests; typecheck y lint ✓.
+
+---
+
+## Sesión 2026-10-24 (cont. 51) — Storefront Builder v1 (tokens + bloques + presets)
+
+### Contrato y persistencia
+- Nuevo schema compartido `StorefrontDocument` (tokens, header/footer, páginas, secciones hero/productGrid/categories/story/promo/newsletter/marquee/faq y variantes).
+- `StoreConfig` agrega `storefrontDraft`, `storefrontPublished`, `storefrontVersion`; nueva tabla `storefront_revisions`. Migración `20261024090000_storefront_builder` aplicada a `ecommerce` y `tenant_demo`; Prisma regenerado.
+- `/store-config` devuelve solo el documento publicado (`storefrontDoc`); draft/published crudos no se filtran al público.
+
+### API
+- `AdminStorefrontController`: estado, guardar draft, publicar, aplicar preset, listar/restaurar versiones y emitir preview token firmado por tenant.
+- `StorefrontController`: preview público del draft con token JWT (30 min), validando tenant.
+- Presets: `coffee-editorial`, `streetwear-drop`, `minimal-boutique`, `market-catalog`.
+
+### Web
+- Home por bloques server-side; el showcase dejó de depender de un fetch cliente.
+- Tokens CSS (`--sf-*`) inyectados antes del paint; colores/fuentes/tipografía/espaciado/radios por tenant.
+- Header/footer tokenizados, announcement/nav configurables, header sticky/search y footer minimal.
+- Product card `editorial`; catálogo con variante/columnas/filtros/orden; ficha con galería, sticky buy box, reviews y relacionados.
+- Preview del borrador por `?preview=<token>`.
+- Publicados: demo con `coffee-editorial` y nova con `streetwear-drop` (v1 de cada tienda).
+
+### Admin
+- Nueva pantalla `/design` y entrada **Diseño de tienda** en el sidebar.
+- Editor de presets, tema, header/footer, home, catálogo y producto; agregar/reordenar/ocultar/eliminar secciones.
+- Guardar borrador, publicar, preview responsive y versiones con restore.
+- CSS personalizado avanzado incluido; scripts personalizados no por seguridad.
+
+### Verificación
+- API 39 tests, web 40 tests, admin 15 tests; typecheck/lint ✓.
+- Migración aplicada; `storefrontDoc` publicado y draft oculto verificados.
+- Preview con token validado (incluye un título de prueba solo en el draft y no en publicado).
+- SSR demo: hero asimétrico, cards editoriales, historia, categorías, promo y newsletter; SSR nova: hero full-bleed, marquee, grilla y story.
+- Catálogo demo sin filtros con cards editoriales; producto con galería y sticky; storage público sin NÖVA.
+- Pendientes de fase 3 documentados en `docs/STOREFRONT_CUSTOMIZATION_PLAN.md`.
+
+---
+
+## Sesión 2026-10-24 (cont. 52) — Fase 3: páginas estáticas y media
+
+### Páginas estáticas por bloques
+- `StorefrontDocument.pages.staticPages` (record por slug) con las mismas secciones del home.
+- `/design` incorpora la pestaña **Páginas**, selector de página visible, edición de secciones, preview de esa página y link a la versión publicada.
+- El renderer web `/pagina/[slug]` usa las secciones publicadas o el borrador con preview token; si no hay secciones, mantiene el HTML legacy.
+- Preview y publicación verificados sobre `nuestra-historia` del demo (story + newsletter, versión 2).
+
+### Media
+- Los campos de imagen del builder ahora permiten **subir archivo a R2** o pegar URL. Las subidas usan `X-Tenant`, así que caen en `t/<slug>/` del tenant correcto.
+- Upload/delete de asset de prueba verificado en `tenant_demo` (se eliminó el asset de prueba).
+
+### Verificación
+- API 39, web 40, admin 15 tests; typecheck/lint ✓.
+- SSR del preview de la página estática y de la página pública ✓.
+- Pendientes de Fase 3: media library con focal points, A/B, marketplace de presets, scripts sandbox, i18n del builder y regresión visual.
+
+---
+
+## Sesión 2026-10-24 (cont. 53) — Fase 3: media, presets, banners y A/B
+
+### Biblioteca de medios y focal points
+- Nuevo `GET /admin/assets?purpose=CATALOG_IMAGE&limit=80` (permiso `assets:read`) que devuelve URL pública, tipo, tamaño y fecha.
+- El builder incorpora un modal **Biblioteca de medios** reutilizable en todos los campos de imagen: grilla de assets del tenant, subida a R2 y selección.
+- Hero y story agregan `imageFocalPoint` (`center`, `top`, `bottom`, `left`, `right`) con selector en el inspector y `backgroundPosition` en el renderer. Los documentos existentes toman `center` por defecto.
+
+### Banners programados
+- El announcement del header y la sección promo aceptan `startsAt`/`endsAt`; el builder los edita y el renderer los respeta.
+- El announcement legacy sigue usando la misma ventana horaria; la promo se oculta fuera de fecha.
+
+### Presets reutilizables y clonado entre clientes
+- `StoreConfig.storefrontPresets` guarda hasta 20 documentos completos por tenant. Endpoints `POST/DELETE /admin/storefront/presets` y aplicación con `custom:<id>`.
+- El builder lista presets propios con badge, permite guardar el borrador actual y eliminarlos.
+- Los superadmins pueden **importar el tema publicado de otro cliente** al borrador del cliente actual (`X-Tenant` del origen, sin copiar productos, pedidos ni credenciales).
+- Migración `20261024120000_storefront_custom_presets` aplicada a `ecommerce` y `tenant_demo`.
+
+### A/B testing del hero
+- `StorefrontDocument.experiments[]` con variante A/B, split 1–99 %, hero objetivo y ventana opcional.
+- Middleware emite cookie first-party `nova_visitor` (HttpOnly, 1 año) y header interno. La asignación FNV-1a por visitante + experimento es estable y server-side.
+- Se aplica la variante antes del paint; no hay flash. El tracker registra impresión y clic en CTAs del hero (`data-nova-hero`) sin datos personales.
+- `POST /storefront/experiment-event` (público, anónimo) solo acepta experimentos publicados y vigentes. `GET /admin/storefront/experiments/:id/results` devuelve impresiones, clics y CTR A/B.
+- El builder agrega el inspector **Experimento A/B**, con estado, hero, variantes, tráfico, fechas y resultados.
+- Migración `20261024140000_storefront_experiments` y tabla `storefront_experiment_events` aplicadas a ambos tenants.
+
+### Verificación
+- Flujo A/B E2E contra demo: publicación de dos títulos, asignación estable por cookie, ambos títulos renderizados, 5 impresiones/3 clics registrados y resultados A/B correctos. Después se restauró el tema original, se limpiaron los eventos y se devolvió `storefrontVersion` a 2.
+- API 39 tests, web 46 tests, admin 15 tests; typecheck y lint ✓.
+- Migraciones aplicadas; presets de prueba eliminados; demo sin experimentos activos.
+- Pendientes explícitos: crops persistentes por asset, marketplace público, sandbox de scripts, i18n del builder, aprobación de publicación y regresión visual con CI.
+
+---
+
+## Sesión 2026-10-24 (cont. 54) — Fase 4A: movimiento personalizable
+
+### Schema y presets
+- `StorefrontDocument.motion` con perfiles `none`, `quiet`, `editorial`, `kinetic`; velocidad, reveal, stagger, hover, imagen, marquee y CTA.
+- `motion` por sección con `reveal`/`delay`/`hover` heredables.
+- Presets actualizados: coffee → editorial, streetwear → kinetic, minimal → quiet, market → none.
+- Sin migración de DB.
+
+### Renderer
+- Reveals por sección con CSS scroll-driven (`animation-timeline: view()`), sin JS y con fallback visible.
+- Hero escalonado + zoom lento de hero/story; cards con lift/zoom/swap y fallback de zoom si hay una sola imagen.
+- CTAs con flecha/elevación.
+- Marquee con velocidad/dirección, pausa visible y pausa en hover/focus.
+- Reducción de movimiento completa para reveal, hero, imágenes, marquee, cards, CTA, mega menú y carrito.
+- Preview del builder con “Repetir animación” y simulación `?motion=reduce`.
+
+### Builder
+- Nueva pestaña **Movimiento** en `/design`.
+- Override de animación por sección.
+- Preview firmado con toggle de movimiento reducido.
+
+### Verificación
+- Chrome headless: reveals `clip` inician ocultos fuera de viewport y se resuelven al scrollear; hero `sf-hero-in`; imagen `sf-image-zoom`; marquee 18 s con pausa funcional; fallback de card `scale(1.045)`.
+- Reduced-motion: animaciones `none`, contenido visible y control de marquee oculto.
+- Demo publicada con perfil editorial (v3); nova con kinetic (v2).
+- API 39 tests, web 52 tests, admin 15 tests; typecheck y lint ✓.
+- Nota: el admin tuvo un panic de Turbopack por caché; se limpió `apps/admin/.next` y quedó 200.
+
+---
+
+## Sesión 2026-10-24 (cont. 55) — Fase 4B: scroll, sticky y header
+
+### Parallax
+- `motion.parallax` global (`none`/`subtle`/`strong`) y override por sección.
+- Solo hero/story; hero con `scroll(root block)` y story con `view()`.
+- Capas separadas: parallax (`translate`/`scale`) + zoom (`transform`) para evitar conflictos.
+- `prefers-reduced-motion` deja `animation:none`, `translate:none`, `scale:1`.
+
+### Story sticky y header
+- `section.motion.stickyMedia`: columna de imagen sticky en story split; control en el inspector.
+- `header.shrinkOnScroll`: reduce padding 16→8 px después de 48 px; no oculta el header para preservar foco/teclado.
+- Reduced-motion: sin compactación ni transición.
+
+### Transición de página
+- `motion.pageTransition` opcional; componente `PageTransition` con solo opacidad, 300 ms.
+- Solo en navegación cliente; la carga inicial no se oculta (LCP intacto).
+- Desactivada con reduced-motion.
+
+### Builder y publicación
+- Nueva sección de controles: parallax global, page transition, parallax por sección, media sticky y header compacto.
+- Demo v4: editorial + parallax subtle + page transition + story sticky + header compacto.
+- Nova v3: kinetic + parallax subtle + header compacto, sin page transition.
+- Sin migración de DB.
+
+### Verificación
+- Chrome 155: parallax hero `scroll(root)` de -2.5% a +2.16%; story `view()`; story sticky; header 16→8; page transition `sf-page-in` en navegación cliente y ausente en carga inicial.
+- Reduced-motion: parallax `none`/`translate:none`/`scale:1` y page transition `none`.
+- API 39 tests, web 54 tests, admin 15 tests; typecheck y lint ✓.
+
+---
+
+## Sesión 2026-10-24 (cont. 56) — A/B de movimiento
+
+### Motor
+- `StorefrontExperiment.target` acepta `heroTitle` o `motion`.
+- En motion, A/B elige perfiles `none`/`quiet`/`editorial`/`kinetic` y los aplica al home.
+- Se conservan parallax, page transition y configuración del header.
+- La asignación, cookie `nova_visitor`, eventos y panel de resultados son los mismos.
+- Compatibilidad: experimentos viejos sin `target` se tratan como `heroTitle`.
+- Sin migración de DB.
+
+### Builder
+- Selector “Qué se testea”.
+- Campos de título o selectores de perfil según el alcance.
+- Resultados y CTR por variante.
+
+### Verificación
+- Prueba E2E temporal en demo con perfiles quiet/kinetic: las dos variantes se renderizaron server-side con reveals distintos (`fade` vs `clip`) y el mismo hero.
+- Se restauró demo desde el snapshot publicado previo (editorial v4), se limpiaron versiones de prueba y eventos; demo quedó v4 editorial.
+- Test unitario de aplicación de motion y preservación de parallax/pageTransition.
+- API 39 tests, web 55 tests, admin 15 tests; typecheck y lint ✓.
+
+---
+
+## Sesión 2026-10-24 (cont. 57) — Regresión visual
+
+### Setup
+- `@playwright/test` en la raíz; usa `channel: 'chrome'`, sin descarga de navegadores.
+- `playwright.config.ts` con proyectos desktop (1440×1100) y mobile (390×844).
+- Spec `tests/visual/storefront.visual.spec.ts`.
+- Comandos `pnpm test:visual` y `pnpm test:visual:update`.
+- Baselines en `tests/visual/storefront.visual.spec.ts-snapshots/` (Windows/Chrome); `test-results/` ignorado por git.
+
+### Matriz
+- Demo: home desktop/mobile, historia, producto, catálogo.
+- Nova: home desktop/mobile, producto, catálogo.
+- 9 capturas estables; los casos del proyecto opuesto se skipean.
+- Reduced-motion + espera de fuentes/imágenes; se ocultan cookie consent, popups y overlay de desarrollo.
+
+### Verificación
+- Primera corrida `--update-snapshots`: 9 passed, 9 skipped.
+- Corrida de comparación: **9 passed, 9 skipped**.
+- Baselines ~3.7 MB.
+- La instalación de Playwright requirió `pnpm install` y limpiar `.next` de web/admin por los symlinks de pnpm; servicios reiniciados y 200.
+
+---
+
+## Sesión 2026-10-24 (cont. 58) — Aprobación de publicación
+
+### Modelo y API
+- Migración `20261024200000_storefront_approval` aplicada a `ecommerce` y `tenant_demo`.
+- `StoreConfig` agrega `requireStorefrontApproval`, estado, hash del draft, solicitado/revisado por y nota.
+- Endpoints:
+  - `PATCH /admin/storefront/approval` (solo plataforma);
+  - `POST /admin/storefront/approval/submit`;
+  - `POST /admin/storefront/approval/approve` (solo plataforma);
+  - `POST /admin/storefront/approval/reject` (solo plataforma).
+- `state` devuelve `approval` y `canApprove`; la UI usa ambos.
+- Guardas: tenant no puede aprobar; publish sin aprobación devuelve 403; hash distinto devuelve 400.
+- Guardar/restaurar/aplicar preset invalida la aprobación; publish resetea el estado.
+
+### Builder
+- Botón **Aprobación**, badge de estado y modal con toggle de requisito (plataforma).
+- Tenant: enviar a revisión y publicar solo si está aprobado.
+- Plataforma: aprobar/rechazar con nota.
+- Preview y save ya no resetean aprobación innecesariamente si no hay cambios.
+
+### Verificación E2E
+- Token tenant (`admin@demo.test`) y token plataforma (`admin@tienda.com`):
+  - `canApprove`: true/false correcto;
+  - publish tenant sin aprobación: 403;
+  - submit tenant: PENDING;
+  - approve tenant: 403;
+  - approve plataforma: APPROVED;
+  - publish tenant: 200 y estado NONE;
+  - edición + save: estado NONE y approve posterior 400;
+  - reset a modo directo: OK.
+- Demo restaurada a v4 editorial, approval desactivada y sin eventos/revisiones de prueba.
+- API 39 tests, web 55 tests, admin 15 tests; typecheck y lint ✓. La UI de aprobación quedó verificada con el flujo E2E y /design respondió 200.
+
+---
+
+## Sesión 2026-10-24 (cont. 59) — Encuadre por uso y marketplace remoto
+
+### Encuadre/zoom de imagen
+- Hero y story agregan `imageScale` (100–200%) además de `imageFocalPoint`.
+- El renderer aplica `scale` en la capa de imagen, compatible con parallax y zoom lento; el wrapper mantiene overflow oculto.
+- Builder: campo “Zoom de imagen (%)” en hero/story.
+- Preview validado con `imageScale=135`; se restauró el borrador sin publicar.
+- Documentos existentes toman 100% por default.
+
+### Marketplace remoto
+- La importación entre clientes ahora abre **Marketplace de temas** con galería y preview:
+  - hero/título, paleta, presetKey, versión y tenant;
+  - selección visual;
+  - usa el tema publicado (o draft si no hay publicado);
+  - sigue copiando solo el documento, sin productos/pedidos/credenciales.
+- Sigue disponible solo para superadmins.
+
+### Verificación
+- `imageScale` validado en preview server-side y restaurado (demo v4).
+- Admin `/design` 200; API/web 200.
+- API 39 tests, web 55 tests, admin 15 tests; typecheck y lint ✓.
+
+---
+
+## Sesión 2026-10-24 (cont. 60) — Crop persistente por asset
+
+### Modelo
+- `Asset` agrega `focalPointX` (50), `focalPointY` (50) y `cropZoom` (1).
+- Migración `20261024220000_asset_crop` aplicada a `ecommerce` y `tenant_demo`.
+- `GET /admin/assets` devuelve el crop.
+- `PATCH /admin/assets/:id/crop` actualiza el asset con validación 0–100 y zoom 1–2.
+
+### UI y renderer
+- Biblioteca de medios: botón **Ajustar encuadre**, modal con preview, foco X/Y y zoom.
+- Catálogo: `mapImage` expone foco/zoom; product cards y ficha aplican `object-position` + `scale` con contenedor overflow oculto.
+- Hero/story mantienen su encuadre por uso independiente.
+
+### Verificación
+- Asset real `vasos-de-vidrio`: crop 20/80 zoom 1.2; API, listado y catálogo devolvieron los valores; HTML del producto aplicó `object-position` y `scale:1.2`.
+- Asset restaurado a 50/50/1.
+- API 39 tests, web 55 tests, admin 15 tests; typecheck y lint ✓.
+
+---
+
+## Sesión 2026-10-24 (cont. 61) — Marketplace público y sandbox
+
+### Marketplace público
+- `/temas` muestra los cuatro presets con identidad, paleta, tipografías, descripción e imagen.
+- CTA “Usar en el panel” hacia `/design`.
+- Agregado a la matriz visual: `marketplace-temas-desktop`; 10 capturas comparadas.
+
+### Scripts sandbox
+- Nueva pestaña **Scripts sandbox** en `/design`.
+- Editor HTML/JS + iframe `sandbox="allow-scripts"`, sin persistencia ni acceso a la sesión/admin.
+- Nota explícita: no reemplaza la gestión de scripts de producción; sigue sin ejecutarse JS arbitrario de tenants.
+
+### Verificación
+- `temas` demo/nova: 200.
+- Visual: 10 passed, 10 skipped.
+- Admin `/design` 200; typecheck/lint ✓.
+
+---
+
+## Sesión 2026-10-24 (cont. 62) — Scroll pinned
+
+### Sección scrollStory
+- Nuevo tipo de sección `scrollStory` con variante `pinned`.
+- Schema: imagen, focal point, zoom, colores, CTA y hasta 6 pasos (eyebrow/título/texto).
+- Renderer: grid de dos columnas, media sticky y pasos con reveals scroll-driven; parallax/zoom reutilizados.
+- Responsive: en mobile se apila y la media deja de ser sticky.
+- Reduced-motion: sin reveals; estructura visible.
+- Builder: “Scroll pinned” en el selector de secciones + editor de pasos.
+
+### Verificación
+- Documento temporal en demo con dos pasos: HTML con `sf-scroll-story`, media sticky, textos y `data-sf-reveal="rise"`; borrador restaurado.
+- Admin/API/web typecheck ✓.
+
+### Estado de la lista
+- Pendiente restante: i18n completa del builder.
+
+---
+
+## Sesión 2026-10-24 (cont. 63) — Restauración de la home NÖVA
+
+### Comparación legacy vs documento nuevo
+- Se revisó `homeSections` legacy y el `streetwear-drop` publicado.
+- Faltaban: badge giratorio, showcase bento con historia, countdown y product spotlight.
+- También se habían cambiado copy del promo/newsletter y se había agregado una story full-bleed que no estaba en el legacy.
+
+### Adaptación al schema nuevo
+- Hero: `showBadge`, `badgeText`, `badgeCenter`.
+- Nuevas secciones: `showcase`, `countdown`, `productSpotlight`.
+- Renderer SSR para showcase/spotlight, countdown client hydration-safe, badge con CSS existente.
+- Builder: defaults, variantes e inspectores para las tres secciones; campos de badge en Hero.
+- Preset `streetwear-drop` actualizado con el nuevo layout.
+- NÖVA publicada v4: hero > marquee > showcase > productGrid > promo > countdown > newsletter > productSpotlight.
+- Copy restaurado: COPA MUNDO '26 / La Fusión Definitiva / DROP 01 — URBAN AUTONOMY / Suscríbete a NÖVA / prenda de la semana.
+
+### Verificación
+- HTML de NÖVA: badge, showcase, countdown y spotlight presentes; 200.
+- Visual `nova-home` desktop/mobile actualizado y passing.
+- Suite visual completa: 10 passed, 10 skipped.
+- API 39 tests, web 55 tests, admin 15 tests; typecheck y lint ✓.
+
+---
+
+## Sesión 2026-10-24 (cont. 64) — Admin PWA
+
+### Implementación
+- `app/manifest.ts`: NÖVA Admin, start `/dashboard`, scope `/`, standalone, iconos 192/512/maskable y shortcuts.
+- Iconos generados en `public/icons/` (192, 512, maskable, Apple 180 y favicon 32).
+- `public/sw.js` con precache de offline/iconos y cache de assets estáticos; **nunca cachea HTML admin, RSC o API**.
+- `public/offline.html` autocontenido con reintento y estado de conexión.
+- Registro del service worker (`PwaRegister`) y botón de instalación nativo (`beforeinstallprompt`) en el header.
+- Metadata: manifest, theme color, Apple web app, iconos.
+- Headers de `/sw.js` (`Service-Worker-Allowed: /`, sin cache), manifest e iconos.
+- Dev: network-first para assets, evitando chunks viejos.
+
+### Verificación
+- Manifest 200 `application/manifest+json`, sin errores CDP.
+- SW 200, scope `/`, headers correctos.
+- 1 registration activa; cache `nova-admin-static-nova-admin-v1`; offline cacheado.
+- Navegación offline a `/products`: 200 con “Sin conexión”.
+- Installability: sólo `in-incognito` en Chrome headless.
+- Typecheck y lint admin ✓.
+
+---
+
+## Sesión 2026-10-24 (cont. 65) — Suscripciones SaaS con Bold
+
+### Implementación
+- BD maestra: `Tenant.subscriptionStatus`, `subscriptionPaidUntil`, último pago y `SubscriptionPayment` con historial de intentos.
+- Migración `20261024230000_subscription_billing` aplicada y cliente Prisma maestro regenerado.
+- API:
+  - `GET /admin/subscription` (estado, vencimiento, plan, historial).
+  - `POST /admin/subscription/checkout` (config del Botón de Bold, con intento pendiente reutilizable 30 min).
+  - `POST /subscriptions/webhook/bold` (firma HMAC, idempotencia y activación/renovación).
+  - Resumen de suscripción incluido en `GET /platform/tenants`.
+- Plan configurable por entorno (`SUBSCRIPTION_*`), credenciales Bold exclusivas de la plataforma (`SUBSCRIPTION_BOLD_*`) y `ADMIN_URL` para el retorno.
+- Admin:
+  - `/subscription` con estado, vencimiento, monto, botón Bold embebido, renovación anticipada e historial.
+  - Banner en dashboard para suscripciones pendientes/vencidas.
+  - Columna de suscripción (estado, pagado hasta, último pago) en `/clients`.
+  - i18n es/en/pt para la página, banner y tabla.
+- Seguridad: el redirect del navegador no activa nada; sólo el webhook firmado. Los secretos no salen de la API.
+- Documentación: `docs/SAAS_SUBSCRIPTIONS.md` y actualización de `docs/SAAS_MULTITENANT.md`.
+
+### Verificación
+- API: 55 tests ✓, typecheck ✓, lint ✓ (solo warnings históricos de scripts).
+- Admin: typecheck ✓, lint ✓ (15 tests existentes).
+- `GET /admin/subscription` 200; sin Bold configurado devuelve aviso y checkout 503 controlado.
+- Webhook probado contra Postgres maestro: marca pago PAID y extiende vencimiento; demo restaurado a TRIAL y sin pagos de prueba.
+- `GET /platform/tenants` incluye `subscription` para ambos clientes.
+- Página `/subscription` renderizada y revisada visualmente.
+
+### Pendiente operativo
+- Cargar `SUBSCRIPTION_BOLD_API_KEY` y `SUBSCRIPTION_BOLD_SECRET_KEY` de la cuenta Bold de la plataforma para habilitar el botón en producción; configurar el webhook `https://<api>/subscriptions/webhook/bold`.
+
+---
+
+## Sesión 2026-10-25 — Multi-plan, suspensión e i18n del builder
+
+### Suscripciones
+- Catálogo `SubscriptionPlan` en la BD maestra con **Starter (49.000 COP)**, **Pro (99.000 COP)** y **Business (199.000 COP)**.
+- Cada tenant tiene un plan vigente (`subscriptionPlanId`); el pago guarda snapshot de plan/monto/período.
+- Admin de tienda: selector de plan, checkout Bold con el plan elegido, renovación y historial con plan.
+- Superadmin: modal de suscripción en `/clients` con plan actual, selector de plan, historial completo y acciones de suspender/reactivar.
+- `/clients`: logo real del tenant (StoreConfig.logoUrl) con fallback a iniciales y acción de administrar/configurar cuenta para clientes activos, incluido el tenant principal.
+- Suspensión:
+  - automática después de `SUBSCRIPTION_GRACE_DAYS` (default 3) desde el vencimiento;
+  - manual desde el modal;
+  - storefront bloqueado (`503`) pero admin habilitado para pagar;
+  - el webhook de pago reactiva y aplica el plan;
+  - reactivación manual sólo para suspensiones manuales.
+- Migración `20261025120000_subscription_plans` aplicada y Prisma maestro regenerado.
+- API de plataforma: detalle, asignación de plan, suspender y reactivar.
+- Middleware de tenant ahora aplica suspensión comercial sin tocar `Tenant.status`.
+
+### Builder i18n
+- `/design` completamente traducido en **es/en/pt** para labels, mensajes, placeholders, botones, estados, opciones, modales, campos de secciones, movimiento, tema, header/footer, experimentos, sandbox y descripciones de presets.
+- Implementado con `useDesignT` y fallback seguro al texto español; fechas localizadas.
+- Contenido editable del cliente y defaults de secciones quedan como contenido, no como copy de interfaz.
+
+### Verificación
+- API: 56 tests ✓, typecheck ✓, lint ✓ (warnings históricos).
+- Admin: typecheck ✓, lint ✓, 15 tests ✓.
+- Probado API real: planes, detalle, cambio de plan, suspensión manual, bloqueo storefront, acceso admin, reactivación y suspensión automática por vencimiento.
+- Probado UI: 3 planes, selección de plan, modal de superadmin, historial, EN/PT del builder.
+- Demo y NÖVA restaurados a `TRIAL`, plan Pro, sin pagos de prueba.
+- PWA del admin: shortcut a `/subscription` y service worker `v2` para refrescar el manifest cacheado.
+
+### Pendiente operativo
+- Cargar credenciales Bold de plataforma y probar el checkout real en sandbox.
+
+---
+
+## Sesión 2026-10-30 — Personalizador de prendas v2 (2D)
+
+### Implementado
+- Catálogo admin `/design-templates` con create/update/archive de prendas.
+- Prendas configurables: tipo, descripción, imagen/mockup, thumbnail, `model3dUrl`, precio base, stock, lead time, activa y orden.
+- Colores con hex y ajuste de precio.
+- Talles con ajuste de precio.
+- Zonas de impresión normalizadas 0–1 con precio, imagen por zona y permisos de texto/imagen/clipart.
+- Reglas de precio: por elemento, por carácter, setup, mínimo y descuentos por cantidad.
+- Editor público 2D:
+  - selector de zona frente/espalda/mangas;
+  - overlay de zona;
+  - elementos asociados a la zona activa;
+  - selector de color/talle con precio;
+  - cantidad;
+  - desglose de precio en tiempo real;
+  - color de tinta con contraste automático para prendas oscuras;
+  - drag, escala, rotación, capas y eliminación.
+- Cálculo de precio compartido (`calculateCustomizerPrice`) y recálculo autoritativo en API al guardar y agregar al carrito.
+- Persistencia de `printAreaKey`, tipografía, color, dimensiones y `pricingBreakdown`.
+- Corrección del visor Konva con Next/Turbopack: un wrapper client-only `KonvaCanvas` evita el error de dynamic import de `react-konva`.
+- Migración tenant `20261030120000_customizer_v2` aplicada a NÖVA y demo.
+- Campo `model3dUrl` preparado para la fase 3D.
+
+### Verificación
+- API: 58 tests, typecheck y lint ✓.
+- Web: typecheck y lint ✓; editor probado en navegador con zonas, texto, precios y canvas Konva.
+- Admin: typecheck y lint ✓; catálogo y modal de edición probados en navegador.
+- Flujo API probado: create/patch/delete de prenda, quote de diseño (base+elemento = 61.500).
+- Datos de prueba eliminados.
+
+---
+
+## Sesión 2026-11-03 — Primer visor 3D de remera
+
+### Implementado
+- Visor 3D con Three.js (`three`) y GLTFLoader/OrbitControls, cargado de forma diferida.
+- Modelo base de remera sola, libre CC BY 3.0 (Poly by Google / Poly Pizza), con atribución visible.
+- Rotación automática/manual, zoom, color de prenda y preview de la zona frontal.
+- Toggle **Editar 2D / Ver 3D** en el personalizador.
+- Campo `model3dUrl` con carga de GLB desde el admin; fallback al modelo base.
+- Zonas con `printMethod` (DTG/DTF/Screen/Bordado), DPI y bleed configurables desde el admin.
+- `model3dUrl` y modelo base incluidos; el admin puede reemplazarlo.
+- Corrección de layout del visor para que el canvas use el alto real del contenedor.
+
+### Estado
+- La proyección 3D actual usa una superficie de preview frontal separada de la malla; falta calibrar UVs/mallas por zona.
+- Pendiente: frente/espalda/mangas en 3D, archivos de impresión por método y pulido del modelo.
+
+### Iteración 3D — vistas y archivo de impresión
+- Cámara 3D con presets por zona: frente, espalda, manga izquierda y manga derecha.
+- Preview de diseño por zona sobre el modelo (frente/espalda; mangas preparadas).
+- Modelo base libre CC BY 3.0 incluido; atribución visible y archivo `public/models/ATTRIBUTION.md`.
+- Admin: subida de GLB/GLTF o URL externa por prenda.
+- Admin: método de impresión por zona (DTG/DTF/Screen/Bordado), DPI y bleed.
+- Editor: descarga PNG de impresión por zona con DPI configurado; DTF se exporta espejado. Screen/bordado muestran aviso de que requieren flujo específico.
+- Verificado en navegador: rotación/zoom, color, frente/espalda, cámara por zona y descarga PNG.
+- API 58 tests; web y admin typecheck/lint ✓. Sin commit.
+
+### Iteración 3D — archivos por zona
+- `CustomDesign.printFiles` guarda por zona el PNG, DPI, dimensiones, método y si va espejado.
+- Al guardar un diseño se generan y suben los archivos de impresión de cada zona con elementos.
+- Vista 3D con cámara frente/espalda/mangas y descarga PNG por zona.
+- Admin puede ajustar la rotación Y del GLB (`model3dRotationY`) cuando reemplace el modelo base.
+- Flujo de assets con fallback al upload local si falla el PUT directo a R2.
+- Verificado: guardado de diseño con `printFiles`, descarga PNG y vista 3D.
+
+### Galería múltiple en tarjetas
+- El catálogo devuelve todas las imágenes del producto (antes la lista recortaba a una).
+- Favoritos devuelve las imágenes de variante y producto, deduplicadas por asset.
+- La tarjeta muestra un carrusel con flechas y puntos cuando hay más de una imagen; funciona en variantes `default` y `editorial`.
+- Sin migración: la galería múltiple del admin ya persistía en `ProductImage`.
+- Verificado en catálogo y favoritos: cambio de imagen sin navegar al producto.
+
+### Controles de tarjeta y navegación configurable
+- Flechas, puntos, carrito rápido y favoritos aparecen al hacer hover sobre la tarjeta (o al enfocar con teclado). En dispositivos táctiles quedan visibles.
+- Admin → Configuración de la tienda → Storefront & Layout → **Navegación del carrusel**: flechas, puntos o ambos.
+- La preferencia se guarda en `storefrontConfig.productCard.navigationStyle`.
+- Verificado: controles ocultos con `opacity: 0`, visibles al hover, y el selector del admin persiste el cambio.
+
+### Swipe móvil y controles configurables
+- Carrusel con swipe horizontal en tarjetas de producto; umbral de 45 px y bloqueo del click posterior para no navegar al detalle.
+- El gesto convive con scroll vertical (`touch-action: pan-y`) y complementa flechas/puntos.
+- Admin → Configuración de la tienda → Storefront & Layout:
+  - `swipeEnabled`: activar/desactivar swipe.
+  - `controlsVisibility`: controles al hover o siempre visibles.
+- Región ARIA de carrusel y anuncio `Imagen X de Y` para lectores de pantalla.
+- Plan de mejoras y fuentes externas: `docs/ADMIN_CUSTOMIZATION_ROADMAP.md`.
+- Verificado: swipe cambia imagen sin navegar, swipe desactivado no cambia, controles "siempre" visibles sin hover.
+
+### Galería de ficha y proporción de tarjeta
+- Admin → Tienda → Tarjeta de producto:
+  - Proporción: actual, cuadrada 1:1, vertical 4:5 u horizontal 4:3.
+  - Ajuste: recortar (`cover`) o imagen completa (`contain`).
+- Ficha de producto:
+  - Galería con imagen principal, flechas, miniaturas y swipe móvil.
+  - Navegación con teclado (flechas izquierda/derecha).
+  - Región ARIA y anuncio de imagen actual.
+- Admin → Diseño de tienda → Ficha de producto:
+  - Mostrar miniaturas.
+  - Habilitar swipe de galería.
+- Verificado: cambio con flechas, miniaturas, swipe móvil, proporción y fit.

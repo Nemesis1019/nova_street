@@ -8,6 +8,7 @@ import { extname, join } from 'path';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { R2StorageService } from '../storage/r2-storage.service';
+import { buildAssetUrl } from './asset-url.util';
 
 const UPLOAD_DIR = join(process.cwd(), 'uploads');
 
@@ -20,7 +21,16 @@ const PURPOSE_FOLDERS: Record<AssetPurpose, string> = {
 
 const ALLOWED_MIME_TYPES: Record<AssetPurpose, string[]> = {
   CATALOG_IMAGE: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'],
-  CUSTOM_DESIGN_ASSET: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif', 'image/svg+xml'],
+  CUSTOM_DESIGN_ASSET: [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/gif',
+    'image/avif',
+    'image/svg+xml',
+    'model/gltf-binary',
+    'model/gltf+json',
+  ],
   REVIEW_IMAGE: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'],
   PRINT_FILE: ['application/pdf', 'image/png', 'image/jpeg', 'image/tiff'],
 };
@@ -44,6 +54,73 @@ export class AssetsService {
   ) {
     mkdirSync(UPLOAD_DIR, { recursive: true });
     this.maxFileSize = Number(this.configService.get<string>('PRESIGN_MAX_FILE_SIZE_BYTES') ?? String(10 * 1024 * 1024));
+  }
+
+  async list(purpose?: string, limit = 60) {
+    const validPurpose =
+      purpose && Object.values(AssetPurpose).includes(purpose as AssetPurpose)
+        ? (purpose as AssetPurpose)
+        : undefined;
+    const take = Math.min(Math.max(Number(limit) || 60, 1), 100);
+
+    const assets = await this.prisma.asset.findMany({
+      where: validPurpose ? { purpose: validPurpose } : {},
+      orderBy: { createdAt: 'desc' },
+      take,
+      select: {
+        id: true,
+        purpose: true,
+        bucket: true,
+        objectKey: true,
+        mimeType: true,
+        size: true,
+        focalPointX: true,
+        focalPointY: true,
+        cropZoom: true,
+        createdAt: true,
+      },
+    });
+
+    return {
+      data: assets.map((asset) => ({
+        id: asset.id,
+        purpose: asset.purpose,
+        mimeType: asset.mimeType,
+        size: asset.size,
+        focalPointX: asset.focalPointX,
+        focalPointY: asset.focalPointY,
+        cropZoom: asset.cropZoom,
+        createdAt: asset.createdAt,
+        url: buildAssetUrl(asset.bucket, asset.objectKey),
+      })),
+    };
+  }
+
+  async updateCrop(
+    id: string,
+    crop: { focalPointX: number; focalPointY: number; cropZoom: number },
+  ) {
+    const existing = await this.prisma.asset.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Asset no encontrado');
+
+    const asset = await this.prisma.asset.update({
+      where: { id },
+      data: {
+        focalPointX: crop.focalPointX,
+        focalPointY: crop.focalPointY,
+        cropZoom: crop.cropZoom,
+      },
+    });
+
+    return {
+      id: asset.id,
+      url: buildAssetUrl(asset.bucket, asset.objectKey),
+      mimeType: asset.mimeType,
+      size: asset.size,
+      focalPointX: asset.focalPointX,
+      focalPointY: asset.focalPointY,
+      cropZoom: asset.cropZoom,
+    };
   }
 
   async upload(

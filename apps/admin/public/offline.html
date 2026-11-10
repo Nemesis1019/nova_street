@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d0d0d" />
+    <title>NÖVA Admin — Sin conexión</title>
+    <link rel="icon" href="/icons/icon-192.png" />
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #0d0d0d;
+        --muted: #6b6258;
+        --canvas: #f9f9f9;
+        --surface: #ffffff;
+        --accent: #6f7a4e;
+        --border: #dcd2c4;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: var(--canvas);
+        color: var(--ink);
+        font-family: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .card {
+        width: min(100%, 560px);
+        padding: 40px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        box-shadow: 0 24px 60px rgba(13, 13, 13, 0.08);
+      }
+      .brand { display: flex; align-items: center; gap: 14px; margin-bottom: 36px; }
+      .mark {
+        width: 48px; height: 48px; display: grid; place-items: center;
+        background: var(--ink); color: #fcf9f8;
+        font-family: Impact, "Arial Black", sans-serif; font-size: 28px;
+      }
+      .brand span { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; }
+      .eyebrow { margin: 0 0 12px; color: var(--accent); font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
+      h1 { margin: 0; font-size: clamp(2rem, 7vw, 3.3rem); line-height: 0.98; letter-spacing: -0.035em; }
+      p { margin: 18px 0 0; color: var(--muted); font-size: 15px; line-height: 1.65; }
+      .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+      a, button {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-height: 46px; padding: 0 20px;
+        border: 1px solid var(--ink); background: var(--ink); color: #fcf9f8;
+        font: inherit; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+        text-decoration: none; cursor: pointer;
+      }
+      a.secondary, button.secondary { background: transparent; color: var(--ink); }
+      .status { margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <div class="brand">
+        <div class="mark">N</div>
+        <span>NÖVA Admin</span>
+      </div>
+      <p class="eyebrow">Modo offline</p>
+      <h1>Sin conexión.</h1>
+      <p>
+        El panel necesita conexión para consultar pedidos, stock y clientes. Los datos no se guardan en caché
+        por seguridad. Cuando vuelvas a estar online, reintentá.
+      </p>
+      <div class="actions">
+        <button type="button" onclick="window.location.reload()">Reintentar</button>
+        <a class="secondary" href="/dashboard">Ir al panel</a>
+      </div>
+      <p class="status" id="status">Podés seguir usando la app instalada; la conexión se restablecerá automáticamente.</p>
+    </main>
+    <script>
+      const status = document.getElementById('status');
+      const update = () => {
+        status.textContent = navigator.onLine
+          ? 'Conexión restablecida. Reintentá para cargar el panel.'
+          : 'Sin conexión. La app sigue instalada y disponible.';
+      };
+      window.addEventListener('online', update);
+      window.addEventListener('offline', update);
+      update();
+    </script>
+  </body>
+</html>

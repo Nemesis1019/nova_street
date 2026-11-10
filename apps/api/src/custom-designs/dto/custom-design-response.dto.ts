@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CustomDesignElementResponseDto {
   @ApiProperty({ format: 'uuid' })
@@ -62,6 +62,12 @@ export class CustomDesignResponseDto {
 
   @ApiProperty()
   surcharge!: number;
+
+  @ApiPropertyOptional({ type: Object, description: 'Desglose autoritativo del precio' })
+  pricingBreakdown?: Record<string, unknown>;
+
+  @ApiPropertyOptional({ type: [Object], description: 'Archivos de impresión por zona' })
+  printFiles?: Array<Record<string, unknown>>;
 
   @ApiProperty({ required: false })
   rejectionReason?: string;

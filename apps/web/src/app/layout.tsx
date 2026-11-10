@@ -14,12 +14,16 @@ import { EmailVerificationBanner } from '../components/email-verification-banner
 import { ExternalScripts } from '../components/external-scripts';
 import { FontLoader } from '../components/font-loader';
 import { MaintenanceScreen } from '../components/maintenance-screen';
+import { PageTransition } from '../components/page-transition';
 import { Popups } from '../components/popups';
+import { StorefrontThemeStyle } from '../components/storefront/theme-style';
 import { TermsBanner } from '../components/terms-banner';
 import { WhatsAppButton } from '../components/whatsapp-button';
 import { apiClient } from '../lib/api';
 import { bebasNeue, inter, jetbrainsMono } from '../lib/fonts';
 import { buildSeoMetadata } from '../lib/seo';
+import { pageTransitionEnabled } from '../lib/storefront-motion';
+import { applyStorefrontDocument } from '../lib/storefront-theme';
 import { ConfigProvider, type StoreConfig } from '../providers/config-provider';
 import { CurrencyProvider } from '../providers/currency-provider';
 import { I18nProvider } from '../providers/i18n-provider';
@@ -97,44 +101,53 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const config = await fetchStoreConfig();
+  const effectiveConfig = applyStorefrontDocument(config, config.storefrontDoc);
   const currencies = await fetchCurrencies();
 
   return (
     <html
       lang="es"
       className={`${inter.variable} ${bebasNeue.variable} ${jetbrainsMono.variable}`}
-      style={{ backgroundColor: config.backgroundColor || NOVA_COLORS.surface }}
+      style={{ backgroundColor: effectiveConfig.backgroundColor || NOVA_COLORS.surface }}
       suppressHydrationWarning
     >
       <head>
         <ColorSchemeScript />
-        <FontLoader config={config} />
+        {effectiveConfig.storefrontDoc ? (
+          <StorefrontThemeStyle
+            tokens={effectiveConfig.storefrontDoc.tokens}
+            motion={effectiveConfig.storefrontDoc.motion}
+          />
+        ) : null}
+        <FontLoader config={effectiveConfig} />
       </head>
 
       <body
         suppressHydrationWarning
         className={inter.className}
-        style={{ backgroundColor: config.backgroundColor || NOVA_COLORS.surface }}
+        style={{ backgroundColor: effectiveConfig.backgroundColor || NOVA_COLORS.surface }}
       >
-        {config.maintenanceMode ? (
+        {effectiveConfig.maintenanceMode ? (
           <MantineProvider>
-            <MaintenanceScreen config={config} />
+            <MaintenanceScreen config={effectiveConfig} />
           </MantineProvider>
         ) : (
-          <ConfigProvider config={config}>
+          <ConfigProvider config={effectiveConfig}>
             <CurrencyProvider initialCurrencies={currencies}>
               <I18nProvider>
                 <QueryProvider>
                   <ThemeProvider>
                     <AuthRehydrator>
                       <CustomStyles />
-                      <ExternalScripts config={config} />
+                      <ExternalScripts config={effectiveConfig} />
                       <AnnouncementBar />
                       <TermsBanner />
                       <EmailVerificationBanner />
-                      {children}
+                      <PageTransition enabled={pageTransitionEnabled(effectiveConfig.storefrontDoc?.motion)}>
+                        {children}
+                      </PageTransition>
                       <ComparatorBar />
-                      <WhatsAppButton config={config} />
+                      <WhatsAppButton config={effectiveConfig} />
                       <Popups />
                       <CookieConsent />
                     </AuthRehydrator>

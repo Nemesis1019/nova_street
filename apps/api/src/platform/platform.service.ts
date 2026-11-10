@@ -1,16 +1,22 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import type { SubscriptionPlan, SubscriptionStatus } from '@prisma/master-client';
 import type { Request } from 'express';
 
 import { AuditService } from '../audit/audit.service';
 import { AuthService } from '../auth/auth.service';
 import { BackupService } from '../backup/backup.service';
 import { MasterPrismaService } from '../prisma/master-prisma.service';
+import { SubscriptionService } from '../subscription/subscription.service';
 import { decryptSecret, encryptSecret } from '../tenant/crypto.util';
 import type { TenantContextData } from '../tenant/tenant-context.service';
 import { TenantContextService } from '../tenant/tenant-context.service';
 import { TenantPrismaFactory } from '../tenant/tenant-prisma.factory';
 import { TenantRegistryService } from '../tenant/tenant-registry.service';
-import type { CreateTenantDto, UpdateTenantDto } from './dto/platform.dto';
+import type {
+  CreateTenantDto,
+  UpdateTenantDto,
+  UpdateTenantSubscriptionDto,
+} from './dto/platform.dto';
 import type { ImpersonateTenantDto } from './dto/platform-auth.dto';
 import { type PlatformActor,PlatformAuditService } from './platform-audit.service';
 import { PlatformAuthService } from './platform-auth.service';
@@ -26,6 +32,8 @@ interface TenantRowWithDomains {
   slug: string;
   name: string;
   status: TenantContextData['status'];
+  subscriptionStatus: TenantContextData['subscriptionStatus'];
+  subscriptionPaidUntil: Date | null;
   databaseUrl: string;
   r2Bucket: string | null;
   r2Endpoint: string | null;
@@ -37,6 +45,9 @@ interface TenantRowWithDomains {
 
 @Injectable()
 export class PlatformService {
+  private readonly logger = new Logger(PlatformService.name);
+  private readonly logoCache = new Map<string, { url: string | null; expiresAt: number }>();
+
   constructor(
     private readonly master: MasterPrismaService,
     private readonly registry: TenantRegistryService,
@@ -47,15 +58,41 @@ export class PlatformService {
     private readonly backup: BackupService,
     private readonly auth: AuthService,
     private readonly platformAuth: PlatformAuthService,
+    private readonly subscription: SubscriptionService,
   ) {}
 
   async list() {
     const rows = await this.master.tenant.findMany({
-      include: { domains: true },
+      include: { domains: true, subscriptionPlan: true },
       orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
     });
 
-    return rows.map((row) => this.toSummary(row));
+    return Promise.all(
+      rows.map(async (row) => this.toSummary(row, await this.tenantLogo(row))),
+    );
+  }
+
+  /** Logo público del StoreConfig del tenant; se cachea para no abrir N BDs en cada listado. */
+  private async tenantLogo(row: TenantRowWithDomains): Promise<string | null> {
+    const cached = this.logoCache.get(row.id);
+    if (cached && Date.now() < cached.expiresAt) return cached.url;
+
+    if (row.status === 'PROVISIONING') return null;
+
+    try {
+      const logoUrl = await this.context.run(this.toRuntimeTenant(row), async () => {
+        const config = await this.tenantPrisma
+          .getClient()
+          .storeConfig.findFirst({ where: { isActive: true }, select: { logoUrl: true, faviconUrl: true } });
+        return config?.logoUrl?.trim() || config?.faviconUrl?.trim() || null;
+      });
+      this.logoCache.set(row.id, { url: logoUrl, expiresAt: Date.now() + 60_000 });
+      return logoUrl;
+    } catch (error) {
+      this.logger.warn(`No se pudo leer el logo de "${row.slug}": ${(error as Error).message}`);
+      this.logoCache.set(row.id, { url: null, expiresAt: Date.now() + 30_000 });
+      return null;
+    }
   }
 
   /** Vista pública del tenant (nunca expone la URL de BD ni credenciales R2). */
@@ -68,8 +105,16 @@ export class PlatformService {
     provisioningError: string | null;
     r2Bucket: string | null;
     createdAt: Date;
+    subscriptionStatus: SubscriptionStatus;
+    subscriptionPaidUntil: Date | null;
+    subscriptionSuspendedAt: Date | null;
+    subscriptionLastPaymentAt: Date | null;
+    subscriptionLastPaymentAmount: number | null;
+    subscriptionLastPaymentCurrency: string | null;
+    subscriptionPlanId: string | null;
+    subscriptionPlan: SubscriptionPlan | null;
     domains: Array<{ host: string; isPrimary: boolean }>;
-  }) {
+  }, logoUrl: string | null = null) {
     const primary = row.domains.find((domain) => domain.isPrimary) ?? row.domains[0];
     return {
       id: row.id,
@@ -77,11 +122,13 @@ export class PlatformService {
       name: row.name,
       status: row.status,
       isDefault: row.isDefault,
+      logoUrl,
       provisioningError: row.provisioningError,
       domains: row.domains.map((domain) => domain.host),
       storefrontUrl: primary ? this.storefrontUrl(primary.host) : null,
       createdAt: row.createdAt,
       hasCustomStorage: Boolean(row.r2Bucket),
+      subscription: this.subscription.summaryForTenant(row),
     };
   }
 
@@ -101,6 +148,7 @@ export class PlatformService {
 
     const databaseUrl =
       dto.databaseUrl?.trim() || buildTenantDatabaseUrl(masterUrl as string, slug);
+    const defaultPlan = await this.subscription.getDefaultPlan();
 
     // 1) Registro inmediato (PROVISIONING) + dominio.
     const row = await this.master.tenant.create({
@@ -110,11 +158,12 @@ export class PlatformService {
         databaseUrl: encryptSecret(databaseUrl),
         status: 'PROVISIONING',
         isDefault: false,
+        subscriptionPlanId: defaultPlan?.id,
         domains: dto.domain?.trim()
           ? { create: { host: dto.domain.trim().toLowerCase(), isPrimary: true } }
           : undefined,
       },
-      include: { domains: true },
+      include: { domains: true, subscriptionPlan: true },
     });
 
     await this.platformAudit.log(
@@ -170,9 +219,76 @@ export class PlatformService {
 
     const withDomains = await this.master.tenant.findUniqueOrThrow({
       where: { id },
-      include: { domains: true },
+      include: { domains: true, subscriptionPlan: true },
     });
-    return this.toSummary(withDomains);
+    return this.toSummary(withDomains, await this.tenantLogo(withDomains));
+  }
+
+  async getSubscription(id: string) {
+    const tenant = await this.master.tenant.findUnique({ where: { id } });
+    if (!tenant) throw new NotFoundException('Cliente no encontrado');
+    return this.subscription.getOverviewById(tenant.id);
+  }
+
+  async updateSubscription(
+    id: string,
+    dto: UpdateTenantSubscriptionDto,
+    actor: PlatformActor,
+    req?: Request,
+  ) {
+    const before = await this.master.tenant.findUnique({
+      where: { id },
+      include: { subscriptionPlan: true },
+    });
+    if (!before) throw new NotFoundException('Cliente no encontrado');
+
+    const overview = await this.subscription.setPlanForTenant(id, dto.planId);
+
+    await this.platformAudit.log(
+      actor,
+      {
+        action: 'PLATFORM_UPDATE_SUBSCRIPTION_PLAN',
+        entity: 'Tenant',
+        entityId: id,
+        metadata: {
+          before: { planId: before.subscriptionPlanId, plan: before.subscriptionPlan?.name ?? null },
+          after: { planId: dto.planId, plan: overview.plan?.name ?? null },
+        },
+      },
+      req,
+    );
+
+    return overview;
+  }
+
+  async suspendSubscription(id: string, actor: PlatformActor, reason?: string, req?: Request) {
+    const overview = await this.subscription.suspendTenant(id);
+    await this.platformAudit.log(
+      actor,
+      {
+        action: 'PLATFORM_SUSPEND_SUBSCRIPTION',
+        entity: 'Tenant',
+        entityId: id,
+        metadata: { reason: reason || null },
+      },
+      req,
+    );
+    return overview;
+  }
+
+  async reactivateSubscription(id: string, actor: PlatformActor, reason?: string, req?: Request) {
+    const overview = await this.subscription.reactivateTenant(id);
+    await this.platformAudit.log(
+      actor,
+      {
+        action: 'PLATFORM_REACTIVATE_SUBSCRIPTION',
+        entity: 'Tenant',
+        entityId: id,
+        metadata: { reason: reason || null },
+      },
+      req,
+    );
+    return overview;
   }
 
   async health(id: string) {
@@ -451,6 +567,8 @@ export class PlatformService {
       slug: row.slug,
       name: row.name,
       status: row.status,
+      subscriptionStatus: row.subscriptionStatus,
+      subscriptionPaidUntil: row.subscriptionPaidUntil,
       databaseUrl: decryptSecret(row.databaseUrl),
       primaryDomain: primary?.host ?? null,
       domains: row.domains.map((domain) => domain.host),

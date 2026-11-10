@@ -106,7 +106,7 @@ export default function PlatformLoginPage() {
                     const value = event.currentTarget.value;
                     setForm((prev) => ({ ...prev, email: value }));
                   }}
-                  placeholder="owner@nova.app"
+                  placeholder="tu@email.com"
                   className="w-full rounded-lg bg-surface-container-low px-3.5 py-2.5 font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant focus:bg-surface-container focus:outline-none"
                 />
               </div>

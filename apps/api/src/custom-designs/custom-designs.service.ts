@@ -1,5 +1,6 @@
+import { calculateCustomizerPrice } from '@ecommerce/shared';
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { CustomDesignStatus } from '@prisma/client';
+import { CustomDesignStatus, type Prisma } from '@prisma/client';
 
 import { CartService } from '../cart/cart.service';
 import { EmailService } from '../email/email.service';
@@ -71,7 +72,14 @@ export class CustomDesignsService {
       throw new BadRequestException('Only draft designs can be edited');
     }
 
-    const { elements, ...data } = dto;
+    const { elements, surcharge: _ignoredSurcharge, printFiles, ...data } = dto;
+    const quote = calculateCustomizerPrice({
+      template: design.designTemplate,
+      elements: elements ?? design.elements,
+      color: dto.color ?? design.color,
+      size: dto.size ?? design.size,
+      quantity: 1,
+    });
 
     return this.prisma.$transaction(async (tx) => {
       if (elements) {
@@ -81,8 +89,11 @@ export class CustomDesignsService {
             data: elements.map((element) => ({
               customDesignId: id,
               type: element.type,
+              printAreaKey: element.printAreaKey ?? null,
               assetUrl: element.assetUrl ?? null,
               textContent: element.textContent ?? null,
+              fontFamily: element.fontFamily ?? null,
+              fontWeight: element.fontWeight ?? null,
               fontSize: element.fontSize ?? 24,
               fill: element.fill ?? '#0d0d0d',
               positionX: element.positionX,
@@ -90,6 +101,8 @@ export class CustomDesignsService {
               scale: element.scale ?? 1,
               rotation: element.rotation ?? 0,
               zIndex: element.zIndex ?? 0,
+              width: element.width ?? null,
+              height: element.height ?? null,
             })),
           });
         }
@@ -97,7 +110,14 @@ export class CustomDesignsService {
 
       return tx.customDesign.update({
         where: { id },
-        data: { ...data, color: data.color ?? undefined, size: data.size ?? undefined },
+        data: {
+          ...data,
+          color: data.color ?? undefined,
+          size: data.size ?? undefined,
+          surcharge: quote.unitPrice - quote.basePrice,
+          pricingBreakdown: quote as unknown as Prisma.InputJsonValue,
+          ...(printFiles ? { printFiles: printFiles as unknown as Prisma.InputJsonValue } : {}),
+        },
         include: { designTemplate: true, elements: { orderBy: { zIndex: 'asc' } } },
       });
     });
@@ -119,13 +139,27 @@ export class CustomDesignsService {
 
   async addToCart(userId: string, id: string, dto: AddToCartDto) {
     const design = await this.findOne(userId, id);
-    const unitPrice = design.designTemplate.basePrice + design.surcharge;
+    const quote = calculateCustomizerPrice({
+      template: design.designTemplate,
+      elements: design.elements,
+      color: design.color,
+      size: design.size,
+      quantity: dto.quantity,
+    });
+
+    await this.prisma.customDesign.update({
+      where: { id: design.id },
+      data: {
+        surcharge: quote.unitPrice - quote.basePrice,
+        pricingBreakdown: quote as unknown as Prisma.InputJsonValue,
+      },
+    });
 
     return this.cartService.addItem(userId, {
       type: 'CUSTOM',
       customDesignId: design.id,
       quantity: dto.quantity,
-      unitPrice,
+      unitPrice: quote.unitPrice,
     } as never);
   }
 

@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import { IsArray, IsInt, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 
 import { CustomDesignElementDto } from './custom-design-element.dto';
+import { CustomDesignPrintFileDto } from './custom-design-print-file.dto';
 
 export class UpdateCustomDesignDto {
   @IsString()
@@ -26,4 +27,10 @@ export class UpdateCustomDesignDto {
   @Type(() => CustomDesignElementDto)
   @IsOptional()
   elements?: CustomDesignElementDto[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CustomDesignPrintFileDto)
+  @IsOptional()
+  printFiles?: CustomDesignPrintFileDto[];
 }

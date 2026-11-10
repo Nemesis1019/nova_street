@@ -11,11 +11,23 @@ export class CustomDesignElementDto {
 
   @IsString()
   @IsOptional()
+  printAreaKey?: string;
+
+  @IsString()
+  @IsOptional()
   assetUrl?: string;
 
   @IsString()
   @IsOptional()
   textContent?: string;
+
+  @IsString()
+  @IsOptional()
+  fontFamily?: string;
+
+  @IsInt()
+  @IsOptional()
+  fontWeight?: number;
 
   @IsInt()
   @IsOptional()
@@ -42,4 +54,12 @@ export class CustomDesignElementDto {
   @IsNumber()
   @IsOptional()
   zIndex?: number;
+
+  @IsNumber()
+  @IsOptional()
+  width?: number;
+
+  @IsNumber()
+  @IsOptional()
+  height?: number;
 }

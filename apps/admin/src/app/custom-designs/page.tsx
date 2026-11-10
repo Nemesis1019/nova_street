@@ -61,6 +61,15 @@ interface AdminDesign {
   size?: string | null;
   previewImageUrl?: string | null;
   finalPrintFileUrl?: string | null;
+  printFiles?: Array<{
+    zoneKey: string;
+    assetUrl: string;
+    dpi: number;
+    widthCm: number;
+    heightCm: number;
+    printMethod: string;
+    mirrored: boolean;
+  }> | null;
   surcharge: number;
   rejectionReason?: string | null;
   createdAt: string;
@@ -1302,6 +1311,34 @@ export default function CustomDesignsPage() {
                 {getFileName(previewDesign.finalPrintFileUrl) ?? t('pages.customDesigns.viewFinalFile')}
               </a>
             )}
+
+            {previewDesign.printFiles && previewDesign.printFiles.length > 0 ? (
+              <div className="rounded-xl bg-surface-container-low p-3">
+                <div className="mb-2 font-label-uppercase text-label-uppercase uppercase tracking-wider text-on-surface-variant">
+                  {t('pages.customDesigns.printFilesTitle')}
+                </div>
+                <div className="flex flex-col gap-2">
+                  {previewDesign.printFiles.map((file) => (
+                    <a
+                      key={`${file.zoneKey}-${file.assetUrl}`}
+                      href={file.assetUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-surface-container-lowest px-3 py-2 font-body-sm text-body-sm text-on-surface hover:bg-surface-container"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Icon name="print" className="text-[16px] text-secondary" />
+                        <strong>{file.zoneKey}</strong> · {file.printMethod} · {file.dpi} DPI
+                        {file.mirrored ? ' · espejado' : ''}
+                      </span>
+                      <span className="font-label-sm text-label-sm text-on-surface-variant">
+                        {file.widthCm} × {file.heightCm} cm
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
         )}
       </AppModal>

@@ -12,4 +12,13 @@ export class AssetResponseDto {
 
   @ApiProperty()
   size!: number;
+
+  @ApiProperty({ required: false })
+  focalPointX?: number;
+
+  @ApiProperty({ required: false })
+  focalPointY?: number;
+
+  @ApiProperty({ required: false })
+  cropZoom?: number;
 }

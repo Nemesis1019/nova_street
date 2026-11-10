@@ -4,10 +4,11 @@ import './globals.css';
 
 import { DEFAULT_CURRENCY_CODE } from '@ecommerce/shared';
 import { ColorSchemeScript } from '@mantine/core';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { JetBrains_Mono,Plus_Jakarta_Sans } from 'next/font/google';
 
 import { AdminFrame } from '../components/admin-frame';
+import { PwaRegister } from '../components/pwa-register';
 import { apiClient } from '../lib/api';
 import { ConfigProvider, StoreConfig } from '../providers/config-provider';
 import { I18nProvider } from '../providers/i18n-provider';
@@ -49,10 +50,32 @@ async function fetchStoreConfig(): Promise<StoreConfig> {
   return defaultConfig;
 }
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#0d0d0d',
+};
+
 export async function generateMetadata(): Promise<Metadata> {
   const config = await fetchStoreConfig();
   return {
     title: `Admin - ${config.name}`,
+    applicationName: 'NÖVA Admin',
+    manifest: '/manifest.webmanifest',
+    appleWebApp: {
+      capable: true,
+      title: 'NÖVA Admin',
+      statusBarStyle: 'default',
+    },
+    icons: {
+      icon: [
+        { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+        { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+      ],
+      apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+      shortcut: [{ url: '/icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
+    },
   };
 }
 
@@ -75,6 +98,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="font-body-md text-body-md text-on-surface antialiased bg-surface">
+        <PwaRegister />
         <ConfigProvider config={config}>
           <I18nProvider>
             <QueryProvider>

@@ -322,11 +322,23 @@ Para administrar la tienda de un cliente sin sus credenciales, usar **Administra
 ### 11.4 Qué falta para el SaaS completo
 
 - **P1 — Operación**: provisioning/migraciones como jobs en cola (hoy `execFileSync` bloquea el event loop), backups offsite cifrados con restore drills, observabilidad por tenant (métricas/trazas/alertas), SSE e invalidación multi-instancia, cuotas/fairness por tenant.
-- **P2 — Producto**: portal self-service + onboarding, dominios propios con verificación DNS/SSL, verificación SPF/DKIM/DMARC, notas/tickets de soporte, offboarding/export/purga y planes/límites/facturación.
+- **P2 — Producto**: portal self-service + onboarding, dominios propios con verificación DNS/SSL, verificación SPF/DKIM/DMARC, notas/tickets de soporte, offboarding/export/purga y planes/límites/facturación avanzada (la suscripción base con Bold ya está implementada, ver §11.5).
 - **Plataforma**: permisos granulares por operador (hoy el rol es OWNER/OPERATOR/SUPPORT sin matriz) y step-up MFA obligatorio en producción.
 - **Remitente verificado por dominio** (SPF/DKIM de cada cliente) y límites de envío; hoy las credenciales SMTP/Resend ya son por tenant.
 - **Migraciones programadas**: el historial y la ejecución manual ya existen; falta un cron (similar al de backups) y alertas cuando falla un cliente.
 - **Retención/copia externa de backups**: hoy es local (`BACKUP_DIR`); falta subirlos a R2/S3 y retención diferenciada por cliente.
 - **Dominios propios + SSL** y verificación de dominio.
+
+### 11.5 Suscripciones SaaS
+
+Ya está implementado el cobro de la suscripción de la plataforma, separado del
+ecommerce de cada tenant: catálogo de planes (Starter/Pro/Business), estado y
+vencimiento en la BD maestra, cambio de plan, historial de pagos para el cliente
+y el superadmin, suspensión automática con días de gracia y bloqueo del storefront
+sin bloquear el acceso del admin al cobro. Incluye Botón de Bold + webhook
+firmado. El detalle operativo y las variables de entorno están en
+[`docs/SAAS_SUBSCRIPTIONS.md`](./SAAS_SUBSCRIPTIONS.md).
+
+Sigue pendiente para una facturación completa: facturas, prorrateo, cobro
+automático recurrente, recordatorios y múltiples suscripciones concurrentes.
 - **Infra de tests e2e**: el problema de ESM (`@scure/base`) está resuelto y hay guard para no correrlos contra la BD de desarrollo; falta una BD/tenant dedicado de test (`*_test`) y sembrar sus datos.
-- **Facturación/planes** y límites por cliente.

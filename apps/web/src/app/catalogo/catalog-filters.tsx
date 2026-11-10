@@ -22,6 +22,7 @@ import { type CatalogSortValue, useCatalogFilters } from './catalog-filters-cont
 interface CatalogFiltersProps {
   sizes: string[];
   colors: string[];
+  showSort?: boolean;
 }
 
 const SORT_OPTIONS: { value: CatalogSortValue; label: string }[] = [
@@ -64,7 +65,7 @@ function SectionLabel({ children }: { children: ReactNode }) {
   );
 }
 
-export function CatalogFilters({ sizes, colors }: CatalogFiltersProps) {
+export function CatalogFilters({ sizes, colors, showSort = true }: CatalogFiltersProps) {
   const isDesktop = useMediaQuery('(min-width: 62em)');
   const [opened, { open, close }] = useDisclosure(false);
   const {
@@ -125,17 +126,21 @@ export function CatalogFilters({ sizes, colors }: CatalogFiltersProps) {
         />
       </Stack>
 
-      <Divider color="rgba(13,13,13,0.1)" />
+      {showSort ? (
+        <>
+          <Divider color="rgba(13,13,13,0.1)" />
 
-      <Stack gap="xs">
-        <SectionLabel>Ordenar</SectionLabel>
-        <Select
-          value={values.sort}
-          onChange={(value) => setSort((value as CatalogSortValue) ?? 'newest')}
-          data={SORT_OPTIONS}
-          styles={INPUT_STYLES}
-        />
-      </Stack>
+          <Stack gap="xs">
+            <SectionLabel>Ordenar</SectionLabel>
+            <Select
+              value={values.sort}
+              onChange={(value) => setSort((value as CatalogSortValue) ?? 'newest')}
+              data={SORT_OPTIONS}
+              styles={INPUT_STYLES}
+            />
+          </Stack>
+        </>
+      ) : null}
 
       <Divider color="rgba(13,13,13,0.1)" />
 

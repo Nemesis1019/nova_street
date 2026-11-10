@@ -6,6 +6,8 @@ const demo = {
   slug: 'demo',
   name: 'Demo',
   status: 'ACTIVE' as const,
+  subscriptionStatus: 'TRIAL' as const,
+  subscriptionPaidUntil: null,
   databaseUrl: 'postgresql://localhost/demo',
   primaryDomain: null,
   domains: [],

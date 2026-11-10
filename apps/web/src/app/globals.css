@@ -18,22 +18,129 @@ textarea:focus-visible {
 
 .nova-product-card {
   transition:
-    transform 220ms ease,
-    box-shadow 220ms ease;
-  will-change: transform;
+    transform var(--sf-hover-duration, 220ms) var(--sf-motion-ease, ease),
+    box-shadow var(--sf-hover-duration, 220ms) var(--sf-motion-ease, ease);
 }
 
 .nova-product-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(var(--sf-hover-lift, -4px));
   box-shadow: 0 14px 30px rgba(13, 13, 13, 0.14);
 }
 
+/* Controles superpuestos de la tarjeta (carrusel, carrito y favoritos):
+   visibles únicamente al entrar en la tarjeta o al navegar con teclado. */
+.nova-card-hover-control {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--sf-hover-duration, 220ms) var(--sf-motion-ease, ease);
+}
+
+.nova-product-card:hover .nova-card-hover-control,
+.nova-product-card:focus-within .nova-card-hover-control,
+.sf-editorial-card:hover .nova-card-hover-control,
+.sf-editorial-card:focus-within .nova-card-hover-control,
+.nova-card-controls-always .nova-card-hover-control {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* En pantallas táctiles no existe hover: los controles quedan accesibles. */
+@media (hover: none), (pointer: coarse) {
+  .nova-card-hover-control {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 .nova-product-card .nova-card-image {
-  transition: transform 420ms ease;
+  transition:
+    transform var(--sf-hover-duration, 420ms) var(--sf-motion-ease, ease),
+    opacity var(--sf-hover-duration, 420ms) var(--sf-motion-ease, ease);
 }
 
 .nova-product-card:hover .nova-card-image {
-  transform: scale(1.06);
+  transform: scale(var(--sf-hover-zoom, 1.06));
+}
+
+.nova-product-card .nova-card-image-secondary {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  object-fit: cover;
+}
+
+.nova-product-card:hover .nova-card-image-secondary {
+  opacity: var(--sf-hover-swap-opacity, 0);
+}
+
+/* Si el producto no tiene segunda imagen, el perfil swap conserva un zoom. */
+.nova-product-card:not(:has(.nova-card-image-secondary)):hover .nova-card-image {
+  transform: scale(var(--sf-hover-swap-fallback-zoom, 1));
+}
+
+/* Card editorial: la imagen secundaria hace crossfade sin cambiar el alto. */
+.sf-editorial-card {
+  transition: transform var(--sf-hover-duration, 220ms) var(--sf-motion-ease, ease);
+}
+
+.sf-editorial-card:hover {
+  transform: translateY(var(--sf-hover-lift, 0));
+}
+
+.sf-editorial-media {
+  position: relative;
+  overflow: hidden;
+}
+
+.sf-editorial-media img {
+  transition:
+    transform var(--sf-hover-duration, 420ms) var(--sf-motion-ease, ease),
+    opacity var(--sf-hover-duration, 420ms) var(--sf-motion-ease, ease);
+}
+
+.sf-editorial-card:hover .sf-editorial-primary {
+  transform: scale(var(--sf-hover-zoom, 1));
+}
+
+.sf-editorial-media .sf-editorial-secondary {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  object-fit: cover;
+}
+
+.sf-editorial-card:hover .sf-editorial-secondary {
+  opacity: var(--sf-hover-swap-opacity, 0);
+}
+
+.sf-editorial-card:not(:has(.sf-editorial-secondary)):hover .sf-editorial-primary {
+  transform: scale(var(--sf-hover-swap-fallback-zoom, 1));
+}
+
+/* CTA: flecha y elevación se controlan con variables del perfil activo. */
+.sf-cta {
+  transition:
+    transform var(--sf-hover-duration, 220ms) var(--sf-motion-ease, ease),
+    background-color var(--sf-hover-duration, 220ms) var(--sf-motion-ease, ease),
+    color var(--sf-hover-duration, 220ms) var(--sf-motion-ease, ease),
+    border-color var(--sf-hover-duration, 220ms) var(--sf-motion-ease, ease);
+}
+
+.sf-cta:hover {
+  transform: translateY(var(--sf-cta-lift, 0));
+}
+
+.sf-cta .sf-cta-arrow {
+  display: inline-block;
+  transition: transform var(--sf-hover-duration, 220ms) var(--sf-motion-ease, ease);
+}
+
+.sf-cta:hover .sf-cta-arrow {
+  transform: translate(var(--sf-cta-arrow-x, 0), var(--sf-cta-arrow-y, 0));
 }
 
 /* Producto desactivado / agotado: sin animación ni navegación */
@@ -48,6 +155,246 @@ textarea:focus-visible {
 
 .nova-product-card.is-unavailable:hover .nova-card-image {
   transform: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Movimiento del storefront: reveals, hero y media                    */
+/* ------------------------------------------------------------------ */
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-sf-reveal] {
+      animation-fill-mode: both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 45%;
+    }
+
+    [data-sf-reveal='fade'] {
+      animation-name: sf-reveal-fade;
+    }
+    [data-sf-reveal='rise'] {
+      animation-name: sf-reveal-rise;
+    }
+    [data-sf-reveal='clip'] {
+      animation-name: sf-reveal-clip;
+    }
+    [data-sf-reveal='scale'] {
+      animation-name: sf-reveal-scale;
+    }
+
+    [data-sf-reveal][data-sf-delay='short'] {
+      animation-range: entry 10% entry 55%;
+    }
+    [data-sf-reveal][data-sf-delay='medium'] {
+      animation-range: entry 20% entry 65%;
+    }
+  }
+}
+
+@keyframes sf-reveal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sf-reveal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--sf-motion-distance, 18px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sf-reveal-clip {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes sf-reveal-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-sf-hero] > * {
+    animation: sf-hero-in var(--sf-motion-duration, 520ms) var(--sf-motion-ease, ease) both;
+  }
+
+  [data-sf-hero] > *:nth-child(2) {
+    animation-delay: var(--sf-motion-stagger, 80ms);
+  }
+  [data-sf-hero] > *:nth-child(3) {
+    animation-delay: calc(var(--sf-motion-stagger, 80ms) * 2);
+  }
+  [data-sf-hero] > *:nth-child(4) {
+    animation-delay: calc(var(--sf-motion-stagger, 80ms) * 3);
+  }
+  [data-sf-hero] > *:nth-child(n + 5) {
+    animation-delay: calc(var(--sf-motion-stagger, 80ms) * 4);
+  }
+}
+
+@keyframes sf-hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--sf-motion-distance, 22px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sf-image-zoom {
+  animation: sf-image-zoom var(--sf-image-zoom-duration, 12s) var(--sf-motion-ease, ease) both;
+  transform-origin: center;
+  will-change: transform;
+}
+
+@keyframes sf-image-zoom {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(var(--sf-image-zoom-scale, 1.055));
+  }
+}
+
+/* Parallax opt-in: solo hero/story, con intensidad acotada. */
+.sf-parallax {
+  scale: 1.06;
+}
+
+[data-sf-parallax='subtle'] {
+  --sf-parallax-distance: 2.5%;
+}
+
+[data-sf-parallax='strong'] {
+  --sf-parallax-distance: 5%;
+}
+
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-sf-parallax-kind='hero'] {
+      animation: sf-parallax linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 85vh;
+    }
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-sf-parallax-kind='story'] {
+      animation: sf-parallax linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 80%;
+    }
+  }
+}
+
+@keyframes sf-parallax {
+  from {
+    translate: 0 calc(var(--sf-parallax-distance, 3%) * -1);
+  }
+  to {
+    translate: 0 var(--sf-parallax-distance, 3%);
+  }
+}
+
+/* Transición de página opcional y conservadora: solo opacidad. */
+.sf-page-transition {
+  animation: sf-page-in 300ms var(--sf-motion-ease, ease) both;
+}
+
+@keyframes sf-page-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sf-header-row {
+  transition: padding-top 220ms var(--sf-motion-ease, ease), padding-bottom 220ms var(--sf-motion-ease, ease);
+}
+
+/* Marquee controlable: la pausa en hover/focus no impide el control manual. */
+.sf-marquee {
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sf-marquee-track {
+  display: inline-flex;
+  gap: 48px;
+  animation-name: sf-marquee;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  will-change: transform;
+}
+
+.sf-marquee:hover .sf-marquee-track,
+.sf-marquee:focus-within .sf-marquee-track,
+.sf-marquee-track.is-paused {
+  animation-play-state: paused;
+}
+
+.sf-marquee-control {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  color: inherit;
+  cursor: pointer;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  opacity: 0.75;
+  transition: opacity 160ms ease, background-color 160ms ease;
+}
+
+.sf-marquee-control:hover,
+.sf-marquee-control:focus-visible {
+  opacity: 1;
+  background: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+@keyframes sf-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 /* Opciones del selector de variantes del "agregar al carrito" */
@@ -116,8 +463,20 @@ textarea:focus-visible {
 
 .catalog-products {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(var(--sf-cat-cols, auto-fill), minmax(250px, 1fr));
   gap: 28px;
+}
+
+@media (max-width: 62em) {
+  .catalog-products {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 36em) {
+  .catalog-products {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 62em) {
@@ -474,4 +833,202 @@ textarea:focus-visible {
 .nova-cart-remove:disabled {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+/* ------------------------------------------------------------------ */
+/* Movimiento reducido: preferencia del sistema, siempre respetada     */
+/* ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  [data-sf-reveal],
+  [data-sf-hero] > *,
+  .sf-image-zoom,
+  [data-sf-parallax],
+  .sf-page-transition,
+  .sf-marquee-track,
+  .nova-legacy-marquee-track,
+  .mega-panel,
+  .nova-cart-pulse,
+  .nova-pop,
+  .nova-spin-slow {
+    animation: none !important;
+  }
+
+  .sf-image-zoom {
+    transform: none !important;
+    will-change: auto;
+  }
+
+  [data-sf-parallax] {
+    scale: 1 !important;
+    translate: none !important;
+  }
+
+  .sf-header-row {
+    transition: none !important;
+  }
+
+  .nova-product-card,
+  .nova-product-card .nova-card-image,
+  .sf-editorial-card,
+  .sf-editorial-media img,
+  .sf-cta,
+  .sf-cta .sf-cta-arrow,
+  .sf-marquee-control,
+  .showcase-media img,
+  .showcase-buy,
+  .nova-cart-remove {
+    transition-duration: 0.01ms !important;
+  }
+
+  .nova-product-card:hover,
+  .sf-editorial-card:hover,
+  .sf-cta:hover {
+    transform: none !important;
+  }
+
+  .nova-product-card:hover .nova-card-image,
+  .sf-editorial-card:hover .sf-editorial-primary,
+  .showcase-card:hover .showcase-media img {
+    transform: none !important;
+  }
+
+  .nova-product-card:hover .nova-card-image-secondary,
+  .sf-editorial-card:hover .sf-editorial-secondary {
+    opacity: 0 !important;
+  }
+
+  .nova-product-card:hover {
+    box-shadow: none !important;
+  }
+
+  .sf-cta:hover .sf-cta-arrow {
+    transform: none !important;
+  }
+
+  .sf-marquee-control {
+    display: none !important;
+  }
+}
+
+/* Simulación de movimiento reducido para el preview del builder. */
+.sf-reduce-motion [data-sf-reveal],
+.sf-reduce-motion [data-sf-hero] > *,
+.sf-reduce-motion .sf-image-zoom,
+.sf-reduce-motion [data-sf-parallax],
+.sf-reduce-motion .sf-page-transition,
+.sf-reduce-motion .sf-marquee-track,
+.sf-reduce-motion .nova-legacy-marquee-track,
+.sf-reduce-motion .mega-panel,
+.sf-reduce-motion .nova-cart-pulse,
+.sf-reduce-motion .nova-pop,
+.sf-reduce-motion .nova-spin-slow {
+  animation: none !important;
+}
+
+.sf-reduce-motion .sf-image-zoom {
+  transform: none !important;
+  will-change: auto;
+}
+
+.sf-reduce-motion [data-sf-parallax] {
+  scale: 1 !important;
+  translate: none !important;
+}
+
+.sf-reduce-motion .sf-header-row {
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+  transition: none !important;
+}
+
+.sf-reduce-motion .nova-product-card,
+.sf-reduce-motion .nova-product-card .nova-card-image,
+.sf-reduce-motion .sf-editorial-card,
+.sf-reduce-motion .sf-editorial-media img,
+.sf-reduce-motion .sf-cta,
+.sf-reduce-motion .sf-cta .sf-cta-arrow,
+.sf-reduce-motion .sf-marquee-control,
+.sf-reduce-motion .showcase-media img,
+.sf-reduce-motion .showcase-buy,
+.sf-reduce-motion .nova-cart-remove {
+  transition-duration: 0.01ms !important;
+}
+
+.sf-reduce-motion .nova-product-card:hover,
+.sf-reduce-motion .sf-editorial-card:hover,
+.sf-reduce-motion .sf-cta:hover {
+  transform: none !important;
+}
+
+.sf-reduce-motion .nova-product-card:hover .nova-card-image,
+.sf-reduce-motion .sf-editorial-card:hover .sf-editorial-primary,
+.sf-reduce-motion .showcase-card:hover .showcase-media img {
+  transform: none !important;
+}
+
+.sf-reduce-motion .nova-product-card:hover .nova-card-image-secondary,
+.sf-reduce-motion .sf-editorial-card:hover .sf-editorial-secondary {
+  opacity: 0 !important;
+}
+
+.sf-reduce-motion .nova-product-card:hover {
+  box-shadow: none !important;
+}
+
+.sf-reduce-motion .sf-cta:hover .sf-cta-arrow {
+  transform: none !important;
+}
+
+.sf-reduce-motion .sf-marquee-control {
+  display: none !important;
+}
+
+/* ------------------------------------------------------------------ */
+/* Scroll story: media sticky + pasos narrativos                       */
+/* ------------------------------------------------------------------ */
+
+.sf-scroll-story {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(28px, 6vw, 88px);
+  align-items: start;
+}
+
+.sf-scroll-story-media {
+  position: sticky;
+  top: 96px;
+}
+
+.sf-scroll-story-step {
+  display: flex;
+  min-height: 58vh;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+@media (max-width: 820px) {
+  .sf-scroll-story {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .sf-scroll-story-media {
+    position: relative;
+    top: auto;
+  }
+
+  .sf-scroll-story-media > div {
+    height: 50vh !important;
+  }
+
+  .sf-scroll-story-step {
+    min-height: 0;
+    padding: 48px 0;
+  }
 }

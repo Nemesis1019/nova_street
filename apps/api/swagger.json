@@ -2273,6 +2273,42 @@
         ]
       }
     },
+    "/admin/assets": {
+      "get": {
+        "operationId": "AssetsController_list",
+        "parameters": [
+          {
+            "name": "purpose",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-assets"
+        ]
+      }
+    },
     "/admin/assets/upload": {
       "post": {
         "operationId": "AssetsController_upload",
@@ -2375,6 +2411,44 @@
                 }
               }
             }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-assets"
+        ]
+      }
+    },
+    "/admin/assets/{id}/crop": {
+      "patch": {
+        "operationId": "AssetsController_updateCrop",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAssetCropDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -5627,6 +5701,127 @@
         ]
       }
     },
+    "/admin/design-templates": {
+      "get": {
+        "operationId": "AdminDesignTemplatesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Prendas, zonas, colores y reglas de precio"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Catálogo completo de prendas personalizables",
+        "tags": [
+          "design-templates-admin"
+        ]
+      },
+      "post": {
+        "operationId": "AdminDesignTemplatesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDesignTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear un tipo de prenda personalizable",
+        "tags": [
+          "design-templates-admin"
+        ]
+      }
+    },
+    "/admin/design-templates/{id}": {
+      "patch": {
+        "operationId": "AdminDesignTemplatesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDesignTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar prenda, colores, zonas o pricing",
+        "tags": [
+          "design-templates-admin"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminDesignTemplatesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar o archivar una prenda personalizable",
+        "tags": [
+          "design-templates-admin"
+        ]
+      }
+    },
     "/addresses": {
       "post": {
         "operationId": "AddressesController_create",
@@ -5875,6 +6070,174 @@
         "responses": {
           "200": {
             "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/platform/tenants/{id}/select": {
+      "post": {
+        "operationId": "PlatformController_select",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cambia el cliente activo del superadmin (sin impersonar)"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/platform/tenants/{id}/subscription": {
+      "get": {
+        "operationId": "PlatformController_subscription",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Plan, estado e historial de pagos de la suscripción"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform"
+        ]
+      },
+      "patch": {
+        "operationId": "PlatformController_updateSubscription",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTenantSubscriptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Asigna un plan de suscripción al cliente"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/platform/tenants/{id}/subscription/suspend": {
+      "post": {
+        "operationId": "PlatformController_suspendSubscription",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionActionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Suspende la suscripción del cliente"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/platform/tenants/{id}/subscription/reactivate": {
+      "post": {
+        "operationId": "PlatformController_reactivateSubscription",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionActionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reactiva la suscripción del cliente"
           }
         },
         "security": [
@@ -6413,6 +6776,71 @@
         ],
         "tags": [
           "platform-users"
+        ]
+      }
+    },
+    "/admin/subscription": {
+      "get": {
+        "operationId": "SubscriptionController_overview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Planes, estado, vencimiento e historial de pagos"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Estado de la suscripción SaaS del cliente actual",
+        "tags": [
+          "subscriptions"
+        ]
+      }
+    },
+    "/admin/subscription/checkout": {
+      "post": {
+        "operationId": "SubscriptionController_checkout",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionCheckoutDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Config efímera del botón de pagos Bold"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Configuración del botón Bold para pagar la suscripción",
+        "tags": [
+          "subscriptions"
+        ]
+      }
+    },
+    "/subscriptions/webhook/bold": {
+      "post": {
+        "operationId": "SubscriptionWebhookController_boldWebhook",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Webhook Bold para confirmar pagos de suscripción",
+        "tags": [
+          "subscriptions"
         ]
       }
     },
@@ -7411,6 +7839,511 @@
         ]
       }
     },
+    "/admin/storefront": {
+      "get": {
+        "operationId": "AdminStorefrontController_state",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-storefront"
+        ]
+      }
+    },
+    "/admin/storefront/presets": {
+      "get": {
+        "operationId": "AdminStorefrontController_presets",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-storefront"
+        ]
+      },
+      "post": {
+        "operationId": "AdminStorefrontController_savePreset",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveStorefrontPresetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-storefront"
+        ]
+      }
+    },
+    "/admin/storefront/experiments/{id}/results": {
+      "get": {
+        "operationId": "AdminStorefrontController_experimentResults",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-storefront"
+        ]
+      }
+    },
+    "/admin/storefront/draft": {
+      "put": {
+        "operationId": "AdminStorefrontController_saveDraft",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveStorefrontDraftDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-storefront"
+        ]
+      }
+    },
+    "/admin/storefront/publish": {
+      "post": {
+        "operationId": "AdminStorefrontController_publish",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-storefront"
+        ]
+      }
+    },
+    "/admin/storefront/approval": {
+      "patch": {
+        "operationId": "AdminStorefrontController_setApprovalRequired",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetStorefrontApprovalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-storefront"
+        ]
+      }
+    },
+    "/admin/storefront/approval/submit": {
+      "post": {
+        "operationId": "AdminStorefrontController_submitApproval",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-storefront"
+        ]
+      }
+    },
+    "/admin/storefront/approval/approve": {
+      "post": {
+        "operationId": "AdminStorefrontController_approve",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewStorefrontApprovalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-storefront"
+        ]
+      }
+    },
+    "/admin/storefront/approval/reject": {
+      "post": {
+        "operationId": "AdminStorefrontController_reject",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewStorefrontApprovalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-storefront"
+        ]
+      }
+    },
+    "/admin/storefront/presets/{id}": {
+      "delete": {
+        "operationId": "AdminStorefrontController_deletePreset",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-storefront"
+        ]
+      }
+    },
+    "/admin/storefront/presets/{key}/apply": {
+      "post": {
+        "operationId": "AdminStorefrontController_applyPreset",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-storefront"
+        ]
+      }
+    },
+    "/admin/storefront/versions": {
+      "get": {
+        "operationId": "AdminStorefrontController_versions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-storefront"
+        ]
+      }
+    },
+    "/admin/storefront/versions/{id}/restore": {
+      "post": {
+        "operationId": "AdminStorefrontController_restore",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-storefront"
+        ]
+      }
+    },
+    "/admin/storefront/preview-token": {
+      "post": {
+        "operationId": "AdminStorefrontController_previewToken",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-storefront"
+        ]
+      }
+    },
+    "/storefront/preview": {
+      "get": {
+        "operationId": "StorefrontController_preview",
+        "parameters": [
+          {
+            "name": "token",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get the draft storefront document using a signed preview token",
+        "tags": [
+          "storefront"
+        ]
+      }
+    },
+    "/storefront/experiment-event": {
+      "post": {
+        "operationId": "StorefrontController_experimentEvent",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordExperimentEventDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": ""
+          }
+        },
+        "summary": "Record an anonymous storefront experiment impression or click",
+        "tags": [
+          "storefront"
+        ]
+      }
+    },
     "/store-redirects": {
       "get": {
         "operationId": "StoreRedirectsController_findActive",
@@ -8065,6 +8998,35 @@
           "emailVerified"
         ]
       },
+      "WishlistImageDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          },
+          "smallUrl": {
+            "type": "string"
+          },
+          "mediumUrl": {
+            "type": "string"
+          },
+          "focalPointX": {
+            "type": "number"
+          },
+          "focalPointY": {
+            "type": "number"
+          },
+          "cropZoom": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
       "WishlistItemDto": {
         "type": "object",
         "properties": {
@@ -8085,6 +9047,13 @@
           },
           "imageUrl": {
             "type": "string"
+          },
+          "images": {
+            "description": "Imágenes del producto en orden de catálogo",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WishlistImageDto"
+            }
           },
           "isAvailable": {
             "type": "boolean",
@@ -8110,6 +9079,7 @@
           "productName",
           "productSlug",
           "price",
+          "images",
           "isAvailable",
           "createdAt"
         ]
@@ -8590,6 +9560,13 @@
             "maxLength": 300
           },
           "html": {
+            "type": "string"
+          },
+          "headerHtml": {
+            "type": "string",
+            "description": "Overrides del layout global para previsualizar sin guardar."
+          },
+          "footerHtml": {
             "type": "string"
           }
         }
@@ -9718,6 +10695,9 @@
           },
           "slug": {
             "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
           }
         },
         "required": [
@@ -9850,6 +10830,15 @@
           },
           "size": {
             "type": "number"
+          },
+          "focalPointX": {
+            "type": "number"
+          },
+          "focalPointY": {
+            "type": "number"
+          },
+          "cropZoom": {
+            "type": "number"
           }
         },
         "required": [
@@ -9925,6 +10914,31 @@
           "url",
           "mimeType",
           "size"
+        ]
+      },
+      "UpdateAssetCropDto": {
+        "type": "object",
+        "properties": {
+          "focalPointX": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "focalPointY": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "cropZoom": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 2
+          }
+        },
+        "required": [
+          "focalPointX",
+          "focalPointY",
+          "cropZoom"
         ]
       },
       "AuditLogUserDto": {
@@ -12623,6 +13637,17 @@
           "surcharge": {
             "type": "number"
           },
+          "pricingBreakdown": {
+            "type": "object",
+            "description": "Desglose autoritativo del precio"
+          },
+          "printFiles": {
+            "description": "Archivos de impresión por zona",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
           "rejectionReason": {
             "type": "string"
           },
@@ -12672,11 +13697,20 @@
               "CLIPART"
             ]
           },
+          "printAreaKey": {
+            "type": "string"
+          },
           "assetUrl": {
             "type": "string"
           },
           "textContent": {
             "type": "string"
+          },
+          "fontFamily": {
+            "type": "string"
+          },
+          "fontWeight": {
+            "type": "number"
           },
           "fontSize": {
             "type": "number"
@@ -12698,12 +13732,61 @@
           },
           "zIndex": {
             "type": "number"
+          },
+          "width": {
+            "type": "number"
+          },
+          "height": {
+            "type": "number"
           }
         },
         "required": [
           "type",
           "positionX",
           "positionY"
+        ]
+      },
+      "CustomDesignPrintFileDto": {
+        "type": "object",
+        "properties": {
+          "zoneKey": {
+            "type": "string"
+          },
+          "assetUrl": {
+            "type": "string"
+          },
+          "dpi": {
+            "type": "number",
+            "minimum": 72
+          },
+          "widthCm": {
+            "type": "number",
+            "minimum": 0.1
+          },
+          "heightCm": {
+            "type": "number",
+            "minimum": 0.1
+          },
+          "printMethod": {
+            "type": "string",
+            "enum": [
+              "DTG",
+              "DTF",
+              "SCREEN",
+              "EMBROIDERY"
+            ]
+          },
+          "mirrored": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "zoneKey",
+          "assetUrl",
+          "dpi",
+          "widthCm",
+          "heightCm",
+          "printMethod"
         ]
       },
       "UpdateCustomDesignDto": {
@@ -12726,6 +13809,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CustomDesignElementDto"
+            }
+          },
+          "printFiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomDesignPrintFileDto"
             }
           }
         }
@@ -12886,6 +13975,344 @@
           "createdAt",
           "updatedAt"
         ]
+      },
+      "DesignTemplateColorDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "hex": {
+            "type": "string",
+            "example": "#0d0d0d"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "priceAdjustment": {
+            "type": "number",
+            "default": 0
+          }
+        },
+        "required": [
+          "name",
+          "hex"
+        ]
+      },
+      "DesignTemplateSizeDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "priceAdjustment": {
+            "type": "number",
+            "default": 0
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "DesignTemplateZoneDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "example": "front"
+          },
+          "label": {
+            "type": "string",
+            "example": "Frente"
+          },
+          "x": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "y": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "width": {
+            "type": "number",
+            "minimum": 0.01,
+            "maximum": 1
+          },
+          "height": {
+            "type": "number",
+            "minimum": 0.01,
+            "maximum": 1
+          },
+          "price": {
+            "type": "number",
+            "default": 0
+          },
+          "printMethod": {
+            "enum": [
+              "DTG",
+              "DTF",
+              "SCREEN",
+              "EMBROIDERY"
+            ],
+            "type": "string",
+            "default": "DTG"
+          },
+          "printDpi": {
+            "type": "number",
+            "minimum": 72,
+            "maximum": 1200,
+            "default": 300
+          },
+          "bleedMm": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 20,
+            "default": 2
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "maxWidthCm": {
+            "type": "number"
+          },
+          "maxHeightCm": {
+            "type": "number"
+          },
+          "allowText": {
+            "type": "boolean",
+            "default": true
+          },
+          "allowImage": {
+            "type": "boolean",
+            "default": true
+          },
+          "allowClipart": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "x",
+          "y",
+          "width",
+          "height"
+        ]
+      },
+      "DesignTemplateQuantityTierDto": {
+        "type": "object",
+        "properties": {
+          "minQuantity": {
+            "type": "number",
+            "minimum": 1,
+            "example": 10
+          },
+          "discountPercent": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "example": 5
+          }
+        },
+        "required": [
+          "minQuantity",
+          "discountPercent"
+        ]
+      },
+      "DesignTemplatePricingDto": {
+        "type": "object",
+        "properties": {
+          "perElement": {
+            "type": "number",
+            "default": 2500
+          },
+          "textPerCharacter": {
+            "type": "number",
+            "default": 0
+          },
+          "setupFee": {
+            "type": "number",
+            "default": 0
+          },
+          "minPrice": {
+            "type": "number",
+            "default": 0
+          },
+          "quantityTiers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DesignTemplateQuantityTierDto"
+            }
+          }
+        }
+      },
+      "CreateDesignTemplateDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "garmentType": {
+            "type": "string",
+            "example": "Remera"
+          },
+          "description": {
+            "type": "string"
+          },
+          "baseImageUrl": {
+            "type": "string"
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          },
+          "model3dUrl": {
+            "type": "string",
+            "description": "GLB/GLTF para la fase 3D"
+          },
+          "model3dRotationY": {
+            "type": "number",
+            "minimum": -360,
+            "maximum": 360,
+            "default": 180,
+            "description": "Rotación Y del modelo en grados"
+          },
+          "basePrice": {
+            "type": "number",
+            "minimum": 0
+          },
+          "colors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DesignTemplateColorDto"
+            }
+          },
+          "sizes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DesignTemplateSizeDto"
+            }
+          },
+          "zones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DesignTemplateZoneDto"
+            }
+          },
+          "pricing": {
+            "$ref": "#/components/schemas/DesignTemplatePricingDto"
+          },
+          "stockMode": {
+            "enum": [
+              "MADE_TO_ORDER",
+              "TRACKED"
+            ],
+            "type": "string",
+            "default": "MADE_TO_ORDER"
+          },
+          "productionLeadTimeDays": {
+            "type": "number",
+            "minimum": 1,
+            "default": 7
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          },
+          "sortOrder": {
+            "type": "number",
+            "default": 0
+          }
+        },
+        "required": [
+          "name",
+          "garmentType",
+          "baseImageUrl",
+          "basePrice",
+          "colors",
+          "sizes",
+          "zones"
+        ]
+      },
+      "UpdateDesignTemplateDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "garmentType": {
+            "type": "string",
+            "example": "Remera"
+          },
+          "description": {
+            "type": "string"
+          },
+          "baseImageUrl": {
+            "type": "string"
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          },
+          "model3dUrl": {
+            "type": "string",
+            "description": "GLB/GLTF para la fase 3D"
+          },
+          "model3dRotationY": {
+            "type": "number",
+            "minimum": -360,
+            "maximum": 360,
+            "default": 180,
+            "description": "Rotación Y del modelo en grados"
+          },
+          "basePrice": {
+            "type": "number",
+            "minimum": 0
+          },
+          "colors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DesignTemplateColorDto"
+            }
+          },
+          "sizes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DesignTemplateSizeDto"
+            }
+          },
+          "zones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DesignTemplateZoneDto"
+            }
+          },
+          "pricing": {
+            "$ref": "#/components/schemas/DesignTemplatePricingDto"
+          },
+          "stockMode": {
+            "enum": [
+              "MADE_TO_ORDER",
+              "TRACKED"
+            ],
+            "type": "string",
+            "default": "MADE_TO_ORDER"
+          },
+          "productionLeadTimeDays": {
+            "type": "number",
+            "minimum": 1,
+            "default": 7
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          },
+          "sortOrder": {
+            "type": "number",
+            "default": 0
+          }
+        }
       },
       "CreateAddressDto": {
         "type": "object",
@@ -13076,6 +14503,28 @@
           }
         }
       },
+      "UpdateTenantSubscriptionDto": {
+        "type": "object",
+        "properties": {
+          "planId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID del plan activo a asignar al cliente"
+          }
+        },
+        "required": [
+          "planId"
+        ]
+      },
+      "SubscriptionActionDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "description": "Motivo de la acción, para auditoría"
+          }
+        }
+      },
       "ImpersonateTenantDto": {
         "type": "object",
         "properties": {
@@ -13204,6 +14653,15 @@
           },
           "isActive": {
             "type": "boolean"
+          }
+        }
+      },
+      "SubscriptionCheckoutDto": {
+        "type": "object",
+        "properties": {
+          "planId": {
+            "type": "string",
+            "description": "Plan a contratar; si falta se usa el plan actual"
           }
         }
       },
@@ -14369,6 +15827,87 @@
             "type": "string"
           }
         }
+      },
+      "SaveStorefrontDraftDto": {
+        "type": "object",
+        "properties": {
+          "doc": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "doc"
+        ]
+      },
+      "SetStorefrontApprovalDto": {
+        "type": "object",
+        "properties": {
+          "required": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "required"
+        ]
+      },
+      "ReviewStorefrontApprovalDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      },
+      "SaveStorefrontPresetDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 240
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "RecordExperimentEventDto": {
+        "type": "object",
+        "properties": {
+          "experimentId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "variant": {
+            "type": "string",
+            "enum": [
+              "A",
+              "B"
+            ]
+          },
+          "event": {
+            "type": "string",
+            "enum": [
+              "impression",
+              "cta_click"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "experimentId",
+          "variant",
+          "event"
+        ]
       },
       "CreateStoreRedirectDto": {
         "type": "object",

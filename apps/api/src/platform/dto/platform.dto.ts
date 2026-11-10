@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsIn, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsIn, IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
 
 export class CreateTenantDto {
   @ApiProperty({ example: 'acme' })
@@ -40,4 +40,17 @@ export class UpdateTenantDto {
   @IsIn(['ACTIVE', 'SUSPENDED'])
   @IsOptional()
   status?: 'ACTIVE' | 'SUSPENDED';
+}
+
+export class UpdateTenantSubscriptionDto {
+  @ApiProperty({ description: 'ID del plan activo a asignar al cliente' })
+  @IsUUID()
+  planId!: string;
+}
+
+export class SubscriptionActionDto {
+  @ApiPropertyOptional({ description: 'Motivo de la acción, para auditoría' })
+  @IsString()
+  @IsOptional()
+  reason?: string;
 }

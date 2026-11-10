@@ -20,6 +20,7 @@ import { usePlatformSession } from '../providers/platform-provider';
 import { CommandPalette } from './command-palette';
 import { NotificationsBell } from './notifications-bell';
 import { ClientSwitcher } from './platform/client-switcher';
+import { PwaInstallButton } from './pwa-install-button';
 import { Icon } from './ui/icon';
 import { DRAWER_SPRING, LAYOUT_SPRING } from './ui/motion';
 
@@ -245,7 +246,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 href="/dashboard"
                 className="truncate font-headline-sm text-headline-sm uppercase tracking-wider text-primary"
               >
-                Admin {config.name}
+                Admin NÖVA
               </Link>
               <span className="hidden h-1.5 w-1.5 shrink-0 rounded-full bg-primary sm:inline-block" />
               <span className="hidden shrink-0 rounded-full bg-surface-container-high px-2 py-0.5 font-label-sm text-label-sm text-on-surface-variant sm:inline-block">
@@ -271,13 +272,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
           <div className="flex items-center gap-3 lg:gap-4">
             <ClientSwitcher enabled={canSwitchTenant} />
-
-            <div className="hidden items-center gap-2 rounded-lg border border-outline-variant/40 bg-surface-container-lowest px-2.5 py-1 xl:flex">
-              <Icon name="storefront" className="text-[18px] text-on-surface-variant" />
-              <span className="font-label-sm text-label-sm text-on-surface">
-                {config.name} ({config.currencyCode})
-              </span>
-            </div>
 
             <Menu position="bottom-end" shadow="md" width={170} withinPortal>
               <Menu.Target>
@@ -319,6 +313,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
               <span>{translate('header.preview', 'Vista Previa')}</span>
             </Link>
 
+            <PwaInstallButton label={translate('header.installApp', 'Instalar app')} />
+
             <NotificationsBell />
 
             <div className="hidden h-6 w-px bg-outline-variant/40 lg:block" />
@@ -357,26 +353,17 @@ export function AdminShell({ children }: { children: ReactNode }) {
                     </div>
                   </div>
                 ) : null}
-                <div className="px-3 py-2">
-                  <div className="font-label-uppercase text-label-uppercase uppercase tracking-wider text-on-surface-variant">
-                    {translate('header.currentClient', 'Cliente actual')}
+                {!platformUser ? (
+                  <div className="px-3 py-2">
+                    <div className="font-label-uppercase text-label-uppercase uppercase tracking-wider text-on-surface-variant">
+                      {translate('header.account', 'Cuenta')}
+                    </div>
+                    <div className="font-label-md text-label-md text-on-surface">{user.name}</div>
+                    <div className="max-w-[190px] truncate font-label-sm text-label-sm text-on-surface-variant">
+                      {user.email}
+                    </div>
                   </div>
-                  {platformUser ? (
-                    <>
-                      <div className="font-label-md text-label-md text-on-surface">{config.name}</div>
-                      <div className="max-w-[190px] truncate font-label-sm text-label-sm text-on-surface-variant">
-                        {tenantSlug}
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="font-label-md text-label-md text-on-surface">{user.name}</div>
-                      <div className="max-w-[190px] truncate font-label-sm text-label-sm text-on-surface-variant">
-                        {user.email}
-                      </div>
-                    </>
-                  )}
-                </div>
+                ) : null}
                 {platformUser ? (
                   <Menu.Item
                     component="a"

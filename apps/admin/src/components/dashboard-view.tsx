@@ -8,6 +8,7 @@ import { useMemo, useState } from 'react';
 import { apiClient } from '../lib/api';
 import { useTranslation } from '../providers/i18n-provider';
 import { LoadingState } from './loading-state';
+import { SubscriptionBanner } from './subscription-banner';
 import { TrendsChart } from './trends-chart';
 import { Icon } from './ui/icon';
 import { AnimatedNumber, fadeInUp, staggerContainer } from './ui/motion';
@@ -301,6 +302,8 @@ export function DashboardView() {
   return (
     <>
       <div className="flex flex-col gap-8">
+        <SubscriptionBanner />
+
         <PageHeader
           overline={
             <div className="flex items-center gap-2">

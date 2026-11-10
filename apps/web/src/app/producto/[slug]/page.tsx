@@ -1,5 +1,5 @@
 import type { components } from '@ecommerce/api-client';
-import { Container, Grid, GridCol, Group, Image, Stack, Text, Title } from '@mantine/core';
+import { Container, Grid, GridCol, Group, Stack, Text, Title } from '@mantine/core';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
@@ -7,6 +7,7 @@ import { AddToCartButton } from '../../../components/add-to-cart-button';
 import { CompareButton } from '../../../components/compare-button';
 import { PriceText } from '../../../components/price-text';
 import { ProductCard } from '../../../components/product-card';
+import { ProductGallery } from '../../../components/product-gallery';
 import { ProductRating } from '../../../components/product-rating';
 import { StoreFooter } from '../../../components/store-footer';
 import { StoreHeader } from '../../../components/store-header';
@@ -56,9 +57,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const productId = product.id;
   const variants = product.variants ?? [];
   const price = product.displayPrice ?? product.basePrice;
-  const storefront = parseStorefrontConfig((config as StoreConfig | undefined)?.storefrontConfig);
-  const templateConfig = (config as StoreConfig | undefined)?.templateConfig ?? {};
+  const webConfig = config as StoreConfig | undefined;
+  const storefront = parseStorefrontConfig(webConfig?.storefrontConfig);
+  const templateConfig = webConfig?.templateConfig ?? {};
   const productEyebrow = templateConfig.productEyebrow ?? `${config?.name || 'Tienda'} Original`;
+  const docProduct = webConfig?.storefrontDoc?.pages.product;
+  const docCatalog = webConfig?.storefrontDoc?.pages.catalog;
   const relatedConfig = storefront.relatedProducts;
   const crossSellConfig = storefront.crossSell;
 
@@ -92,34 +96,28 @@ export default async function ProductPage({ params }: ProductPageProps) {
   return (
     <>
       <StoreHeader />
-      <main style={{ backgroundColor: '#fcf9f8', padding: '64px 16px 128px' }}>
+      <main style={{ backgroundColor: 'var(--sf-color-canvas, var(--sf-color-surface, #fcf9f8))', padding: '64px 16px 128px' }}>
         <Container size="xl" px={0}>
           <Grid gap="xl" align="flex-start">
-            <GridCol span={{ base: 12, md: 7 }}>
-              {product.images && product.images.length > 0 ? (
-                <Image
-                  src={product.images[0].mediumUrl ?? product.images[0].url}
-                  alt={product.name}
-                  radius={0}
-                  fit="cover"
-                  style={{ border: '1px solid #0d0d0d' }}
-                />
-              ) : (
-                <div
-                  style={{
-                    aspectRatio: '4/5',
-                    backgroundColor: '#f0f0f0',
-                    border: '1px solid #0d0d0d',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Text c="dimmed">Sin imagen</Text>
-                </div>
-              )}
+            <GridCol
+              span={{ base: 12, md: 7 }}
+              style={{ order: docProduct?.galleryLayout === 'right' ? 2 : 1 }}
+            >
+              <ProductGallery
+                images={product.images ?? []}
+                alt={product.name}
+                showThumbnails={docProduct?.showGalleryThumbnails ?? true}
+                swipeEnabled={docProduct?.gallerySwipeEnabled ?? true}
+              />
             </GridCol>
-            <GridCol span={{ base: 12, md: 5 }}>
+            <GridCol
+              span={{ base: 12, md: 5 }}
+              style={{
+                order: docProduct?.galleryLayout === 'right' ? 1 : 2,
+                position: docProduct?.stickyBuyBox ? 'sticky' : undefined,
+                top: docProduct?.stickyBuyBox ? 96 : undefined,
+              }}
+            >
               <Stack gap="xl" pt={{ md: 'xl' }}>
                 <Stack gap="xs">
                   <Text
@@ -181,8 +179,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <div
                   style={{
                     padding: '24px',
-                    border: '1px solid #0d0d0d',
-                    backgroundColor: '#f6f3f2',
+                    border: '1px solid var(--sf-color-text, #0d0d0d)',
+                    backgroundColor: 'var(--sf-color-surface-muted, #f6f3f2)',
                   }}
                 >
                   <AddToCartButton
@@ -216,7 +214,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </GridCol>
           </Grid>
 
-          {relatedProducts.length > 0 && (
+          {relatedProducts.length > 0 && docProduct?.showRelated !== false && (
             <div style={{ marginTop: 80 }}>
               <Title order={2} mb="xl" style={{ fontFamily: 'var(--font-bebas-neue)' }}>
                 Productos relacionados
@@ -224,7 +222,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <Grid gap="xl">
                 {relatedProducts.map((related) => (
                   <GridCol span={{ base: 12, sm: 6, lg: 3 }} key={related.id}>
-                    <ProductCard product={related} />
+                    <ProductCard
+                      product={related}
+                      variant={docCatalog?.productCardVariant ?? 'default'}
+                    />
                   </GridCol>
                 ))}
               </Grid>
@@ -239,14 +240,17 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <Grid gap="xl">
                 {crossSellProducts.map((item) => (
                   <GridCol span={{ base: 12, sm: 6, lg: 3 }} key={item.id}>
-                    <ProductCard product={item} />
+                    <ProductCard
+                      product={item}
+                      variant={docCatalog?.productCardVariant ?? 'default'}
+                    />
                   </GridCol>
                 ))}
               </Grid>
             </div>
           )}
 
-          {storefront.featureFlags.enableReviews && (
+          {storefront.featureFlags.enableReviews && docProduct?.showReviews !== false && (
             <div style={{ marginTop: 80 }}>
               <ProductReviews productId={product.id} />
             </div>

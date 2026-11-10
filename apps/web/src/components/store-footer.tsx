@@ -18,6 +18,7 @@ export function StoreFooter() {
   const { t } = useTranslation();
   const storefront = parseStorefrontConfig(config.storefrontConfig);
   const footer = storefront.footer;
+  const footerVariant = config.storefrontDoc?.footer.variant ?? 'columns';
   const socialLinks = config.socialLinks && typeof config.socialLinks === 'object' ? (config.socialLinks as Record<string, string>) : {};
 
   const { data: pagesResponse } = useQuery({
@@ -56,10 +57,10 @@ export function StoreFooter() {
   return (
     <footer
       style={{
-        borderTop: '1px solid #0d0d0d',
+        borderTop: '1px solid var(--sf-color-text, #0d0d0d)',
         marginTop: 'auto',
-        backgroundColor: '#fcf9f8',
-        color: '#1b1c1c',
+        backgroundColor: 'var(--sf-color-surface, #fcf9f8)',
+        color: 'var(--sf-color-text, #1b1c1c)',
       }}
     >
       <Container fluid px={{ base: 16, md: 64 }} py="xl">
@@ -80,42 +81,44 @@ export function StoreFooter() {
               </Text>
             </Stack>
 
-            <Stack gap="xs">
-              <Text
-                className={jetbrainsMono.className}
-                size="xs"
-                style={{
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                Navegación
-              </Text>
-              <Link href="/catalogo" style={{ color: 'inherit', textDecoration: 'none', fontSize: '14px' }}>
-                Catálogo
-              </Link>
-              <Link href="/account" style={{ color: 'inherit', textDecoration: 'none', fontSize: '14px' }}>
-                Mi cuenta
-              </Link>
-              {pages.map((page) => (
-                <Link
-                  key={page.id}
-                  href={`/pagina/${page.slug}`}
-                  style={{ color: 'inherit', textDecoration: 'none', fontSize: '14px' }}
+            {footerVariant !== 'minimal' ? (
+              <Stack gap="xs">
+                <Text
+                  className={jetbrainsMono.className}
+                  size="xs"
+                  style={{
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                  }}
                 >
-                  {page.title}
+                  Navegación
+                </Text>
+                <Link href="/catalogo" style={{ color: 'inherit', textDecoration: 'none', fontSize: '14px' }}>
+                  Catálogo
                 </Link>
-              ))}
-              {footer.extraLinks.map((link, index) => (
-                <Link
-                  key={`extra-${index}`}
-                  href={link.href}
-                  style={{ color: 'inherit', textDecoration: 'none', fontSize: '14px' }}
-                >
-                  {link.label}
+                <Link href="/account" style={{ color: 'inherit', textDecoration: 'none', fontSize: '14px' }}>
+                  Mi cuenta
                 </Link>
-              ))}
-            </Stack>
+                {pages.map((page) => (
+                  <Link
+                    key={page.id}
+                    href={`/pagina/${page.slug}`}
+                    style={{ color: 'inherit', textDecoration: 'none', fontSize: '14px' }}
+                  >
+                    {page.title}
+                  </Link>
+                ))}
+                {footer.extraLinks.map((link, index) => (
+                  <Link
+                    key={`extra-${index}`}
+                    href={link.href}
+                    style={{ color: 'inherit', textDecoration: 'none', fontSize: '14px' }}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </Stack>
+            ) : null}
 
             <Stack gap="xs">
               <Text
@@ -174,10 +177,10 @@ export function StoreFooter() {
                     }}
                     styles={{
                       input: {
-                        border: '1px solid #0d0d0d',
+                        border: '1px solid var(--sf-color-text, #0d0d0d)',
                         borderRight: 'none',
                         backgroundColor: 'transparent',
-                        color: '#1b1c1c',
+                        color: 'var(--sf-color-text, #1b1c1c)',
                       },
                     }}
                   />
@@ -197,7 +200,7 @@ export function StoreFooter() {
             )}
           </Group>
 
-          <Divider color="#0d0d0d" />
+          <Divider color="var(--sf-color-text, #0d0d0d)" />
 
           <Group justify="space-between" wrap="wrap" gap="md">
             <Text size="xs" c="dimmed">

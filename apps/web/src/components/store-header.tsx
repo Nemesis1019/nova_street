@@ -23,11 +23,38 @@ export function StoreHeader() {
   const config = useStoreConfig();
   const storefrontConfig = parseStorefrontConfig(config.storefrontConfig);
   const headerVariant = config.templateConfig?.headerVariant ?? 'default';
+  const headerDoc = config.storefrontDoc?.header;
   const [opened, { toggle, close }] = useDisclosure(false);
   // Evita el mismatch de hidratación: el conteo del carrito y el estado de sesión
   // solo se pintan después del primer render en el cliente.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  const [condensed, setCondensed] = useState(false);
+  const shrinkOnScroll = headerDoc?.shrinkOnScroll === true;
+
+  useEffect(() => {
+    if (!shrinkOnScroll || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setCondensed(false);
+      return;
+    }
+
+    let frame = 0;
+    const update = () => {
+      setCondensed(window.scrollY > 48);
+      frame = 0;
+    };
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    update();
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [shrinkOnScroll]);
+
   const localCount = useCartStore((state) => state.totalItems());
   const { isAuthenticated, sessionReady } = useAuthStore();
   const { t } = useTranslation();
@@ -94,21 +121,27 @@ export function StoreHeader() {
 
   return (
     <header
-      className={bebasNeue.className}
+      className={`sf-header ${bebasNeue.className}`}
       style={{
-        borderBottom: '1px solid #0d0d0d',
-        backgroundColor: '#fcf9f8',
-        color: '#1b1c1c',
-        position: 'sticky',
+        borderBottom: 'var(--sf-border-width, 1px) solid var(--sf-color-border, #0d0d0d)',
+        backgroundColor: 'var(--sf-color-surface, #fcf9f8)',
+        color: 'var(--sf-color-text, #1b1c1c)',
+        fontFamily: 'var(--sf-font-heading, var(--font-bebas-neue, Impact, sans-serif))',
+        position: headerDoc?.sticky === false ? 'relative' : 'sticky',
         top: 0,
         zIndex: 100,
       }}
     >
       <Group
+        className="sf-header-row"
         justify={headerVariant === 'centered' ? 'center' : 'space-between'}
         px={{ base: 16, md: 64 }}
         py="md"
         wrap="nowrap"
+        style={{
+          paddingTop: condensed ? 8 : undefined,
+          paddingBottom: condensed ? 8 : undefined,
+        }}
       >
         {headerVariant === 'centered' && <div />}
 
@@ -145,7 +178,7 @@ export function StoreHeader() {
 
         {/* Desktop actions */}
         <Group gap="lg" visibleFrom="md" wrap="nowrap" align="center">
-          <SearchAutocomplete />
+          {headerDoc?.showSearch !== false ? <SearchAutocomplete /> : null}
 
           <CurrencySelector />
           <LanguageSelector />
@@ -226,8 +259,8 @@ export function StoreHeader() {
         className={bebasNeue.className}
         styles={{
           content: {
-            backgroundColor: '#fcf9f8',
-            color: '#1b1c1c',
+            backgroundColor: 'var(--sf-color-surface, #fcf9f8)',
+            color: 'var(--sf-color-text, #1b1c1c)',
           },
         }}
       >
@@ -274,7 +307,7 @@ export function StoreHeader() {
             </Stack>
           )}
 
-          <Divider color="#0d0d0d" />
+          <Divider color="var(--sf-color-text, #0d0d0d)" />
 
           <LinkAnchor href="/cart" underline="never" onClick={close} style={drawerItemStyle}>
             <IconShoppingCart size={22} stroke={1.5} />
@@ -337,7 +370,7 @@ function CurrencySelector() {
           letterSpacing: '0.05em',
           minWidth: 80,
         },
-        dropdown: { borderRadius: 0, border: '1px solid #0d0d0d' },
+        dropdown: { borderRadius: 0, border: '1px solid var(--sf-color-text, #0d0d0d)' },
         option: { fontFamily: 'var(--font-jetbrains-mono), JetBrains Mono, monospace' },
       }}
       aria-label="Seleccionar moneda"
@@ -366,7 +399,7 @@ function LanguageSelector() {
           letterSpacing: '0.05em',
           minWidth: 60,
         },
-        dropdown: { borderRadius: 0, border: '1px solid #0d0d0d' },
+        dropdown: { borderRadius: 0, border: '1px solid var(--sf-color-text, #0d0d0d)' },
         option: { fontFamily: 'var(--font-jetbrains-mono), JetBrains Mono, monospace' },
       }}
       aria-label="Seleccionar idioma"

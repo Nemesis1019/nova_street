@@ -45,6 +45,8 @@ import { ReviewsModule } from './reviews/reviews.module';
 import { ShipmentsModule } from './shipments/shipments.module';
 import { StoreConfigModule } from './store-config/store-config.module';
 import { StoreRedirectsModule } from './store-redirects/store-redirects.module';
+import { StorefrontModule } from './storefront/storefront.module';
+import { SubscriptionModule } from './subscription/subscription.module';
 import { TenantMiddleware } from './tenant/tenant.middleware';
 import { TenantModule } from './tenant/tenant.module';
 import { TwoFactorModule } from './two-factor/two-factor.module';
@@ -84,7 +86,8 @@ import { WishlistModule } from './wishlist/wishlist.module';
             url.startsWith('/admin') ||
             url.startsWith('/checkout') ||
             url.startsWith('/webhooks') ||
-            url.startsWith('/payments')
+            url.startsWith('/payments') ||
+            url.startsWith('/subscriptions')
           );
         },
       },
@@ -121,7 +124,9 @@ import { WishlistModule } from './wishlist/wishlist.module';
     ReviewsModule,
     RefundsModule,
     StoreConfigModule,
+    StorefrontModule,
     StoreRedirectsModule,
+    SubscriptionModule,
     TwoFactorModule,
     EmailModule,
     ExportModule,

@@ -81,7 +81,7 @@ export default async function CustomizePage() {
                     <div
                       style={{
                         aspectRatio: '4/3',
-                        backgroundImage: `url(${template.baseImageUrl})`,
+                        backgroundImage: `url(${template.thumbnailUrl || template.baseImageUrl})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         borderBottom: '1px solid #0d0d0d',

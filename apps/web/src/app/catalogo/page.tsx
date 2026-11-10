@@ -1,7 +1,7 @@
 import type { components } from '@ecommerce/api-client';
 import { Badge, Container, Grid, GridCol, Group, Stack, Text, Title } from '@mantine/core';
 import type { Metadata } from 'next';
-import { Suspense } from 'react';
+import { type CSSProperties, Suspense } from 'react';
 
 import { ProductCard } from '../../components/product-card';
 import { StoreFooter } from '../../components/store-footer';
@@ -96,6 +96,7 @@ export default async function CatalogPage({
     configResponse = undefined;
   }
   const storefront = parseStorefrontConfig(configResponse?.storefrontConfig);
+  const docCatalog = configResponse?.storefrontDoc?.pages.catalog;
   const catalogConfig = storefront.catalog;
   const defaultLimit = catalogConfig.defaultPageSize;
   const defaultSort = mapSort(catalogConfig.defaultSort);
@@ -126,7 +127,7 @@ export default async function CatalogPage({
     products = productsResponse?.data ?? [];
     meta = productsResponse?.meta;
     categories = (categoriesResponse ?? []) as { slug: string; name: string; description?: string | null }[];
-    enableCatalogFilters = catalogConfig.showFilters;
+    enableCatalogFilters = docCatalog?.showFilters ?? catalogConfig.showFilters;
   } catch {
     products = [];
     categories = [];
@@ -164,9 +165,9 @@ export default async function CatalogPage({
   return (
     <>
       <StoreHeader />
-      <main style={{ backgroundColor: '#fcf9f8' }}>
+      <main style={{ backgroundColor: 'var(--sf-color-surface, #fcf9f8)' }}>
         {/* Page header */}
-        <section style={{ padding: '96px 0 48px', borderBottom: '1px solid #0d0d0d' }}>
+        <section style={{ padding: '96px 0 48px', borderBottom: '1px solid var(--sf-color-text, #0d0d0d)' }}>
           <Container fluid px={{ base: 16, md: 64 }}>
             <Stack gap="xs">
               <Text
@@ -214,7 +215,11 @@ export default async function CatalogPage({
               <div className="catalog-layout">
                 {enableCatalogFilters && (
                   <aside className="catalog-sidebar">
-                    <CatalogFilters sizes={sizes} colors={colors} />
+                    <CatalogFilters
+                      sizes={sizes}
+                      colors={colors}
+                      showSort={docCatalog?.showSort !== false}
+                    />
                   </aside>
                 )}
                 <div className="catalog-content">
@@ -235,9 +240,20 @@ export default async function CatalogPage({
                       </Text>
                     )}
                   </Group>
-                  <div className="catalog-products">
+                  <div
+                    className="catalog-products"
+                    style={
+                      docCatalog
+                        ? ({ '--sf-cat-cols': String(docCatalog.columns) } as CSSProperties)
+                        : undefined
+                    }
+                  >
                     {products.map((product) => (
-                      <ProductCard key={product.id} product={product} />
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        variant={docCatalog?.productCardVariant ?? 'default'}
+                      />
                     ))}
                   </div>
                   {products.length === 0 && (
@@ -261,7 +277,7 @@ export default async function CatalogPage({
         </section>
 
         {fashionMode ? (
-          <section style={{ padding: '96px 0', backgroundColor: '#0d0d0d', color: '#fcf9f8' }}>
+          <section style={{ padding: '96px 0', backgroundColor: 'var(--sf-color-text, #0d0d0d)', color: 'var(--sf-color-surface, #fcf9f8)' }}>
             <Container fluid px={{ base: 16, md: 64 }}>
               <Grid gap="xl" align="center">
                 <GridCol span={{ base: 12, md: 8 }}>
@@ -279,8 +295,8 @@ export default async function CatalogPage({
                     size="lg"
                     iconRight="arrow-forward"
                     style={{
-                      backgroundColor: '#fcf9f8',
-                      color: '#0d0d0d',
+                      backgroundColor: 'var(--sf-color-surface, #fcf9f8)',
+                      color: 'var(--sf-color-text, #0d0d0d)',
                       fontFamily: 'var(--font-bebas-neue)',
                     }}
                   >

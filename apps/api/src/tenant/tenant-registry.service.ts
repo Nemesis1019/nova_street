@@ -11,6 +11,8 @@ interface TenantRow {
   slug: string;
   name: string;
   status: TenantContextData['status'];
+  subscriptionStatus: TenantContextData['subscriptionStatus'];
+  subscriptionPaidUntil: Date | null;
   databaseUrl: string;
   isDefault: boolean;
   r2Bucket: string | null;
@@ -223,6 +225,8 @@ export class TenantRegistryService implements OnModuleInit {
       slug,
       name: process.env.STORE_NAME ?? slug,
       status: 'ACTIVE',
+      subscriptionStatus: 'TRIAL',
+      subscriptionPaidUntil: null,
       databaseUrl,
       primaryDomain: null,
       domains: [],
@@ -237,6 +241,8 @@ export class TenantRegistryService implements OnModuleInit {
       slug: row.slug,
       name: row.name,
       status: row.status,
+      subscriptionStatus: row.subscriptionStatus,
+      subscriptionPaidUntil: row.subscriptionPaidUntil,
       databaseUrl: decryptSecret(row.databaseUrl),
       primaryDomain: primary?.host ?? null,
       domains: row.domains.map((domain) => domain.host),

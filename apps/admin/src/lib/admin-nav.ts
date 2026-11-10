@@ -27,6 +27,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
     titleKey: 'sidebar.groups.catalog',
     items: [
       { href: '/products', label: 'Productos', labelKey: 'sidebar.items.products', icon: 'inventory_2' },
+      { href: '/design-templates', label: 'Personalizador', labelKey: 'sidebar.items.customizer', icon: 'checkroom' },
       { href: '/categories', label: 'Categorías', labelKey: 'sidebar.items.categories', icon: 'category' },
       { href: '/inventory', label: 'Stock & Inventario', labelKey: 'sidebar.items.inventory', icon: 'warehouse' },
       {
@@ -68,7 +69,12 @@ export const ADMIN_NAV: AdminNavGroup[] = [
     title: 'Storefront & Contenido',
     titleKey: 'sidebar.groups.storefront',
     items: [
-      { href: '/templates', label: 'Plantillas storefront', labelKey: 'sidebar.items.templates', icon: 'dashboard_customize' },
+      {
+        href: '/design',
+        label: 'Diseño de tienda',
+        labelKey: 'sidebar.items.storefrontDesign',
+        icon: 'palette',
+      },
       { href: '/pages', label: 'Páginas estáticas', labelKey: 'sidebar.items.pages', icon: 'article' },
       { href: '/email-templates', label: 'Plantillas de email', labelKey: 'sidebar.items.emails', icon: 'mail' },
       { href: '/redirects', label: 'Redirects', labelKey: 'sidebar.items.redirects', icon: 'alt_route' },
@@ -78,6 +84,12 @@ export const ADMIN_NAV: AdminNavGroup[] = [
     title: 'Configuración',
     titleKey: 'sidebar.groups.settings',
     items: [
+      {
+        href: '/subscription',
+        label: 'Suscripción',
+        labelKey: 'sidebar.items.subscription',
+        icon: 'workspace_premium',
+      },
       { href: '/store-config', label: 'Configuración de la tienda', labelKey: 'sidebar.items.storeConfig', icon: 'settings' },
       { href: '/currencies', label: 'Monedas', labelKey: 'sidebar.items.currencies', icon: 'paid' },
       { href: '/security', label: 'Seguridad', labelKey: 'sidebar.items.security', icon: 'shield_lock' },

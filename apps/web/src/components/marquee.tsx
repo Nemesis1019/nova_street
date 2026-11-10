@@ -13,6 +13,7 @@ export function Marquee() {
 
   return (
     <div
+      className="nova-legacy-marquee"
       style={{
         backgroundColor: '#6f7a4e',
         color: '#fcf9f8',
@@ -22,6 +23,7 @@ export function Marquee() {
       }}
     >
       <div
+        className="nova-legacy-marquee-track"
         style={{
           display: 'inline-flex',
           gap: '48px',

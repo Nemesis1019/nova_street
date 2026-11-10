@@ -1,6 +1,13 @@
 'use client';
 
-import { Button, ColorSwatch, Container, FileButton, Grid, GridCol, Group, Loader, Select, Slider, Stack, Text as MantineText, TextInput, Title } from '@mantine/core';
+import {
+  calculateCustomizerPrice,
+  normalizeColorOptions,
+  normalizePricingRules,
+  normalizePrintZones,
+  normalizeSizeOptions,
+} from '@ecommerce/shared';
+import { Button, ColorInput, ColorSwatch, Container, FileButton, Grid, GridCol, Group, Loader, Select, Slider, Stack, Text as MantineText, TextInput, Title } from '@mantine/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
@@ -8,18 +15,21 @@ import { type ReactNode,useEffect, useMemo, useRef, useState } from 'react';
 
 import { apiClient } from '../../lib/api';
 import { uploadAsset } from '../../lib/assets';
+import { canvasToPngBlob, downloadCanvasPng, renderZoneCanvas, zonePrintSize } from '../../lib/customizer-render';
 import type { CustomDesign, CustomDesignElement, DesignTemplate } from '../../lib/customizer-types';
 import { getApiErrorMessage, notifyError, notifySuccess, notifyWarning } from '../../lib/notifications';
 import { useCurrency } from '../../providers/currency-provider';
 import { useAuthStore } from '../../store/auth-store';
 import { AuthShell } from '../auth-shell';
 
-const Stage = dynamic(() => import('react-konva').then((mod) => mod.Stage), { ssr: false });
-const Layer = dynamic(() => import('react-konva').then((mod) => mod.Layer), { ssr: false });
-const Image = dynamic(() => import('react-konva').then((mod) => mod.Image), { ssr: false });
-const KText = dynamic(() => import('react-konva').then((mod) => mod.Text), { ssr: false });
-const Rect = dynamic(() => import('react-konva').then((mod) => mod.Rect), { ssr: false });
-const Star = dynamic(() => import('react-konva').then((mod) => mod.Star), { ssr: false });
+const KonvaCanvas = dynamic(
+  () => import('./konva-canvas').then((mod) => mod.KonvaCanvas),
+  { ssr: false },
+);
+const Shirt3DViewer = dynamic(
+  () => import('./shirt-3d-viewer').then((mod) => mod.Shirt3DViewer),
+  { ssr: false },
+);
 
 interface CustomizerEditorProps {
   templateId: string;
@@ -52,6 +62,9 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [imageMap, setImageMap] = useState<Record<string, HTMLImageElement>>({});
   const [textInput, setTextInput] = useState('');
+  const [selectedZoneKey, setSelectedZoneKey] = useState('front');
+  const [quantity, setQuantity] = useState(1);
+  const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
 
   const selectedElement = useMemo(
     () => elements.find((element) => element.id === selectedId) ?? null,
@@ -70,8 +83,47 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
     enabled: isAuthenticated,
   });
 
+  const colors = useMemo(() => (template ? normalizeColorOptions(template) : []), [template]);
+  const sizes = useMemo(() => (template ? normalizeSizeOptions(template) : []), [template]);
+  const zones = useMemo(() => (template ? normalizePrintZones(template.printAreas) : []), [template]);
+  const pricing = useMemo(
+    () => (template ? normalizePricingRules(template.pricing ?? template.pricingRules) : normalizePricingRules(undefined)),
+    [template],
+  );
+  const selectedZone = zones.find((zone) => zone.key === selectedZoneKey) ?? zones[0] ?? null;
+  const viewImageUrl =
+    selectedZone?.imageUrl ||
+    colors.find((color) => color.name === selectedColor)?.imageUrl ||
+    template?.baseImageUrl;
+
   useEffect(() => {
-    if (!template?.baseImageUrl) return;
+    if (!template) return;
+    if (!selectedColor && colors[0]) setSelectedColor(colors[0].name);
+    if (!selectedSize && sizes[0]) setSelectedSize(sizes[0].name);
+    if (zones.length > 0 && !zones.some((zone) => zone.key === selectedZoneKey)) {
+      setSelectedZoneKey(zones[0].key);
+    }
+  }, [template, colors, sizes, zones, selectedColor, selectedSize, selectedZoneKey]);
+
+  const quote = useMemo(() => {
+    if (!template) return null;
+    return calculateCustomizerPrice({
+      template: {
+        ...template,
+        colorOptions: colors,
+        sizeOptions: sizes,
+        printAreas: { zones },
+        pricingRules: pricing,
+      },
+      elements,
+      color: selectedColor,
+      size: selectedSize,
+      quantity,
+    });
+  }, [template, colors, sizes, zones, pricing, elements, selectedColor, selectedSize, quantity]);
+
+  useEffect(() => {
+    if (!viewImageUrl) return;
     let cancelled = false;
     setBaseImageStatus('loading');
     setCrossOriginBlocked(false);
@@ -99,14 +151,14 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
           setBaseImageStatus('error');
         }
       };
-      img.src = template.baseImageUrl;
+      img.src = viewImageUrl;
     };
 
     load(true, true);
     return () => {
       cancelled = true;
     };
-  }, [template?.baseImageUrl, baseImageNonce]);
+  }, [viewImageUrl, baseImageNonce]);
 
   useEffect(() => {
     elements.forEach((element) => {
@@ -183,13 +235,56 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
         });
       }
 
+      const printFiles: Array<{
+        zoneKey: string;
+        assetUrl: string;
+        dpi: number;
+        widthCm: number;
+        heightCm: number;
+        printMethod: string;
+        mirrored: boolean;
+      }> = [];
+
+      for (const zone of zones) {
+        const zoneElements = elements.filter(
+          (element) => (element.printAreaKey || 'front') === zone.key,
+        );
+        if (zoneElements.length === 0) continue;
+
+        const size = zonePrintSize(zone);
+        const { canvas } = renderZoneCanvas({
+          zone,
+          elements: zoneElements,
+          imageMap,
+          stageWidth: stageSize.width,
+          stageHeight: stageSize.height,
+          width: size.widthPx,
+          height: size.heightPx,
+        });
+        const mirrored = zone.printMethod === 'DTF';
+        const blob = await canvasToPngBlob(canvas, mirrored);
+        const file = new File([blob], `print-${zone.key}-${size.dpi}dpi.png`, {
+          type: 'image/png',
+        });
+        const asset = await uploadAsset(file, 'CUSTOM_DESIGN_ASSET');
+        printFiles.push({
+          zoneKey: zone.key,
+          assetUrl: asset.url,
+          dpi: size.dpi,
+          widthCm: size.widthCm,
+          heightCm: size.heightCm,
+          printMethod: zone.printMethod,
+          mirrored,
+        });
+      }
+
       const { data, error } = await apiClient.PATCH('/custom-designs/{id}', {
         params: { path: { id: designId } },
         body: {
           color: selectedColor,
           size: selectedSize,
           previewImageUrl: previewUrl,
-          surcharge,
+          printFiles,
           elements: elements.map(({ id: _id, ...rest }) => rest),
         } as never,
       });
@@ -205,7 +300,7 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
       if (!designId) throw new Error('No design');
       const { data, error } = await apiClient.POST('/custom-designs/{id}/add-to-cart', {
         params: { path: { id: designId } },
-        body: { quantity: 1 } as never,
+        body: { quantity } as never,
       });
       if (error || !data) throw error ?? new Error('Add to cart failed');
       return data;
@@ -217,12 +312,19 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
     onError: (error) => notifyError({ title: 'Error', message: getApiErrorMessage(error) }),
   });
 
+  const defaultInk = ['negro', 'negra', 'black', 'preta', 'marino', 'navy']
+    .includes(selectedColor.trim().toLowerCase())
+    ? '#ffffff'
+    : '#0d0d0d';
+
   function addImageElement(url: string) {
+    const id = generateId();
     setElements((prev) => [
       ...prev,
       {
-        id: generateId(),
+        id,
         type: 'UPLOADED_IMAGE',
+        printAreaKey: selectedZone?.key ?? 'front',
         assetUrl: url,
         positionX: stageSize.width / 2,
         positionY: stageSize.height / 2,
@@ -231,18 +333,21 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
         zIndex: prev.length,
       },
     ]);
+    setSelectedId(id);
   }
 
   function addTextElement() {
     if (!textInput.trim()) return;
+    const id = generateId();
     setElements((prev) => [
       ...prev,
       {
-        id: generateId(),
+        id,
         type: 'TEXT',
+        printAreaKey: selectedZone?.key ?? 'front',
         textContent: textInput,
         fontSize: 32,
-        fill: '#0d0d0d',
+        fill: defaultInk,
         positionX: stageSize.width / 2,
         positionY: stageSize.height / 2,
         scale: 1,
@@ -250,16 +355,20 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
         zIndex: prev.length,
       },
     ]);
+    setSelectedId(id);
     setTextInput('');
   }
 
   function addClipartElement(shape: 'star' | 'heart') {
+    const id = generateId();
     setElements((prev) => [
       ...prev,
       {
-        id: generateId(),
+        id,
         type: 'CLIPART',
+        printAreaKey: selectedZone?.key ?? 'front',
         textContent: shape,
+        fill: defaultInk,
         positionX: stageSize.width / 2,
         positionY: stageSize.height / 2,
         scale: 1,
@@ -267,6 +376,7 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
         zIndex: prev.length,
       },
     ]);
+    setSelectedId(id);
   }
 
   function updateSelected(patch: Partial<EditorElement>) {
@@ -363,43 +473,100 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
     );
   }
 
-  const colors = template.availableColors ?? [];
-  const sizes = template.availableSizes ?? [];
-  const surcharge = elements.length * 2_500;
-  const totalPrice = template.basePrice + surcharge;
+  const visibleElements = elements.filter(
+    (element) => (element.printAreaKey || 'front') === (selectedZone?.key ?? 'front'),
+  );
+  const totalPrice = quote?.unitPrice ?? template.basePrice;
+  const colorHex = colors.find((item) => item.name === selectedColor)?.hex ?? '#f5f5f5';
 
-  function getColorHex(colorName: string): string {
-    const map: Record<string, string> = {
-      blanco: '#ffffff',
-      blanca: '#ffffff',
-      negro: '#0d0d0d',
-      preta: '#0d0d0d',
-      gris: '#888888',
-      cinza: '#888888',
-      rojo: '#c92a2a',
-      vermelho: '#c92a2a',
-      azul: '#1864ab',
-      verde: '#2f9e44',
-      amarillo: '#f08c00',
-      rosa: '#d6336c',
-      oliva: '#6f7a4e',
-      beige: '#eaddcf',
-      marron: '#5c3a21',
-    };
-    return map[colorName.toLowerCase()] ?? '#cccccc';
-  }
+  const downloadPrintFile = async () => {
+    if (!selectedZone || visibleElements.length === 0) return;
+    try {
+      const size = zonePrintSize(selectedZone);
+      const { canvas } = renderZoneCanvas({
+        zone: selectedZone,
+        elements: visibleElements,
+        imageMap,
+        stageWidth: stageSize.width,
+        stageHeight: stageSize.height,
+        width: size.widthPx,
+        height: size.heightPx,
+      });
+      const mirror = selectedZone.printMethod === 'DTF';
+      await downloadCanvasPng(
+        canvas,
+        `${template.name.replace(/\s+/g, '-').toLowerCase()}-${selectedZone.key}-${size.dpi}dpi.png`,
+        mirror,
+      );
+      notifySuccess({ title: 'Archivo de impresión descargado' });
+      if (selectedZone.printMethod === 'SCREEN' || selectedZone.printMethod === 'EMBROIDERY') {
+        notifyWarning({
+          title: 'Archivo de referencia',
+          message:
+            selectedZone.printMethod === 'EMBROIDERY'
+              ? 'El bordado requiere digitización DST/PES; este PNG es sólo una referencia.'
+              : 'Screen printing requiere archivo vectorial y separación por color; este PNG es una referencia.',
+        });
+      }
+    } catch (error) {
+      notifyError({
+        title: 'No se pudo generar el archivo',
+        message: error instanceof Error ? error.message : 'Intentá nuevamente.',
+      });
+    }
+  };
 
   return pageShell(
     <Grid gap="xl">
       <GridCol span={{ base: 12, md: 8 }}>
+        <Group justify="space-between" mb="sm">
+          <Group gap={6}>
+            <Button
+              size="compact-sm"
+              variant={viewMode === '2d' ? 'filled' : 'outline'}
+              color="dark"
+              onClick={() => setViewMode('2d')}
+              styles={{ root: { borderRadius: 0 } }}
+            >
+              Editar 2D
+            </Button>
+            <Button
+              size="compact-sm"
+              variant={viewMode === '3d' ? 'filled' : 'outline'}
+              color="dark"
+              onClick={() => setViewMode('3d')}
+              styles={{ root: { borderRadius: 0 } }}
+            >
+              Ver 3D
+            </Button>
+          </Group>
+          <MantineText size="xs" c="dimmed">
+            El precio y el diseño se comparten entre ambas vistas.
+          </MantineText>
+        </Group>
+
+        {viewMode === '3d' ? (
+          <div style={{ height: 640 }}>
+            <Shirt3DViewer
+              modelUrl={template.model3dUrl}
+              color={colorHex}
+              zone={selectedZone}
+              elements={elements}
+              imageMap={imageMap}
+              stageWidth={stageSize.width}
+              stageHeight={stageSize.height}
+            />
+          </div>
+        ) : null}
+
         <div
           ref={stageRef}
           style={{
             border: '1px solid #0d0d0d',
             backgroundColor: '#f6f3f2',
             ...(baseImage
-              ? {}
-              : { minHeight: 360, display: 'flex', alignItems: 'center', justifyContent: 'center' }),
+              ? { display: viewMode === '3d' ? 'none' : 'flex', justifyContent: 'center' }
+              : { minHeight: 360, display: viewMode === '3d' ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center' }),
           }}
         >
           {!baseImage && baseImageStatus === 'error' && (
@@ -418,124 +585,32 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
           )}
           {!baseImage && baseImageStatus !== 'error' && <Loader color="dark" />}
           {baseImage && (
-            <Stage
+            <KonvaCanvas
               width={stageSize.width}
               height={stageSize.height}
-              ref={(node) => {
+              baseImage={baseImage}
+              zone={selectedZone}
+              elements={visibleElements}
+              imageMap={imageMap}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              onDeselect={() => setSelectedId(null)}
+              onDragEnd={(id, x, y) => {
+                setElements((prev) =>
+                  prev.map((item) => (item.id === id ? { ...item, positionX: x, positionY: y } : item)),
+                );
+              }}
+              stageRef={(node) => {
                 konvaStageRef.current = node;
               }}
-              onMouseDown={(event) => {
-                if (event.target === event.target.getStage()) {
-                  setSelectedId(null);
-                }
-              }}
-            >
-              <Layer>
-                <Image image={baseImage} width={stageSize.width} height={stageSize.height} listening={false} />
-                <Rect
-                  x={stageSize.width * 0.25}
-                  y={stageSize.height * 0.2}
-                  width={stageSize.width * 0.5}
-                  height={stageSize.height * 0.6}
-                  stroke="#0d0d0d"
-                  strokeWidth={1}
-                  dash={[4, 4]}
-                  listening={false}
-                />
-                {elements
-                  .sort((a, b) => a.zIndex - b.zIndex)
-                  .map((element) => {
-                    const isSelected = element.id === selectedId;
-                    const commonProps = {
-                      x: element.positionX,
-                      y: element.positionY,
-                      scaleX: element.scale,
-                      scaleY: element.scale,
-                      rotation: element.rotation,
-                      draggable: true,
-                      onClick: () => setSelectedId(element.id),
-                      onTap: () => setSelectedId(element.id),
-                      onDragEnd: (event: { target: { x: () => number; y: () => number } }) => {
-                        setElements((prev) =>
-                          prev.map((item) =>
-                            item.id === element.id
-                              ? { ...item, positionX: event.target.x(), positionY: event.target.y() }
-                              : item,
-                          ),
-                        );
-                      },
-                      shadowEnabled: isSelected,
-                      shadowColor: '#0d0d0d',
-                      shadowBlur: 4,
-                      shadowOffset: { x: 0, y: 0 },
-                    };
-
-                    if (element.type === 'UPLOADED_IMAGE') {
-                      const img = element.assetUrl ? imageMap[element.assetUrl] : undefined;
-                      if (!img) return null;
-                      return (
-                        <Image
-                          key={element.id}
-                          image={img}
-                          {...commonProps}
-                          offsetX={img.width / 2}
-                          offsetY={img.height / 2}
-                        />
-                      );
-                    }
-
-                    if (element.type === 'TEXT') {
-                      return (
-                        <KText
-                          key={element.id}
-                          text={element.textContent}
-                          fontSize={element.fontSize ?? 24}
-                          fill={element.fill ?? '#0d0d0d'}
-                          fontFamily="Inter, sans-serif"
-                          {...commonProps}
-                          offsetX={0}
-                          offsetY={0}
-                        />
-                      );
-                    }
-
-                    if (element.type === 'CLIPART' && element.textContent === 'star') {
-                      return (
-                        <Star
-                          key={element.id}
-                          numPoints={5}
-                          innerRadius={15}
-                          outerRadius={30}
-                          fill="#0d0d0d"
-                          {...commonProps}
-                          offsetX={0}
-                          offsetY={0}
-                        />
-                      );
-                    }
-
-                    if (element.type === 'CLIPART' && element.textContent === 'heart') {
-                      return (
-                        <KText
-                          key={element.id}
-                          text="❤️"
-                          fontSize={40}
-                          {...commonProps}
-                          offsetX={0}
-                          offsetY={0}
-                        />
-                      );
-                    }
-
-                    return null;
-                  })}
-              </Layer>
-            </Stage>
+            />
           )}
         </div>
-        <MantineText size="xs" c="dimmed" mt="xs">
-          El área punteada indica la zona recomendada de impresión.
-        </MantineText>
+        {viewMode === '2d' ? (
+          <MantineText size="xs" c="dimmed" mt="xs">
+            El área punteada indica la zona recomendada de impresión.
+          </MantineText>
+        ) : null}
         {crossOriginBlocked && (
           <MantineText size="xs" c="yellow.8" mt={4}>
             La imagen base se cargó sin CORS para este dominio: podés editar y guardar, pero la vista previa no se
@@ -550,14 +625,38 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
             {template.name}
           </Title>
 
+          {zones.length > 1 && (
+            <div>
+              <MantineText size="xs" fw={600} mb={6}>Zona de impresión</MantineText>
+              <Group gap={6}>
+                {zones.map((zone) => (
+                  <Button
+                    key={zone.key}
+                    size="compact-sm"
+                    variant={selectedZone?.key === zone.key ? 'filled' : 'outline'}
+                    color="dark"
+                    onClick={() => {
+                      setSelectedZoneKey(zone.key);
+                      setSelectedId(null);
+                    }}
+                    styles={{ root: { borderRadius: 0 } }}
+                  >
+                    {zone.label}
+                  </Button>
+                ))}
+              </Group>
+            </div>
+          )}
+
           <Group>
-            {colors.map((color: string) => (
+            {colors.map((color) => (
               <ColorSwatch
-                key={color}
-                color={getColorHex(color)}
-                onClick={() => setSelectedColor(color)}
+                key={color.name}
+                color={color.hex}
+                title={`${color.name}${color.priceAdjustment ? ` (+${format(color.priceAdjustment)})` : ''}`}
+                onClick={() => setSelectedColor(color.name)}
                 style={{
-                  border: selectedColor === color ? '2px solid #0d0d0d' : '1px solid rgba(13,13,13,0.2)',
+                  border: selectedColor === color.name ? '2px solid #0d0d0d' : '1px solid rgba(13,13,13,0.2)',
                   cursor: 'pointer',
                 }}
               />
@@ -569,7 +668,10 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
             placeholder="Talla"
             value={selectedSize}
             onChange={(value) => setSelectedSize(value ?? '')}
-            data={(sizes as string[]).map((size) => ({ value: size, label: size }))}
+            data={sizes.map((size) => ({
+              value: size.name,
+              label: `${size.name}${size.priceAdjustment ? ` (+${format(size.priceAdjustment)})` : ''}`,
+            }))}
             styles={{
               input: { borderRadius: 0, borderColor: '#0d0d0d', backgroundColor: 'transparent' },
               dropdown: { borderRadius: 0 },
@@ -631,6 +733,15 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
                 onChange={(value) => updateSelected({ rotation: value })}
                 styles={{ track: { backgroundColor: '#0d0d0d' } }}
               />
+              {selectedElement.type !== 'UPLOADED_IMAGE' && (
+                <ColorInput
+                  label="Color de tinta"
+                  format="hex"
+                  value={selectedElement.fill ?? '#0d0d0d'}
+                  onChange={(value) => updateSelected({ fill: value || '#0d0d0d' })}
+                  styles={{ input: { borderRadius: 0 } }}
+                />
+              )}
               {selectedElement.type === 'TEXT' && (
                 <>
                   <MantineText size="xs">Tamaño fuente</MantineText>
@@ -658,14 +769,51 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
             </Stack>
           )}
 
+          <TextInput
+            label="Cantidad"
+            type="number"
+            min={1}
+            max={100}
+            value={quantity}
+            onChange={(event) => setQuantity(Math.max(1, Math.min(100, Number(event.currentTarget.value) || 1)))}
+            styles={{ input: { borderRadius: 0, borderColor: '#0d0d0d', backgroundColor: 'transparent' } }}
+          />
+
           <div style={{ borderTop: '1px solid #0d0d0d', paddingTop: 16 }}>
             <MantineText size="xl" fw={700} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
-              Total aprox.: {format(totalPrice)}
+              Total: {format(totalPrice * quantity)}
             </MantineText>
             <MantineText size="xs" c="dimmed">
-              Base + recargo por elementos aplicados
+              {format(totalPrice)} por unidad · {quantity} {quantity === 1 ? 'unidad' : 'unidades'}
             </MantineText>
+            {quote && (
+              <Stack gap={2} mt="xs">
+                {quote.breakdown.map((item) => (
+                  <Group key={item.key} justify="space-between">
+                    <MantineText size="xs" c="dimmed">{item.label}</MantineText>
+                    <MantineText size="xs">{format(item.amount)}</MantineText>
+                  </Group>
+                ))}
+              </Stack>
+            )}
           </div>
+
+          <Button
+            variant="outline"
+            fullWidth
+            onClick={() => void downloadPrintFile()}
+            disabled={!selectedZone || visibleElements.length === 0}
+            style={{ borderColor: '#0d0d0d', color: '#0d0d0d', fontFamily: 'var(--font-bebas-neue)' }}
+          >
+            Descargar {selectedZone?.printMethod ?? 'DTG'} · {selectedZone?.printDpi ?? 300} DPI
+          </Button>
+          {selectedZone ? (
+            <MantineText size="xs" c="dimmed">
+              {selectedZone.printMethod === 'DTF'
+                ? 'El PNG se descarga espejado para transferencia DTF.'
+                : `Zona ${selectedZone.label} · sangrado ${selectedZone.bleedMm} mm.`}
+            </MantineText>
+          ) : null}
 
           {!designId && (
             <Button

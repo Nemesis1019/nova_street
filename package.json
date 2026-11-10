@@ -14,7 +14,9 @@
     "generate:api-client": "turbo run generate:api-client",
     "doppler:api": "cd apps/api && doppler run -- pnpm dev",
     "doppler:web": "cd apps/web && doppler run -- pnpm dev",
-    "doppler:admin": "cd apps/admin && doppler run -- pnpm dev"
+    "doppler:admin": "cd apps/admin && doppler run -- pnpm dev",
+    "test:visual": "playwright test --project=desktop --project=mobile",
+    "test:visual:update": "playwright test --project=desktop --project=mobile --update-snapshots"
   },
   "keywords": [
     "ecommerce",
@@ -26,6 +28,7 @@
   "license": "ISC",
   "packageManager": "pnpm@11.9.0",
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "turbo": "^2.5.0"
   }
 }

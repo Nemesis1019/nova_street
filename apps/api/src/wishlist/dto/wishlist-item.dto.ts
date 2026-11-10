@@ -1,5 +1,28 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+export class WishlistImageDto {
+  @ApiProperty()
+  url!: string;
+
+  @ApiPropertyOptional()
+  thumbnailUrl?: string;
+
+  @ApiPropertyOptional()
+  smallUrl?: string;
+
+  @ApiPropertyOptional()
+  mediumUrl?: string;
+
+  @ApiPropertyOptional()
+  focalPointX?: number;
+
+  @ApiPropertyOptional()
+  focalPointY?: number;
+
+  @ApiPropertyOptional()
+  cropZoom?: number;
+}
+
 export class WishlistItemDto {
   @ApiProperty()
   id!: string;
@@ -18,6 +41,9 @@ export class WishlistItemDto {
 
   @ApiProperty({ required: false })
   imageUrl?: string;
+
+  @ApiProperty({ type: [WishlistImageDto], description: 'Imágenes del producto en orden de catálogo' })
+  images!: WishlistImageDto[];
 
   @ApiProperty({ description: 'false si el producto/variante está desactivado o sin stock' })
   isAvailable!: boolean;

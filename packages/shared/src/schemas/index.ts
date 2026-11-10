@@ -184,6 +184,16 @@ export const StorefrontConfigSchema = z.object({
       showStockBadge: z.boolean().default(true),
       showWishlist: z.boolean().default(true),
       showQuickView: z.boolean().default(false),
+      /// Controles visibles en el carrusel de imágenes de la tarjeta.
+      navigationStyle: z.enum(['arrows', 'dots', 'both']).default('both'),
+      /// Permite cambiar de imagen con un gesto horizontal.
+      swipeEnabled: z.boolean().default(true),
+      /// Los controles aparecen al hover o permanecen siempre visibles.
+      controlsVisibility: z.enum(['hover', 'always']).default('hover'),
+      /// Proporción del área de imagen de la tarjeta.
+      imageRatio: z.enum(['standard', 'square', 'portrait', 'landscape']).default('standard'),
+      /// Recorte o ajuste completo de la imagen dentro del área.
+      imageFit: z.enum(['cover', 'contain']).default('cover'),
     })
     .default({}),
   productBadges: z

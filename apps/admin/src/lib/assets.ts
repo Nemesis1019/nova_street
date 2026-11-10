@@ -1,6 +1,12 @@
 import { getAuthToken } from './api';
+import { getAdminTenantSlug } from './tenant';
 
 export type AssetPurpose = 'CATALOG_IMAGE' | 'CUSTOM_DESIGN_ASSET' | 'PRINT_FILE' | 'REVIEW_IMAGE';
+
+function tenantHeaders(): Record<string, string> {
+  const tenant = getAdminTenantSlug();
+  return tenant ? { 'X-Tenant': tenant } : {};
+}
 
 async function presignAsset(
   file: File,
@@ -13,6 +19,7 @@ async function presignAsset(
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...tenantHeaders(),
     },
     body: JSON.stringify({
       filename: file.name,
@@ -53,6 +60,7 @@ async function uploadAssetDirect(file: File): Promise<{ id: string; url: string 
     method: 'POST',
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...tenantHeaders(),
     },
     body: formData,
   });
@@ -90,6 +98,7 @@ export async function deleteAsset(id: string): Promise<void> {
     method: 'DELETE',
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...tenantHeaders(),
     },
   });
 
@@ -107,6 +116,7 @@ export async function createExternalAsset(url: string): Promise<{ id: string; ur
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...tenantHeaders(),
     },
     body: JSON.stringify({ url }),
   });

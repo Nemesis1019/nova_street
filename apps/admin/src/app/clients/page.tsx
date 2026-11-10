@@ -3,8 +3,9 @@
 import { useDisclosure } from '@mantine/hooks';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
+import { PlatformSubscriptionModal } from '../../components/platform/subscription-detail-modal';
 import { AppModal } from '../../components/ui/app-modal';
 import { Button } from '../../components/ui/button';
 import { EmptyState } from '../../components/ui/card';
@@ -14,10 +15,29 @@ import { PageHeader } from '../../components/ui/page-header';
 import { QueryError } from '../../components/ui/query-error';
 import { StatusPill, type StatusTone } from '../../components/ui/status-pill';
 import { TableSkeleton } from '../../components/ui/table-skeleton';
+import { getCurrentUser } from '../../lib/auth';
 import { platformRequest } from '../../lib/platform-auth';
-import { setAdminTenantSlug, setPlatformMode } from '../../lib/tenant';
+import {
+  getAdminTenantSlug,
+  isPlatformMode,
+  setAdminTenantSlug,
+  setPlatformMode,
+} from '../../lib/tenant';
 import { useTranslation } from '../../providers/i18n-provider';
 import { usePlatformSession } from '../../providers/platform-provider';
+
+interface TenantSubscription {
+  plan: { id: string; name: string; amount: number; currency: string; periodDays: number } | null;
+  status: 'TRIAL' | 'ACTIVE' | 'PAST_DUE' | 'CANCELED' | 'SUSPENDED';
+  paid: boolean;
+  paidUntil: string | null;
+  graceDays: number;
+  suspendedAt: string | null;
+  lastPaymentAt: string | null;
+  lastPaymentAmount: number | null;
+  lastPaymentCurrency: string | null;
+  bold: { configured: boolean; sandbox: boolean };
+}
 
 interface TenantSummary {
   id: string;
@@ -25,11 +45,13 @@ interface TenantSummary {
   name: string;
   status: 'PROVISIONING' | 'ACTIVE' | 'SUSPENDED';
   isDefault: boolean;
+  logoUrl: string | null;
   provisioningError: string | null;
   domains: string[];
   storefrontUrl: string | null;
   createdAt: string;
   hasCustomStorage: boolean;
+  subscription: TenantSubscription;
 }
 
 interface TenantMigrationRun {
@@ -57,6 +79,22 @@ const STATUS_TONE: Record<TenantSummary['status'], StatusTone> = {
   PROVISIONING: 'warning',
 };
 
+const SUBSCRIPTION_TONE: Record<TenantSubscription['status'], StatusTone> = {
+  ACTIVE: 'success',
+  TRIAL: 'info',
+  PAST_DUE: 'warning',
+  CANCELED: 'neutral',
+  SUSPENDED: 'danger',
+};
+
+const SUBSCRIPTION_LABEL: Record<TenantSubscription['status'], string> = {
+  ACTIVE: 'statusActive',
+  TRIAL: 'statusTrial',
+  PAST_DUE: 'statusPastDue',
+  CANCELED: 'statusCanceled',
+  SUSPENDED: 'statusSuspended',
+};
+
 const EMPTY_FORM = {
   name: '',
   slug: '',
@@ -69,6 +107,42 @@ function formatDate(value: string): string {
   return new Date(value).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
+function formatOptionalDate(value: string | null): string {
+  return value ? formatDate(value) : '—';
+}
+
+function formatMoney(value: number | null, currency: string | null): string {
+  if (value === null) return '—';
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: currency ?? 'COP',
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function TenantAvatar({ logoUrl, name }: { logoUrl: string | null; name: string }) {
+  const [failed, setFailed] = useState(false);
+
+  if (logoUrl && !failed) {
+    return (
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-outline-variant/40 bg-white p-1">
+        <img
+          src={logoUrl}
+          alt=""
+          className="h-full w-full object-contain"
+          onError={() => setFailed(true)}
+        />
+      </span>
+    );
+  }
+
+  return (
+    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-container font-label-md text-label-md text-on-surface">
+      {name.slice(0, 2).toUpperCase()}
+    </span>
+  );
+}
+
 export default function ClientsPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -78,6 +152,7 @@ export default function ClientsPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [health, setHealth] = useState<{ slug: string; data: TenantHealth } | null>(null);
+  const [subscriptionTenant, setSubscriptionTenant] = useState<TenantSummary | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const {
     user: platformUser,
@@ -93,6 +168,20 @@ export default function ClientsPage() {
   const [platformLoginPending, setPlatformLoginPending] = useState(false);
   const [pendingClient, setPendingClient] = useState<TenantSummary | null>(null);
   const [switchingId, setSwitchingId] = useState<string | null>(null);
+  const [currentTenantSlug, setCurrentTenantSlug] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCurrentTenantSlug(isPlatformMode() ? null : (getAdminTenantSlug() ?? null));
+  }, []);
+
+  /** Prellena el email de plataforma con la identidad actual para no pedirlo dos veces. */
+  const openPlatformLoginPrefilled = () => {
+    setPlatformForm((prev) => ({
+      ...prev,
+      email: prev.email || getCurrentUser().email || '',
+    }));
+    openPlatformLogin();
+  };
 
   const tenantsQuery = useQuery({
     queryKey: ['platform', 'tenants'],
@@ -106,6 +195,9 @@ export default function ClientsPage() {
   });
 
   const tenants = tenantsQuery.data ?? [];
+  const currentTenant = currentTenantSlug
+    ? tenants.find((tenant) => tenant.slug === currentTenantSlug)
+    : undefined;
 
   const createTenant = useMutation({
     mutationFn: async () => {
@@ -174,13 +266,16 @@ export default function ClientsPage() {
   };
 
   const switchToClient = (tenant: TenantSummary) => {
+    // Ya estamos administrando esa tienda.
+    if (tenant.slug === currentTenantSlug) return;
+
     // Sin PlatformUser primero se pide el login de plataforma (mismas
     // credenciales del superadmin) y luego se continúa con el cliente.
     if (!platformUser) {
       setPendingClient(tenant);
       setPlatformLoginError(null);
       setPlatformChallenge(null);
-      openPlatformLogin();
+      openPlatformLoginPrefilled();
       return;
     }
     void performSwitch(tenant);
@@ -245,6 +340,7 @@ export default function ClientsPage() {
   };
 
   const toggleStatus = (tenant: TenantSummary) => {
+    if (tenant.slug === currentTenantSlug) return;
     setPendingId(tenant.id);
     updateTenant.mutate({
       id: tenant.id,
@@ -282,7 +378,7 @@ export default function ClientsPage() {
                 onClick={() => {
                   setPlatformLoginError(null);
                   setPlatformChallenge(null);
-                  openPlatformLogin();
+                  openPlatformLoginPrefilled();
                 }}
               >
                 {t('pages.clients.platformLogin')}
@@ -303,6 +399,25 @@ export default function ClientsPage() {
         }
       />
 
+      {currentTenantSlug ? (
+        <div className="flex items-start gap-3 rounded-xl border border-primary/20 bg-surface-container-lowest px-4 py-3 shadow-sm">
+          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary-container text-on-secondary-container">
+            <Icon name="storefront" className="text-[18px]" />
+          </span>
+          <div className="flex flex-col gap-0.5">
+            <p className="font-body-sm text-body-sm font-semibold text-on-surface">
+              {t('pages.clients.currentTenantTitle').replace(
+                '{{tenant}}',
+                currentTenant?.name ?? currentTenantSlug,
+              )}
+            </p>
+            <p className="font-body-sm text-body-sm text-on-surface-variant">
+              {t('pages.clients.currentTenantHint')}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       {!platformUser ? (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-secondary-container px-4 py-3 text-on-secondary-container">
           <div className="flex items-center gap-2 font-body-sm text-body-sm">
@@ -316,7 +431,7 @@ export default function ClientsPage() {
               setPendingClient(null);
               setPlatformLoginError(null);
               setPlatformChallenge(null);
-              openPlatformLogin();
+              openPlatformLoginPrefilled();
             }}
           >
             {t('pages.clients.platformLogin')}
@@ -367,7 +482,7 @@ export default function ClientsPage() {
 
       <div className="overflow-hidden rounded-xl bg-surface-container-lowest shadow-card">
         {tenantsQuery.isLoading ? (
-          <TableSkeleton rows={3} columns={5} />
+          <TableSkeleton rows={3} columns={6} />
         ) : tenantsQuery.isError ? (
           <QueryError
             description={tenantsQuery.error.message}
@@ -388,6 +503,7 @@ export default function ClientsPage() {
                   <th className="rounded-l-lg px-4 py-3">{t('pages.clients.table.tenant')}</th>
                   <th className="px-4 py-3">{t('pages.clients.table.domain')}</th>
                   <th className="px-4 py-3">{t('pages.clients.table.status')}</th>
+                  <th className="px-4 py-3">{t('pages.clients.table.subscription')}</th>
                   <th className="px-4 py-3">{t('pages.clients.table.created')}</th>
                   <th className="rounded-r-lg px-4 py-3 text-right">{t('pages.clients.table.actions')}</th>
                 </tr>
@@ -397,19 +513,26 @@ export default function ClientsPage() {
                   <motion.tr
                     key={tenant.id}
                     variants={fadeInUp}
-                    className="border-b border-outline-variant/20 last:border-b-0 hover:bg-surface-container-low/60"
+                    className={`border-b border-outline-variant/20 last:border-b-0 ${
+                      tenant.slug === currentTenantSlug
+                        ? 'bg-primary/5'
+                        : 'hover:bg-surface-container-low/60'
+                    }`}
                   >
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-container font-label-md text-label-md text-on-surface">
-                          {tenant.name.slice(0, 2).toUpperCase()}
-                        </span>
+                        <TenantAvatar logoUrl={tenant.logoUrl} name={tenant.name} />
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="truncate font-label-md text-label-md text-on-surface">{tenant.name}</span>
                             {tenant.isDefault ? (
                               <span className="rounded bg-secondary-fixed px-1.5 py-0.5 font-label-sm text-label-sm text-on-secondary-fixed">
                                 {t('pages.clients.defaultBadge')}
+                              </span>
+                            ) : null}
+                            {tenant.slug === currentTenantSlug ? (
+                              <span className="rounded bg-primary px-1.5 py-0.5 font-label-sm text-label-sm text-on-primary">
+                                {t('pages.clients.currentBadge')}
                               </span>
                             ) : null}
                           </div>
@@ -432,24 +555,70 @@ export default function ClientsPage() {
                         </div>
                       ) : null}
                     </td>
+                    <td className="px-4 py-4">
+                      <div className="flex min-w-[180px] flex-col items-start gap-1.5">
+                        <StatusPill
+                          tone={SUBSCRIPTION_TONE[tenant.subscription.status]}
+                          label={t(`pages.clients.subscription.${SUBSCRIPTION_LABEL[tenant.subscription.status]}`)}
+                        />
+                        <span className="font-label-sm text-label-sm font-medium text-on-surface">
+                          {tenant.subscription.plan?.name ?? t('subscription.noPlan')}
+                        </span>
+                        <span className="font-label-sm text-label-sm text-on-surface-variant">
+                          {tenant.subscription.paid
+                            ? `${t('pages.clients.subscription.paidUntil')} ${formatOptionalDate(tenant.subscription.paidUntil)}`
+                            : t('pages.clients.subscription.noPayment')}
+                        </span>
+                        {tenant.subscription.lastPaymentAt ? (
+                          <span className="font-label-sm text-label-sm text-on-surface-variant/80">
+                            {t('pages.clients.subscription.lastPayment')}{' '}
+                            {formatOptionalDate(tenant.subscription.lastPaymentAt)} ·{' '}
+                            {formatMoney(
+                              tenant.subscription.lastPaymentAmount,
+                              tenant.subscription.lastPaymentCurrency,
+                            )}
+                          </span>
+                        ) : null}
+                      </div>
+                    </td>
                     <td className="px-4 py-4 text-on-surface-variant">{formatDate(tenant.createdAt)}</td>
                     <td className="px-4 py-4">
                       <div className="flex items-center justify-end gap-1">
-                        {!tenant.isDefault && tenant.status === 'ACTIVE' ? (
+                        {tenant.status === 'ACTIVE' ? (
                           <Button
                             variant="secondary"
-                            icon="admin_panel_settings"
+                            icon={
+                              tenant.slug === currentTenantSlug
+                                ? 'check_circle'
+                                : 'admin_panel_settings'
+                            }
                             onClick={() => switchToClient(tenant)}
-                            disabled={switchingId === tenant.id}
-                            title={t('pages.clients.impersonate')}
+                            disabled={
+                              switchingId === tenant.id || tenant.slug === currentTenantSlug
+                            }
+                            title={
+                              tenant.slug === currentTenantSlug
+                                ? t('pages.clients.currentStoreTooltip')
+                                : t('pages.clients.configureAccount')
+                            }
                           >
                             <span className="sr-only">
-                              {switchingId === tenant.id
-                                ? t('pages.clients.impersonating')
-                                : t('pages.clients.impersonate')}
+                              {tenant.slug === currentTenantSlug
+                                ? t('pages.clients.currentStore')
+                                : switchingId === tenant.id
+                                  ? t('pages.clients.impersonating')
+                                  : t('pages.clients.configureAccount')}
                             </span>
                           </Button>
                         ) : null}
+                        <Button
+                          variant="ghost"
+                          icon="workspace_premium"
+                          onClick={() => setSubscriptionTenant(tenant)}
+                          title={t('pages.clients.subscriptionDetail.title')}
+                        >
+                          <span className="sr-only">{t('pages.clients.subscriptionDetail.title')}</span>
+                        </Button>
                         <Button
                           variant="ghost"
                           icon="monitor_heart"
@@ -475,8 +644,17 @@ export default function ClientsPage() {
                             variant={tenant.status === 'ACTIVE' ? 'danger' : 'secondary'}
                             icon={tenant.status === 'ACTIVE' ? 'pause' : 'play_arrow'}
                             onClick={() => toggleStatus(tenant)}
-                            disabled={updateTenant.isPending && pendingId === tenant.id}
-                            title={tenant.status === 'ACTIVE' ? t('pages.clients.suspend') : t('pages.clients.activate')}
+                            disabled={
+                              (updateTenant.isPending && pendingId === tenant.id) ||
+                              tenant.slug === currentTenantSlug
+                            }
+                            title={
+                              tenant.slug === currentTenantSlug
+                                ? t('pages.clients.currentStoreSuspend')
+                                : tenant.status === 'ACTIVE'
+                                  ? t('pages.clients.suspend')
+                                  : t('pages.clients.activate')
+                            }
                           >
                             <span className="sr-only">
                               {tenant.status === 'ACTIVE' ? t('pages.clients.suspend') : t('pages.clients.activate')}
@@ -726,7 +904,7 @@ export default function ClientsPage() {
                     const value = event.currentTarget.value;
                     setPlatformForm((prev) => ({ ...prev, email: value }));
                   }}
-                  placeholder="owner@nova.app"
+                  placeholder="tu@email.com"
                   className="w-full rounded-lg bg-surface-container-low px-3.5 py-2.5 font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant focus:bg-surface-container focus:outline-none"
                 />
               </div>
@@ -768,6 +946,13 @@ export default function ClientsPage() {
         </div>
       </AppModal>
 
+      <PlatformSubscriptionModal
+        tenantId={subscriptionTenant?.id ?? null}
+        tenantName={subscriptionTenant?.name ?? null}
+        opened={Boolean(subscriptionTenant)}
+        onClose={() => setSubscriptionTenant(null)}
+        onChanged={() => void tenantsQuery.refetch()}
+      />
     </div>
   );
 }

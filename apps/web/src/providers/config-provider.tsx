@@ -1,5 +1,6 @@
 'use client';
 
+import type { StorefrontDocument } from '@ecommerce/shared';
 import { createContext, ReactNode, useContext } from 'react';
 
 export type TemplateName = 'storefront' | 'spa-store';
@@ -8,7 +9,7 @@ export interface TemplateConfig {
   heroLayout?: 'centered' | 'split' | 'minimal';
   showMarquee?: boolean;
   showIdentitySection?: boolean;
-  productCardVariant?: 'default' | 'minimal';
+  productCardVariant?: 'default' | 'minimal' | 'editorial';
   headerVariant?: 'default' | 'centered' | 'minimal';
   /** Badge circular giratorio del hero. */
   showHeroBadge?: boolean;
@@ -58,6 +59,8 @@ export interface StoreConfig {
   template?: TemplateName;
   templateConfig?: TemplateConfig | null;
   storefrontConfig?: Record<string, unknown> | null;
+  /** Documento publicado por el Storefront Builder. */
+  storefrontDoc?: StorefrontDocument | null;
   shippingBaseCost?: number;
   freeShippingThreshold?: number | null;
   termsPageId?: string | null;

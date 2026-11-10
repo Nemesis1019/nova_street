@@ -852,6 +852,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AssetsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/assets/upload": {
         parameters: {
             query?: never;
@@ -898,6 +914,22 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/admin/assets/{id}/crop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["AssetsController_updateCrop"];
         trace?: never;
     };
     "/admin/assets/{id}": {
@@ -2116,6 +2148,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/design-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Catálogo completo de prendas personalizables */
+        get: operations["AdminDesignTemplatesController_findAll"];
+        put?: never;
+        /** Crear un tipo de prenda personalizable */
+        post: operations["AdminDesignTemplatesController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/design-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Eliminar o archivar una prenda personalizable */
+        delete: operations["AdminDesignTemplatesController_remove"];
+        options?: never;
+        head?: never;
+        /** Actualizar prenda, colores, zonas o pricing */
+        patch: operations["AdminDesignTemplatesController_update"];
+        trace?: never;
+    };
     "/addresses": {
         parameters: {
             query?: never;
@@ -2194,6 +2262,70 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["PlatformController_update"];
+        trace?: never;
+    };
+    "/platform/tenants/{id}/select": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PlatformController_select"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/tenants/{id}/subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PlatformController_subscription"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["PlatformController_updateSubscription"];
+        trace?: never;
+    };
+    "/platform/tenants/{id}/subscription/suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PlatformController_suspendSubscription"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/tenants/{id}/subscription/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PlatformController_reactivateSubscription"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/platform/tenants/{id}/health": {
@@ -2498,6 +2630,57 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["PlatformUsersController_update"];
+        trace?: never;
+    };
+    "/admin/subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Estado de la suscripción SaaS del cliente actual */
+        get: operations["SubscriptionController_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/subscription/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Configuración del botón Bold para pagar la suscripción */
+        post: operations["SubscriptionController_checkout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/subscriptions/webhook/bold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Webhook Bold para confirmar pagos de suscripción */
+        post: operations["SubscriptionWebhookController_boldWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/admin/production": {
@@ -2836,6 +3019,264 @@ export interface paths {
         patch: operations["StoreConfigController_updateConfig"];
         trace?: never;
     };
+    "/admin/storefront": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminStorefrontController_state"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/storefront/presets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminStorefrontController_presets"];
+        put?: never;
+        post: operations["AdminStorefrontController_savePreset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/storefront/experiments/{id}/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminStorefrontController_experimentResults"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/storefront/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminStorefrontController_saveDraft"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/storefront/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminStorefrontController_publish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/storefront/approval": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["AdminStorefrontController_setApprovalRequired"];
+        trace?: never;
+    };
+    "/admin/storefront/approval/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminStorefrontController_submitApproval"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/storefront/approval/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminStorefrontController_approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/storefront/approval/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminStorefrontController_reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/storefront/presets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["AdminStorefrontController_deletePreset"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/storefront/presets/{key}/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminStorefrontController_applyPreset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/storefront/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminStorefrontController_versions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/storefront/versions/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminStorefrontController_restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/storefront/preview-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminStorefrontController_previewToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/storefront/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the draft storefront document using a signed preview token */
+        get: operations["StorefrontController_preview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/storefront/experiment-event": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record an anonymous storefront experiment impression or click */
+        post: operations["StorefrontController_experimentEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/store-redirects": {
         parameters: {
             query?: never;
@@ -3102,6 +3543,15 @@ export interface components {
             /** @description Documento de identidad */
             document?: string | null;
         };
+        WishlistImageDto: {
+            url: string;
+            thumbnailUrl?: string;
+            smallUrl?: string;
+            mediumUrl?: string;
+            focalPointX?: number;
+            focalPointY?: number;
+            cropZoom?: number;
+        };
         WishlistItemDto: {
             id: string;
             productVariantId: string;
@@ -3109,6 +3559,8 @@ export interface components {
             productSlug: string;
             price: number;
             imageUrl?: string;
+            /** @description Imágenes del producto en orden de catálogo */
+            images: components["schemas"]["WishlistImageDto"][];
             /** @description false si el producto/variante está desactivado o sin stock */
             isAvailable: boolean;
             /**
@@ -3286,6 +3738,9 @@ export interface components {
         PreviewEmailTemplateDto: {
             subject?: string;
             html?: string;
+            /** @description Overrides del layout global para previsualizar sin guardar. */
+            headerHtml?: string;
+            footerHtml?: string;
         };
         TestEmailTemplateDto: {
             /**
@@ -3623,6 +4078,7 @@ export interface components {
             id: string;
             name: string;
             slug: string;
+            imageUrl?: string;
         };
         InventorySummaryDto: {
             /** Format: uuid */
@@ -3661,6 +4117,9 @@ export interface components {
             url: string;
             mimeType: string;
             size: number;
+            focalPointX?: number;
+            focalPointY?: number;
+            cropZoom?: number;
         };
         CreateExternalAssetDto: {
             /** Format: uri */
@@ -3679,6 +4138,11 @@ export interface components {
             url: string;
             mimeType: string;
             size: number;
+        };
+        UpdateAssetCropDto: {
+            focalPointX: number;
+            focalPointY: number;
+            cropZoom: number;
         };
         AuditLogUserDto: {
             id: string;
@@ -4442,6 +4906,10 @@ export interface components {
             previewImageUrl?: string;
             finalPrintFileUrl?: string;
             surcharge: number;
+            /** @description Desglose autoritativo del precio */
+            pricingBreakdown?: Record<string, never>;
+            /** @description Archivos de impresión por zona */
+            printFiles?: Record<string, never>[];
             rejectionReason?: string;
             /** Format: uuid */
             reviewedById?: string;
@@ -4455,8 +4923,11 @@ export interface components {
             id?: string;
             /** @enum {string} */
             type: "UPLOADED_IMAGE" | "TEXT" | "CLIPART";
+            printAreaKey?: string;
             assetUrl?: string;
             textContent?: string;
+            fontFamily?: string;
+            fontWeight?: number;
             fontSize?: number;
             fill?: string;
             positionX: number;
@@ -4464,6 +4935,18 @@ export interface components {
             scale?: number;
             rotation?: number;
             zIndex?: number;
+            width?: number;
+            height?: number;
+        };
+        CustomDesignPrintFileDto: {
+            zoneKey: string;
+            assetUrl: string;
+            dpi: number;
+            widthCm: number;
+            heightCm: number;
+            /** @enum {string} */
+            printMethod: "DTG" | "DTF" | "SCREEN" | "EMBROIDERY";
+            mirrored?: boolean;
         };
         UpdateCustomDesignDto: {
             color?: string;
@@ -4471,6 +4954,7 @@ export interface components {
             previewImageUrl?: string;
             surcharge?: number;
             elements?: components["schemas"]["CustomDesignElementDto"][];
+            printFiles?: components["schemas"]["CustomDesignPrintFileDto"][];
         };
         AddToCartDto: {
             quantity: number;
@@ -4508,6 +4992,128 @@ export interface components {
             productionLeadTimeDays: number;
             createdAt: string;
             updatedAt: string;
+        };
+        DesignTemplateColorDto: {
+            name: string;
+            /** @example #0d0d0d */
+            hex: string;
+            imageUrl?: string;
+            /** @default 0 */
+            priceAdjustment: number;
+        };
+        DesignTemplateSizeDto: {
+            name: string;
+            /** @default 0 */
+            priceAdjustment: number;
+        };
+        DesignTemplateZoneDto: {
+            /** @example front */
+            key: string;
+            /** @example Frente */
+            label: string;
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            /** @default 0 */
+            price: number;
+            /**
+             * @default DTG
+             * @enum {string}
+             */
+            printMethod: "DTG" | "DTF" | "SCREEN" | "EMBROIDERY";
+            /** @default 300 */
+            printDpi: number;
+            /** @default 2 */
+            bleedMm: number;
+            imageUrl?: string;
+            maxWidthCm?: number;
+            maxHeightCm?: number;
+            /** @default true */
+            allowText: boolean;
+            /** @default true */
+            allowImage: boolean;
+            /** @default true */
+            allowClipart: boolean;
+        };
+        DesignTemplateQuantityTierDto: {
+            /** @example 10 */
+            minQuantity: number;
+            /** @example 5 */
+            discountPercent: number;
+        };
+        DesignTemplatePricingDto: {
+            /** @default 2500 */
+            perElement: number;
+            /** @default 0 */
+            textPerCharacter: number;
+            /** @default 0 */
+            setupFee: number;
+            /** @default 0 */
+            minPrice: number;
+            quantityTiers?: components["schemas"]["DesignTemplateQuantityTierDto"][];
+        };
+        CreateDesignTemplateDto: {
+            name: string;
+            /** @example Remera */
+            garmentType: string;
+            description?: string;
+            baseImageUrl: string;
+            thumbnailUrl?: string;
+            /** @description GLB/GLTF para la fase 3D */
+            model3dUrl?: string;
+            /**
+             * @description Rotación Y del modelo en grados
+             * @default 180
+             */
+            model3dRotationY: number;
+            basePrice: number;
+            colors: components["schemas"]["DesignTemplateColorDto"][];
+            sizes: components["schemas"]["DesignTemplateSizeDto"][];
+            zones: components["schemas"]["DesignTemplateZoneDto"][];
+            pricing?: components["schemas"]["DesignTemplatePricingDto"];
+            /**
+             * @default MADE_TO_ORDER
+             * @enum {string}
+             */
+            stockMode: "MADE_TO_ORDER" | "TRACKED";
+            /** @default 7 */
+            productionLeadTimeDays: number;
+            /** @default true */
+            isActive: boolean;
+            /** @default 0 */
+            sortOrder: number;
+        };
+        UpdateDesignTemplateDto: {
+            name?: string;
+            /** @example Remera */
+            garmentType?: string;
+            description?: string;
+            baseImageUrl?: string;
+            thumbnailUrl?: string;
+            /** @description GLB/GLTF para la fase 3D */
+            model3dUrl?: string;
+            /**
+             * @description Rotación Y del modelo en grados
+             * @default 180
+             */
+            model3dRotationY: number;
+            basePrice?: number;
+            colors?: components["schemas"]["DesignTemplateColorDto"][];
+            sizes?: components["schemas"]["DesignTemplateSizeDto"][];
+            zones?: components["schemas"]["DesignTemplateZoneDto"][];
+            pricing?: components["schemas"]["DesignTemplatePricingDto"];
+            /**
+             * @default MADE_TO_ORDER
+             * @enum {string}
+             */
+            stockMode: "MADE_TO_ORDER" | "TRACKED";
+            /** @default 7 */
+            productionLeadTimeDays: number;
+            /** @default true */
+            isActive: boolean;
+            /** @default 0 */
+            sortOrder: number;
         };
         CreateAddressDto: {
             label: string;
@@ -4572,6 +5178,17 @@ export interface components {
             /** @enum {string} */
             status?: "ACTIVE" | "SUSPENDED";
         };
+        UpdateTenantSubscriptionDto: {
+            /**
+             * Format: uuid
+             * @description ID del plan activo a asignar al cliente
+             */
+            planId: string;
+        };
+        SubscriptionActionDto: {
+            /** @description Motivo de la acción, para auditoría */
+            reason?: string;
+        };
         ImpersonateTenantDto: {
             /** @description Motivo de la impersonación (auditoría) */
             reason: string;
@@ -4612,6 +5229,10 @@ export interface components {
             /** @enum {string} */
             role?: "OWNER" | "OPERATOR" | "SUPPORT";
             isActive?: boolean;
+        };
+        SubscriptionCheckoutDto: {
+            /** @description Plan a contratar; si falta se usa el plan actual */
+            planId?: string;
         };
         ProductionItemResponseDto: {
             /** Format: uuid */
@@ -4956,6 +5577,27 @@ export interface components {
             googleClientId?: string;
             appleOAuthEnabled?: boolean;
             appleClientId?: string;
+        };
+        SaveStorefrontDraftDto: {
+            doc: Record<string, never>;
+        };
+        SetStorefrontApprovalDto: {
+            required: boolean;
+        };
+        ReviewStorefrontApprovalDto: {
+            note?: string;
+        };
+        SaveStorefrontPresetDto: {
+            name: string;
+            description?: string;
+        };
+        RecordExperimentEventDto: {
+            experimentId: string;
+            /** @enum {string} */
+            variant: "A" | "B";
+            /** @enum {string} */
+            event: "impression" | "cta_click";
+            path?: string;
         };
         CreateStoreRedirectDto: {
             fromPath: string;
@@ -6413,6 +7055,26 @@ export interface operations {
             };
         };
     };
+    AssetsController_list: {
+        parameters: {
+            query?: {
+                purpose?: string;
+                limit?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     AssetsController_upload: {
         parameters: {
             query?: never;
@@ -6482,6 +7144,29 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PresignAssetResponseDto"];
                 };
+            };
+        };
+    };
+    AssetsController_updateCrop: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAssetCropDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -8468,6 +9153,89 @@ export interface operations {
             };
         };
     };
+    AdminDesignTemplatesController_findAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Prendas, zonas, colores y reglas de precio */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminDesignTemplatesController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateDesignTemplateDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminDesignTemplatesController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    AdminDesignTemplatesController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateDesignTemplateDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     AddressesController_findAll: {
         parameters: {
             query?: never;
@@ -8631,6 +9399,118 @@ export interface operations {
             };
         };
         responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformController_select: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Cambia el cliente activo del superadmin (sin impersonar) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformController_subscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Plan, estado e historial de pagos de la suscripción */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformController_updateSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTenantSubscriptionDto"];
+            };
+        };
+        responses: {
+            /** @description Asigna un plan de suscripción al cliente */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformController_suspendSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscriptionActionDto"];
+            };
+        };
+        responses: {
+            /** @description Suspende la suscripción del cliente */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformController_reactivateSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscriptionActionDto"];
+            };
+        };
+        responses: {
+            /** @description Reactiva la suscripción del cliente */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -9035,6 +9915,63 @@ export interface operations {
                 content: {
                     "application/json": Record<string, never>;
                 };
+            };
+        };
+    };
+    SubscriptionController_overview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Planes, estado, vencimiento e historial de pagos */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SubscriptionController_checkout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscriptionCheckoutDto"];
+            };
+        };
+        responses: {
+            /** @description Config efímera del botón de pagos Bold */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SubscriptionWebhookController_boldWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -9619,6 +10556,353 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["StoreConfigResponseDto"];
                 };
+            };
+        };
+    };
+    AdminStorefrontController_state: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    AdminStorefrontController_presets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>[];
+                };
+            };
+        };
+    };
+    AdminStorefrontController_savePreset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveStorefrontPresetDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    AdminStorefrontController_experimentResults: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminStorefrontController_saveDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveStorefrontDraftDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    AdminStorefrontController_publish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    AdminStorefrontController_setApprovalRequired: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetStorefrontApprovalDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    AdminStorefrontController_submitApproval: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    AdminStorefrontController_approve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewStorefrontApprovalDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    AdminStorefrontController_reject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewStorefrontApprovalDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    AdminStorefrontController_deletePreset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    AdminStorefrontController_applyPreset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    AdminStorefrontController_versions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminStorefrontController_restore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    AdminStorefrontController_previewToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StorefrontController_preview: {
+        parameters: {
+            query?: {
+                token?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StorefrontController_experimentEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordExperimentEventDto"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

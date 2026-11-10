@@ -514,6 +514,54 @@ export function StorefrontConfigSection({
       <Switch label={t('pages.storeConfig.showStockBadge')} {...form.getInputProps('storefrontConfig.productCard.showStockBadge', { type: 'checkbox' })} />
       <Switch label={t('pages.storeConfig.showWishlist')} {...form.getInputProps('storefrontConfig.productCard.showWishlist', { type: 'checkbox' })} />
       <Switch label={t('pages.storeConfig.showQuickView')} {...form.getInputProps('storefrontConfig.productCard.showQuickView', { type: 'checkbox' })} />
+      <Select
+        label={t('pages.storeConfig.carouselNavigation')}
+        description={t('pages.storeConfig.carouselNavigationHint')}
+        allowDeselect={false}
+        data={[
+          { value: 'arrows', label: t('pages.storeConfig.carouselNavArrows') },
+          { value: 'dots', label: t('pages.storeConfig.carouselNavDots') },
+          { value: 'both', label: t('pages.storeConfig.carouselNavBoth') },
+        ]}
+        {...form.getInputProps('storefrontConfig.productCard.navigationStyle')}
+      />
+      <Switch
+        label={t('pages.storeConfig.swipeEnabled')}
+        description={t('pages.storeConfig.swipeEnabledHint')}
+        {...form.getInputProps('storefrontConfig.productCard.swipeEnabled', { type: 'checkbox' })}
+      />
+      <Select
+        label={t('pages.storeConfig.controlsVisibility')}
+        description={t('pages.storeConfig.controlsVisibilityHint')}
+        allowDeselect={false}
+        data={[
+          { value: 'hover', label: t('pages.storeConfig.controlsVisibilityHover') },
+          { value: 'always', label: t('pages.storeConfig.controlsVisibilityAlways') },
+        ]}
+        {...form.getInputProps('storefrontConfig.productCard.controlsVisibility')}
+      />
+      <Select
+        label={t('pages.storeConfig.imageRatio')}
+        description={t('pages.storeConfig.imageRatioHint')}
+        allowDeselect={false}
+        data={[
+          { value: 'standard', label: t('pages.storeConfig.imageRatioStandard') },
+          { value: 'square', label: t('pages.storeConfig.imageRatioSquare') },
+          { value: 'portrait', label: t('pages.storeConfig.imageRatioPortrait') },
+          { value: 'landscape', label: t('pages.storeConfig.imageRatioLandscape') },
+        ]}
+        {...form.getInputProps('storefrontConfig.productCard.imageRatio')}
+      />
+      <Select
+        label={t('pages.storeConfig.imageFit')}
+        description={t('pages.storeConfig.imageFitHint')}
+        allowDeselect={false}
+        data={[
+          { value: 'cover', label: t('pages.storeConfig.imageFitCover') },
+          { value: 'contain', label: t('pages.storeConfig.imageFitContain') },
+        ]}
+        {...form.getInputProps('storefrontConfig.productCard.imageFit')}
+      />
 
       </Reveal>
 

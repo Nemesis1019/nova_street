@@ -114,11 +114,15 @@ export class StoreConfigController {
       stripeWebhookSecret: _stripeWebhookSecret,
       smtpPass: _smtpPass,
       resendApiKey: _resendApiKey,
+      storefrontDraft: _storefrontDraft,
+      storefrontPublished,
+      storefrontVersion: _storefrontVersion,
       ...publicConfig
     } = config;
 
     return {
       ...publicConfig,
+      storefrontDoc: storefrontPublished ?? null,
       boldSecretConfigured: Boolean(config.boldSecretKey),
       stripeSecretConfigured: Boolean(config.stripeSecretKey),
       stripeWebhookConfigured: Boolean(config.stripeWebhookSecret),

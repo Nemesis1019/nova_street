@@ -69,7 +69,12 @@ export function WishlistContent() {
               slug: item.productSlug,
               basePrice: item.price,
               displayPrice: item.price,
-              images: item.imageUrl ? [{ url: item.imageUrl }] : [],
+              images:
+                item.images && item.images.length > 0
+                  ? item.images
+                  : item.imageUrl
+                    ? [{ url: item.imageUrl }]
+                    : [],
             }}
             isInWishlist
             isUnavailable={!item.isAvailable}

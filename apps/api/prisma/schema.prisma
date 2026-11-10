@@ -231,6 +231,18 @@ model StoreConfig {
   template            String   @default("storefront")
   templateConfig      Json?    @default("{}")
   storefrontConfig    Json?    @default("{}")
+  storefrontDraft     Json?
+  storefrontPublished Json?
+  storefrontVersion   Int      @default(0)
+  storefrontPresets   Json?
+  requireStorefrontApproval   Boolean  @default(false)
+  storefrontApprovalStatus    String   @default("NONE")
+  storefrontApprovalDraftHash String?
+  storefrontApprovalRequestedAt DateTime?
+  storefrontApprovalRequestedById String? @db.Uuid
+  storefrontApprovalReviewedAt  DateTime?
+  storefrontApprovalReviewedById String? @db.Uuid
+  storefrontApprovalNote        String?
   emailProvider       String   @default("smtp")
   paymentProvider     String   @default("stripe")
   shippingProvider       String   @default("flatRate")
@@ -260,6 +272,30 @@ model StoreConfig {
   updatedAt           DateTime @updatedAt
 
   @@map("store_configs")
+}
+
+model StorefrontRevision {
+  id          String   @id @default(uuid()) @db.Uuid
+  version     Int
+  snapshot    Json
+  createdById String?  @db.Uuid
+  createdAt   DateTime @default(now())
+
+  @@unique([version])
+  @@map("storefront_revisions")
+}
+
+model StorefrontExperimentEvent {
+  id           String   @id @default(uuid()) @db.Uuid
+  experimentId String
+  variant      String
+  event        String
+  visitorId    String?
+  path         String?
+  createdAt    DateTime @default(now())
+
+  @@index([experimentId, event, createdAt])
+  @@map("storefront_experiment_events")
 }
 
 model Page {
@@ -403,17 +439,30 @@ model DesignTemplate {
   id                     String         @id @default(uuid()) @db.Uuid
   name                   String
   garmentType            String
+  description            String?
   baseImageUrl           String
+  thumbnailUrl           String?
+  /// Preparado para el visor 3D (GLB/GLTF). El editor 2D lo ignora.
+  model3dUrl             String?
+  /// Rotación Y del GLB en grados. El modelo base necesita 180.
+  model3dRotationY       Int            @default(180)
   printAreas             Json
   basePrice              Int
   availableColors        String[]
   availableSizes         String[]
+  /// Configuración enriquecida del personalizador (colores, precios, mockups).
+  colorOptions           Json?
+  sizeOptions            Json?
+  pricingRules           Json?
   stockMode              StockMode      @default(MADE_TO_ORDER)
   productionLeadTimeDays Int            @default(7)
+  isActive               Boolean        @default(true)
+  sortOrder              Int            @default(0)
   customDesigns          CustomDesign[]
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
 
+  @@index([isActive, sortOrder])
   @@map("design_templates")
 }
 
@@ -429,6 +478,10 @@ model CustomDesign {
   previewImageUrl   String?
   finalPrintFileUrl String?
   surcharge         Int                  @default(0)
+  /// Desglose autoritativo calculado por la API al guardar/cotizar.
+  pricingBreakdown  Json?
+  /// Archivos de impresión generados por zona (PNG/DPI/método).
+  printFiles        Json?
   rejectionReason   String?
   reviewedById      String?              @db.Uuid
   reviewedAt        DateTime?
@@ -446,8 +499,12 @@ model CustomDesignElement {
   customDesignId String                  @db.Uuid
   customDesign   CustomDesign            @relation(fields: [customDesignId], references: [id], onDelete: Cascade)
   type          CustomDesignElementType
+  /// Zona de impresión (front, back, leftSleeve...).
+  printAreaKey  String?
   assetUrl      String?
   textContent   String?
+  fontFamily    String?
+  fontWeight    Int?
   fontSize      Int                     @default(24)
   fill          String                  @default("#0d0d0d")
   positionX     Float
@@ -455,6 +512,8 @@ model CustomDesignElement {
   scale         Float                   @default(1)
   rotation      Float                   @default(0)
   zIndex        Int                     @default(0)
+  width         Float?
+  height        Float?
   createdAt     DateTime                @default(now())
   updatedAt     DateTime                @updatedAt
 
@@ -471,6 +530,9 @@ model Asset {
   mimeType      String
   size          Int
   uploadedById  String?       @db.Uuid
+  focalPointX   Float         @default(50)
+  focalPointY   Float         @default(50)
+  cropZoom      Float         @default(1)
   productImages ProductImage[]
   reviewAssets  ReviewAsset[]
   createdAt     DateTime      @default(now())

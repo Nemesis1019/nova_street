@@ -2,6 +2,10 @@ import { normalizeHost } from '@ecommerce/shared';
 import { Injectable, type NestMiddleware } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
 
+import {
+  resolveSubscriptionStatus,
+  subscriptionGraceDays,
+} from '../subscription/subscription.utils';
 import { TenantContextService } from './tenant-context.service';
 import { TenantRegistryService } from './tenant-registry.service';
 
@@ -28,6 +32,12 @@ export class TenantMiddleware implements NestMiddleware {
   ) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
+    // El webhook de suscripción es de plataforma: no pertenece a la BD de un
+    // tenant y debe seguir funcionando aunque el tenant por defecto esté caído.
+    if (req.path === '/subscriptions/webhook/bold') {
+      return next();
+    }
+
     const headerValue = req.headers['x-tenant'];
     const headerSlug = typeof headerValue === 'string' ? headerValue.trim().toLowerCase() : undefined;
     // Webhooks de pago: el tenant viaja en la URL (`?tenant=<slug>`).
@@ -110,8 +120,41 @@ export class TenantMiddleware implements NestMiddleware {
       return;
     }
 
+    // Suspensión comercial: se bloquea el storefront, pero el admin conserva
+    // acceso para poder regularizar el pago desde /subscription.
+    const subscriptionStatus = resolveSubscriptionStatus(
+      tenant,
+      new Date(),
+      subscriptionGraceDays(),
+    );
+    if (subscriptionStatus === 'SUSPENDED' && !this.canAccessWhileSuspended(res.req)) {
+      res.status(503).json({
+        statusCode: 503,
+        message: 'La tienda está suspendida por falta de pago. El admin puede regularizarla.',
+        error: 'Payment Required',
+      });
+      return;
+    }
+
     // Detalle útil para frontends/observabilidad.
     res.setHeader('X-Tenant', tenant.slug);
+    res.setHeader('X-Subscription-Status', subscriptionStatus);
     this.context.run(tenant, () => next());
+  }
+
+  private canAccessWhileSuspended(req: Response['req']): boolean {
+    const client = req.headers['x-client'];
+    if (client === 'admin') return true;
+
+    const path = req.path;
+    return (
+      path.startsWith('/platform') ||
+      path.startsWith('/health') ||
+      path.startsWith('/store-config') ||
+      path.startsWith('/subscriptions') ||
+      path.startsWith('/webhooks') ||
+      path === '/payments/webhook' ||
+      path.startsWith('/payments/webhook/')
+    );
   }
 }

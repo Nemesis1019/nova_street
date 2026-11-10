@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 
-import type { TenantStatus } from '@prisma/master-client';
+import type { SubscriptionStatus, TenantStatus } from '@prisma/master-client';
 
 export interface TenantR2Config {
   bucket?: string;
@@ -15,6 +15,9 @@ export interface TenantRuntimeData {
   slug: string;
   name: string;
   status: TenantStatus;
+  /** Estado comercial efectivo para bloquear storefront por impago. */
+  subscriptionStatus: SubscriptionStatus;
+  subscriptionPaidUntil: Date | null;
   databaseUrl: string;
   primaryDomain: string | null;
   /** Todos los hosts registrados para el cliente (para CORS y fail-closed). */

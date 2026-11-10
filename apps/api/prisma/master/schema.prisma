@@ -19,6 +19,45 @@ enum TenantStatus {
   SUSPENDED
 }
 
+/// Estado comercial del cliente dentro de la plataforma. Es independiente de
+/// `TenantStatus` (que controla el acceso operativo a la tienda).
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  SUSPENDED
+}
+
+enum SubscriptionPaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+/// Catálogo de planes SaaS. El precio y el período se snapshotean en cada
+/// intento de pago para que un cambio de plan no altere el historial.
+model SubscriptionPlan {
+  id          String  @id @default(uuid()) @db.Uuid
+  slug        String  @unique
+  name        String
+  description String?
+  amount      Int
+  currency    String  @default("COP")
+  periodDays  Int     @default(30)
+  features    Json?
+  isActive    Boolean @default(true)
+  sortOrder   Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenants  Tenant[]
+  payments SubscriptionPayment[]
+
+  @@map("subscription_plans")
+}
+
 /// Identidad de la plataforma, separada de los tenants.
 enum PlatformRole {
   OWNER
@@ -39,6 +78,18 @@ model Tenant {
   /// Cliente por defecto (se usa cuando no se puede resolver el tenant por host/header).
   isDefault Boolean @default(false)
 
+  /// Estado de la suscripción SaaS y vigencia del último pago confirmado.
+  subscriptionStatus       SubscriptionStatus @default(TRIAL)
+  subscriptionPaidUntil    DateTime?
+  subscriptionLastPaymentAt       DateTime?
+  subscriptionLastPaymentAmount   Int?
+  subscriptionLastPaymentCurrency String?
+  subscriptionSuspendedAt         DateTime?
+
+  /// Plan comercial vigente. Al pagar se actualiza desde el snapshot del pago.
+  subscriptionPlanId String?           @db.Uuid
+  subscriptionPlan   SubscriptionPlan? @relation(fields: [subscriptionPlanId], references: [id], onDelete: SetNull)
+
   /// Último error de provisioning (si falló el alta del cliente).
   provisioningError String?
 
@@ -53,10 +104,43 @@ model Tenant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  domains    TenantDomain[]
-  migrations TenantMigration[]
+  domains              TenantDomain[]
+  migrations           TenantMigration[]
+  subscriptionPayments SubscriptionPayment[]
 
   @@map("tenants")
+}
+
+/// Intentos de pago de la suscripción SaaS. El pago se confirma sólo con el
+/// webhook firmado de Bold; nunca con el redirect del navegador.
+model SubscriptionPayment {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  /// Referencia enviada a Bold y devuelta en `metadata.reference`.
+  reference String @unique
+
+  amount      Int
+  currency    String @default("COP")
+  periodDays  Int    @default(30)
+  status      SubscriptionPaymentStatus @default(PENDING)
+  provider    String @default("bold")
+
+  /// Snapshot del plan al iniciar el checkout.
+  planId   String?           @db.Uuid
+  plan     SubscriptionPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  planName String?
+
+  providerTransactionId String?
+  paidAt                DateTime?
+  metadata              Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, createdAt])
+  @@map("subscription_payments")
 }
 
 /// Historial de migraciones/ejecuciones por cliente (panel de plataforma).
