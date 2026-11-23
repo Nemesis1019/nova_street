@@ -21,6 +21,7 @@ export default function PlatformLoginPage() {
   const [challenge, setChallenge] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const enterPlatformPanel = () => {
     // El panel transversal usa la config del tenant por defecto como home.
@@ -114,18 +115,31 @@ export default function PlatformLoginPage() {
                 <label htmlFor="platform-login-password" className="font-label-md text-label-md text-on-surface">
                   {t('pages.clients.platformPassword')}
                 </label>
-                <input
-                  id="platform-login-password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={form.password}
-                  onChange={(event) => {
-                    const value = event.currentTarget.value;
-                    setForm((prev) => ({ ...prev, password: value }));
-                  }}
-                  placeholder="••••••••"
-                  className="w-full rounded-lg bg-surface-container-low px-3.5 py-2.5 font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant focus:bg-surface-container focus:outline-none"
-                />
+                <div className="relative flex w-full items-center">
+                  <input
+                    id="platform-login-password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    value={form.password}
+                    onChange={(event) => {
+                      const value = event.currentTarget.value;
+                      setForm((prev) => ({ ...prev, password: value }));
+                    }}
+                    placeholder="••••••••"
+                    className="w-full rounded-lg bg-surface-container-low px-3.5 py-2.5 pr-11 font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant focus:bg-surface-container focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    aria-label={
+                      showPassword ? t('pages.auth.hidePassword') : t('pages.auth.showPassword')
+                    }
+                    title={showPassword ? t('pages.auth.hidePassword') : t('pages.auth.showPassword')}
+                    onClick={() => setShowPassword((current) => !current)}
+                    className="absolute right-2 flex items-center justify-center rounded-lg p-1.5 text-on-surface-variant transition-colors hover:text-on-surface"
+                  >
+                    <Icon name={showPassword ? 'visibility_off' : 'visibility'} className="text-[18px]" />
+                  </button>
+                </div>
               </div>
             </>
           )}

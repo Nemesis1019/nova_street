@@ -44,7 +44,7 @@ interface BoldLinkResponse {
  * Proveedor de pagos Bold (Colombia).
  *
  * - Botón de pagos embebido: el frontend recibe la config + el hash de integridad
- *   SHA256(orderId + amount + currency + secret) generado acá (la llave secreta nunca
+ *   SHA256(orderId + amount + currency + secret) generado aquí (la llave secreta nunca
  *   sale del servidor).
  * - Link de pago (fallback/redirect): POST /online/link/v1.
  * - Webhook: firma HMAC-SHA256(secret, base64(body)) en el header `x-bold-signature`;

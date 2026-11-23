@@ -117,7 +117,7 @@ export function OtpInput({
   };
 
   const handleFocus = (index: number) => {
-    // Evita "huecos": si se enfoca una casilla más allá de la primera vacía,
+    // Evita "huecos": si se enfoca una casilla más allí de la primera vacía,
     // el foco vuelve a esa primera vacía para mantener la edición secuencial.
     // Se usa valueRef porque este handler puede dispararse antes de que el
     // `value` del render anterior se actualice (auto-advance al tipear).

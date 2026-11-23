@@ -5,6 +5,7 @@ export function notifySuccess({ title, message }: { title: string; message?: str
     title,
     message: message ?? '',
     color: 'green',
+    className: 'nova-notification nova-notification--success',
     autoClose: 4000,
     withCloseButton: true,
   });
@@ -15,6 +16,7 @@ export function notifyError({ title, message }: { title: string; message?: strin
     title,
     message: message ?? '',
     color: 'red',
+    className: 'nova-notification nova-notification--error',
     autoClose: 6000,
     withCloseButton: true,
   });
@@ -25,6 +27,7 @@ export function notifyWarning({ title, message }: { title: string; message?: str
     title,
     message: message ?? '',
     color: 'yellow',
+    className: 'nova-notification nova-notification--warning',
     autoClose: 8000,
     withCloseButton: true,
   });

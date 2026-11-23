@@ -21,6 +21,7 @@ import { TableSkeleton } from '../../components/ui/table-skeleton';
 import { apiClient } from '../../lib/api';
 import { getAccessToken } from '../../lib/auth';
 import { getApiErrorMessage, notifyError, notifySuccess } from '../../lib/notifications';
+import { useStoreConfig } from '../../providers/config-provider';
 import { useTranslation } from '../../providers/i18n-provider';
 
 type DesignStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED';
@@ -150,11 +151,11 @@ function userLabel(design: AdminDesign, fallback: string) {
 }
 
 function formatSurcharge(value: number) {
-  return `$${value.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `$${value.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function formatSurchargeCompact(value: number) {
-  return `$${value.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
+  return `$${value.toLocaleString('es-CO', { maximumFractionDigits: 0 })}`;
 }
 
 function formatZeroPad(value: number) {
@@ -167,8 +168,8 @@ function formatDateTime(value: string, suffix: string) {
     return { day: '—', time: '—' };
   }
   return {
-    day: date.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-    time: `${date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false })} ${suffix}`,
+    day: date.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+    time: `${date.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false })} ${suffix}`,
   };
 }
 
@@ -213,6 +214,8 @@ function DetailRow({ label, children }: { label: string; children: ReactNode }) 
 
 export default function CustomDesignsPage() {
   const { t } = useTranslation();
+  const storeConfig = useStoreConfig();
+  const currencyCode = storeConfig.currencyCode || 'COP';
   const queryClient = useQueryClient();
   const [isClient, setIsClient] = useState(false);
   const [statusFilter, setStatusFilter] = useState<TabStatus>('ALL');
@@ -609,7 +612,7 @@ export default function CustomDesignsPage() {
             <div className="mt-4 flex items-baseline justify-between">
               <span className="font-numeric-tabular font-headline-xl text-headline-xl text-on-surface">
                 <AnimatedNumber value={kpis.averageSurcharge} format={formatSurchargeCompact} />{' '}
-                <span className="font-body-sm text-body-sm text-on-surface-variant">ARS</span>
+                <span className="font-body-sm text-body-sm text-on-surface-variant">{currencyCode}</span>
               </span>
               {/* Comparativa estática del diseño: no hay histórico de recargos en la API. */}
               <span className="font-numeric-tabular font-label-sm text-label-sm text-emerald-800">
@@ -853,7 +856,7 @@ export default function CustomDesignsPage() {
                                 <span className="font-numeric-tabular text-body-md font-semibold text-on-surface">
                                   {formatSurcharge(design.surcharge)}
                                 </span>
-                                <span className="font-label-sm text-label-sm text-on-surface-variant">ARS</span>
+                                <span className="font-label-sm text-label-sm text-on-surface-variant">{currencyCode}</span>
                               </>
                             )}
                           </div>

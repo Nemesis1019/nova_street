@@ -75,11 +75,6 @@ textarea:focus-visible {
   opacity: var(--sf-hover-swap-opacity, 0);
 }
 
-/* Si el producto no tiene segunda imagen, el perfil swap conserva un zoom. */
-.nova-product-card:not(:has(.nova-card-image-secondary)):hover .nova-card-image {
-  transform: scale(var(--sf-hover-swap-fallback-zoom, 1));
-}
-
 /* Card editorial: la imagen secundaria hace crossfade sin cambiar el alto. */
 .sf-editorial-card {
   transition: transform var(--sf-hover-duration, 220ms) var(--sf-motion-ease, ease);
@@ -117,8 +112,34 @@ textarea:focus-visible {
   opacity: var(--sf-hover-swap-opacity, 0);
 }
 
-.sf-editorial-card:not(:has(.sf-editorial-secondary)):hover .sf-editorial-primary {
-  transform: scale(var(--sf-hover-swap-fallback-zoom, 1));
+/* Override de hover por tarjeta (Configuración de la tienda). */
+.nova-card-hover-none:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.nova-card-hover-zoom:hover,
+.nova-card-hover-lift:hover,
+.nova-card-hover-both:hover {
+  transform: translateY(-4px);
+}
+
+.nova-card-hover-zoom:hover {
+  transform: none;
+}
+
+.nova-card-hover-none:hover .nova-card-image,
+.nova-card-hover-lift:hover .nova-card-image,
+.nova-card-hover-none:hover .sf-editorial-primary,
+.nova-card-hover-lift:hover .sf-editorial-primary {
+  transform: none;
+}
+
+.nova-card-hover-zoom:hover .nova-card-image,
+.nova-card-hover-both:hover .nova-card-image,
+.nova-card-hover-zoom:hover .sf-editorial-primary,
+.nova-card-hover-both:hover .sf-editorial-primary {
+  transform: scale(1.055);
 }
 
 /* CTA: flecha y elevación se controlan con variables del perfil activo. */
@@ -336,6 +357,117 @@ textarea:focus-visible {
   transition: padding-top 220ms var(--sf-motion-ease, ease), padding-bottom 220ms var(--sf-motion-ease, ease);
 }
 
+/* Indicador animado de la sección activa en la navegación principal. */
+.sf-nav-link {
+  color: inherit;
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  padding-bottom: 3px;
+}
+
+.sf-nav-link::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--sf-color-accent, #6f7a4e);
+  transform: scaleX(0);
+  transform-origin: left center;
+  opacity: 0;
+  transition:
+    transform var(--sf-hover-duration, 220ms) var(--sf-motion-ease, ease),
+    opacity var(--sf-hover-duration, 220ms) var(--sf-motion-ease, ease);
+}
+
+.sf-nav-link:hover::after {
+  transform: scaleX(0.42);
+  opacity: 0.55;
+}
+
+.sf-nav-link[data-active='true']::after {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+.sf-nav-link[data-active='true'] {
+  color: var(--sf-color-brand, #0d0d0d);
+}
+
+/* Efecto alternativo: fondo tipo píldora. */
+.sf-nav-link--pill {
+  padding: 4px 8px;
+  margin: -4px -8px;
+}
+
+.sf-nav-link--pill::after {
+  display: none;
+}
+
+.sf-nav-link--pill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--sf-color-text, #0d0d0d);
+  opacity: 0;
+  transform: scaleX(0.82);
+  transform-origin: center;
+  transition:
+    opacity var(--sf-hover-duration, 220ms) var(--sf-motion-ease, ease),
+    transform var(--sf-hover-duration, 220ms) var(--sf-motion-ease, ease);
+}
+
+.sf-nav-link--pill[data-active='true'] {
+  color: var(--sf-color-surface, #fcf9f8) !important;
+}
+
+.sf-nav-link--pill[data-active='true']::before {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.sf-nav-link--none::after,
+.sf-nav-link--none::before {
+  display: none;
+}
+
+.sf-nav-link--none.sf-drawer-nav-link[data-active='true']::before {
+  display: none;
+}
+
+.sf-nav-link--static::after,
+.sf-nav-link--static::before {
+  transition: none;
+}
+
+.sf-drawer-nav-link {
+  position: relative;
+}
+
+.sf-drawer-nav-link[data-active='true']::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  bottom: 10%;
+  left: -14px;
+  width: 3px;
+  background: var(--sf-color-accent, #6f7a4e);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sf-nav-link::after {
+    transition: none;
+  }
+}
+
+.sf-reduce-motion .sf-nav-link::after {
+  transition: none;
+}
+
 /* Marquee controlable: la pausa en hover/focus no impide el control manual. */
 .sf-marquee {
   position: relative;
@@ -464,7 +596,7 @@ textarea:focus-visible {
 .catalog-products {
   display: grid;
   grid-template-columns: repeat(var(--sf-cat-cols, auto-fill), minmax(250px, 1fr));
-  gap: 28px;
+  gap: var(--sf-cat-gap, 28px);
 }
 
 @media (max-width: 62em) {
@@ -1031,4 +1163,54 @@ textarea:focus-visible {
     min-height: 0;
     padding: 48px 0;
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Notificaciones configurables desde el admin                         */
+/* ------------------------------------------------------------------ */
+
+.mantine-Notification-root.nova-notification {
+  position: relative;
+  overflow: hidden;
+  padding: 14px 38px 14px 20px;
+  border: var(--nova-notify-border-width, 1px) solid
+    var(--nova-notify-border, var(--sf-color-text, #0d0d0d));
+  border-radius: var(--nova-notify-radius, 0);
+  background: var(--nova-notify-bg, var(--sf-color-surface, #fcf9f8));
+  color: var(--nova-notify-text, var(--sf-color-text, #0d0d0d));
+  box-shadow: var(--nova-notify-shadow, 6px 6px 0 rgba(13, 13, 13, 0.12));
+}
+
+.mantine-Notification-root.nova-notification::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--nova-notify-accent, var(--sf-color-success, #6f7a4e));
+}
+
+.nova-notification .mantine-Notification-title {
+  font-family: var(--nova-notify-title-font, var(--font-bebas-neue), Bebas Neue, Impact, sans-serif);
+  font-size: var(--nova-notify-title-size, 21px);
+  line-height: 1;
+  letter-spacing: 0.035em;
+  text-transform: var(--nova-notify-uppercase, uppercase);
+}
+
+.nova-notification .mantine-Notification-description {
+  margin-top: 4px;
+  font-family: var(--font-jetbrains-mono), JetBrains Mono, monospace;
+  font-size: var(--nova-notify-message-size, 11px);
+  line-height: 1.55;
+  color: inherit;
+  opacity: 0.8;
+}
+
+.nova-notification .mantine-Notification-closeButton {
+  color: inherit;
+  border-radius: var(--nova-notify-radius, 0);
+}
+
+.nova-notification .mantine-Notification-closeButton:hover {
+  background: rgba(127, 127, 127, 0.16);
 }

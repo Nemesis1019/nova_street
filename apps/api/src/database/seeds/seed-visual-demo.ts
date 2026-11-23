@@ -442,7 +442,7 @@ const PAGES = [
       <h2>5. Cambios y devoluciones</h2>
       <p>Aceptamos cambios dentro de los 30 días posteriores a la recepción, siempre que el producto no haya sido usado y conserve su empaque. Los productos personalizados solo se cambian por fallas de fabricación.</p>
       <h2>6. Cuenta de usuario</h2>
-      <p>Sos responsable de mantener la confidencialidad de tu contraseña. Podés solicitar la baja de tu cuenta escribiéndonos a hola@nova.test.</p>
+      <p>Eres responsable de mantener la confidencialidad de tu contraseña. Puedes solicitar la baja de tu cuenta escribiéndonos a hola@nova.test.</p>
     `,
     metaTitle: 'Términos y Condiciones — NÖVA',
     metaDescription: 'Términos, condiciones y políticas de compra de NÖVA.',
@@ -455,13 +455,13 @@ const PAGES = [
       <h2>¿Cuánto tarda mi pedido?</h2>
       <p>Las prendas a pedido se producen en 5 días hábiles. Luego, el envío estándar demora entre 3 y 5 días y el express entre 1 y 2 días.</p>
       <h2>¿Cómo personalizo una prenda?</h2>
-      <p>Entrá a <a href="/personalizar">Personalizar</a>, elegí una prenda base, subí tu diseño o agregá texto y envialo a revisión. Nuestro equipo lo aprueba y podés agregarlo al carrito.</p>
+      <p>Entra a <a href="/personalizar">Personalizar</a>, elige una prenda base, sube tu diseño o agrega texto y envíalo a revisión. Nuestro equipo lo aprueba y puedes agregarlo al carrito.</p>
       <h2>¿Qué medios de pago aceptan?</h2>
       <p>Tarjetas de crédito y débito a través de Stripe.</p>
       <h2>¿Hacen envíos a todo el país?</h2>
       <p>Sí, trabajamos con transportadoras nacionales. En compras superiores a $150.000 el envío estándar es gratis.</p>
       <h2>¿Cómo sigo mi pedido?</h2>
-      <p>Desde <a href="/orders">Mis pedidos</a> podés ver el estado y el número de seguimiento cuando esté disponible.</p>
+      <p>Desde <a href="/orders">Mis pedidos</a> puedes ver el estado y el número de seguimiento cuando esté disponible.</p>
     `,
     metaTitle: 'Preguntas Frecuentes — NÖVA',
     metaDescription: 'Respuestas sobre tiempos, personalización, pagos y envíos.',
@@ -479,7 +479,7 @@ const PAGES = [
       </ul>
       <p>El envío estándar es gratuito en compras superiores a $150.000.</p>
       <h2>Devoluciones</h2>
-      <p>Tenés 30 días para solicitar un cambio o devolución. Escribinos a hola@nova.test con tu número de orden y te enviamos las instrucciones. Los costos de envío de una devolución por cambio de talle corren por cuenta del cliente.</p>
+      <p>Tienes 30 días para solicitar un cambio o devolución. Escribinos a hola@nova.test con tu número de orden y te enviamos las instrucciones. Los costos de envío de una devolución por cambio de talle corren por cuenta del cliente.</p>
     `,
     metaTitle: 'Envíos y Devoluciones — NÖVA',
     metaDescription: 'Plazos, costos y política de devoluciones de NÖVA.',
@@ -508,7 +508,7 @@ const PAGES = [
       <h2>Uso de la información</h2>
       <p>No vendemos tus datos. Los compartimos únicamente con las transportadoras y pasarelas de pago necesarias para completar tu compra.</p>
       <h2>Tus derechos</h2>
-      <p>Podés solicitar acceso, corrección o eliminación de tus datos escribiendo a hola@nova.test.</p>
+      <p>Puedes solicitar acceso, corrección o eliminación de tus datos escribiendo a hola@nova.test.</p>
     `,
     metaTitle: 'Política de Privacidad — NÖVA',
     metaDescription: 'Cómo tratamos y protegemos tus datos personales.',
@@ -527,7 +527,7 @@ const PAGES = [
         <li><strong>De personalización:</strong> contenido y recomendaciones adaptadas a tu navegación (solo si aceptás).</li>
       </ul>
       <h2>Cómo gestionarlas</h2>
-      <p>Podés aceptar o rechazar las cookies no esenciales desde el panel que aparece al ingresar, o volver a abrirlo desde el enlace "Cookies" en el pie de página. También podés borrar las cookies y el almacenamiento local desde la configuración de tu navegador.</p>
+      <p>Puedes aceptar o rechazar las cookies no esenciales desde el panel que aparece al ingresar, o volver a abrirlo desde el enlace "Cookies" en el pie de página. También puedes borrar las cookies y el almacenamiento local desde la configuración de tu navegador.</p>
     `,
     metaTitle: 'Política de Cookies — NÖVA',
     metaDescription: 'Qué cookies usamos, para qué y cómo gestionarlas.',
@@ -554,7 +554,7 @@ function daysFromNow(days: number): Date {
 
 async function main() {
   if (!R2_PUBLIC || !process.env.R2_ENDPOINT || !process.env.R2_ACCESS_KEY_ID) {
-    throw new Error('R2 no está configurado: revisá R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY y R2_PUBLIC_URL.');
+    throw new Error('R2 no está configurado: revisa R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY y R2_PUBLIC_URL.');
   }
 
   /* ------------------------------ Roles y usuarios ------------------------------ */
@@ -937,7 +937,7 @@ async function main() {
     },
     externalScripts: [],
     whatsappButton: { enabled: true, phone: '+573001234567', message: '¡Hola! Quiero consultar por un producto de NÖVA.', position: 'bottomRight' },
-    notFound: { title: 'Página no encontrada', message: 'La página que buscás no existe o fue movida. Volvé al catálogo para seguir explorando.' },
+    notFound: { title: 'Página no encontrada', message: 'La página que buscás no existe o fue movida. Vuelve al catálogo para seguir explorando.' },
     fonts: { heading: 'Bebas Neue', body: 'Inter', mono: 'JetBrains Mono' },
     legal: { legalName: 'NÖVA DESIGN GROUP S.A.S.', taxId: '901.442.890-4' },
     popups: [
@@ -949,7 +949,7 @@ async function main() {
         delaySeconds: 12,
         scrollPercent: 50,
         title: '10% OFF EN TU PRIMERA COMPRA',
-        content: 'Creá tu cuenta y usá el código BIENVENIDO10 al finalizar la compra.',
+        content: 'Crea tu cuenta y usa el código BIENVENIDO10 al finalizar la compra.',
         buttonText: 'Crear cuenta',
         buttonLink: '/register',
         backgroundColor: '#0d0d0d',

@@ -345,7 +345,7 @@ export class SubscriptionService {
     const bold = this.readBoldConfig();
     if (!bold.apiKey || (!bold.secretKey && !bold.sandbox)) {
       throw new ServiceUnavailableException(
-        'Bold no está configurado para la suscripción. Configurá SUBSCRIPTION_BOLD_API_KEY y SUBSCRIPTION_BOLD_SECRET_KEY en la API.',
+        'Bold no está configurado para la suscripción. Configura SUBSCRIPTION_BOLD_API_KEY y SUBSCRIPTION_BOLD_SECRET_KEY en la API.',
       );
     }
 

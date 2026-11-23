@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { AssetPurpose } from '@prisma/client';
 import { Request } from 'express';
 
 import { RequirePermission } from '../auth/decorators/require-permission.decorator';
@@ -53,9 +54,13 @@ export class AssetsController {
   })
   @ApiOkResponse({ type: AssetResponseDto })
   @UseInterceptors(FileInterceptor('file'))
-  async upload(@Req() req: Request, @UploadedFile() file: Express.Multer.File) {
+  async upload(
+    @Req() req: Request,
+    @UploadedFile() file: Express.Multer.File,
+    @Query('purpose') purpose?: AssetPurpose,
+  ) {
     const userId = (req.user as { userId: string }).userId;
-    return this.assetsService.upload(userId, file);
+    return this.assetsService.upload(userId, file, purpose ?? 'CATALOG_IMAGE');
   }
 
   @Post('external')

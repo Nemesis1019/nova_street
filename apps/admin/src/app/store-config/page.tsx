@@ -19,6 +19,7 @@ import { getApiErrorMessage, notifyError, notifySuccess } from '../../lib/notifi
 import { useStoreConfig } from '../../providers/config-provider';
 import { useTranslation } from '../../providers/i18n-provider';
 import { usePlatformSession } from '../../providers/platform-provider';
+import { NotificationSettingsSection } from './notifications-config-section';
 import { StorefrontConfigSection } from './storefront-config-section';
 
 interface StoreConfigFormValues {
@@ -1455,6 +1456,19 @@ export default function StoreConfigPage() {
           {activeTab === 'legal' && (
             <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
               <div className="flex flex-col gap-6 lg:col-span-8">
+                <Reveal>
+                  <NotificationSettingsSection
+                    value={form.values.storefrontConfig.notifications}
+                    presets={form.values.storefrontConfig.notificationPresets ?? []}
+                    onChange={(next) =>
+                      form.setFieldValue('storefrontConfig.notifications', next)
+                    }
+                    onPresetsChange={(next) =>
+                      form.setFieldValue('storefrontConfig.notificationPresets', next)
+                    }
+                  />
+                </Reveal>
+
                 <Reveal>
                 <div className={CARD_CLASS}>
                   <div>

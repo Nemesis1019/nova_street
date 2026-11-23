@@ -98,7 +98,7 @@ export default function RegisterPage() {
       if (data.verificationEmailSent === false) {
         notifyWarning({
           title: 'Cuenta creada',
-          message: `Bienvenido, ${form.values.firstName}. No pudimos enviar el email de confirmación a ${form.values.email}; podés reintentar desde el aviso superior.`,
+          message: `Bienvenido, ${form.values.firstName}. No pudimos enviar el email de confirmación a ${form.values.email}; puedes reintentar desde el aviso superior.`,
         });
       } else {
         notifySuccess({
@@ -206,7 +206,7 @@ export default function RegisterPage() {
                 />
 
                 <Text size="sm" ta="center">
-                  ¿Ya tenés cuenta?{' '}
+                  ¿Ya tienes cuenta?{' '}
                   <Link href="/login" style={{ color: '#0d0d0d', fontWeight: 600 }}>
                     Iniciar sesión
                   </Link>

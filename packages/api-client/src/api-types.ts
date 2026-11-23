@@ -724,22 +724,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/admin/products/{id}/images/{imageId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["AdminProductController_removeImage"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/admin/products/{id}/images/reorder": {
         parameters: {
             query?: never;
@@ -754,6 +738,22 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["AdminProductController_reorderImages"];
+        trace?: never;
+    };
+    "/admin/products/{id}/images/{imageId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["AdminProductController_removeImage"];
+        options?: never;
+        head?: never;
+        patch: operations["AdminProductController_updateImage"];
         trace?: never;
     };
     "/admin/products/{id}/variants": {
@@ -3211,6 +3211,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/storefront/versions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminStorefrontController_version"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/storefront/versions/{id}/restore": {
         parameters: {
             query?: never;
@@ -3775,6 +3791,8 @@ export interface components {
             sku: string;
             size?: string;
             color?: string;
+            /** @description Color de la variante en formato HEX */
+            colorHex?: string | null;
             garmentType?: string;
             stockMode: string;
             productionLeadTimeDays?: number;
@@ -3793,6 +3811,8 @@ export interface components {
             /** Format: uuid */
             id: string;
             sortOrder: number;
+            /** @description Variante a la que pertenece la imagen */
+            productVariantId?: string | null;
             url: string;
             thumbnailUrl?: string;
             smallUrl?: string;
@@ -3805,6 +3825,12 @@ export interface components {
             name: string;
             slug: string;
             description?: string;
+            /** @description URL de video externo del producto */
+            videoUrl?: string | null;
+            /** @description URLs de video del producto */
+            videoUrls?: string[];
+            /** @description Videos asociados a variantes */
+            variantVideos?: Record<string, never>;
             metaTitle?: string;
             metaDescription?: string;
             basePrice: number;
@@ -3832,6 +3858,12 @@ export interface components {
             name: string;
             slug: string;
             description?: string;
+            /** @description URL de video externo del producto */
+            videoUrl?: string | null;
+            /** @description URLs de video del producto */
+            videoUrls?: string[];
+            /** @description Videos asociados a variantes */
+            variantVideos?: Record<string, never>;
             metaTitle?: string;
             metaDescription?: string;
             basePrice: number;
@@ -3925,6 +3957,9 @@ export interface components {
             name: string;
             slug: string;
             description?: string;
+            videoUrl?: string | null;
+            videoUrls?: string[];
+            variantVideos?: string[];
             /** Format: uuid */
             categoryId?: string;
             /** Format: uuid */
@@ -3946,6 +3981,8 @@ export interface components {
             sku: string;
             size?: string;
             color?: string;
+            /** @description Color de la variante en formato HEX */
+            colorHex?: string | null;
             garmentType?: string;
             stockMode: string;
             productionLeadTimeDays: number;
@@ -3962,6 +3999,12 @@ export interface components {
             name: string;
             slug: string;
             description?: string;
+            /** @description URL de video externo del producto */
+            videoUrl?: string | null;
+            /** @description URLs de video del producto */
+            videoUrls?: string[];
+            /** @description Videos asociados a variantes */
+            variantVideos?: Record<string, never>;
             metaTitle?: string;
             metaDescription?: string;
             /** Format: uuid */
@@ -3990,6 +4033,12 @@ export interface components {
             name: string;
             slug: string;
             description?: string;
+            /** @description URL de video externo del producto */
+            videoUrl?: string | null;
+            /** @description URLs de video del producto */
+            videoUrls?: string[];
+            /** @description Videos asociados a variantes */
+            variantVideos?: Record<string, never>;
             metaTitle?: string;
             metaDescription?: string;
             /** Format: uuid */
@@ -4009,6 +4058,9 @@ export interface components {
             name?: string;
             slug?: string;
             description?: string;
+            videoUrl?: string | null;
+            videoUrls?: string[];
+            variantVideos?: string[];
             /** Format: uuid */
             categoryId?: string | null;
             basePrice?: number;
@@ -4043,10 +4095,18 @@ export interface components {
         ReorderProductImagesDto: {
             imageIds: string[];
         };
+        UpdateProductImageDto: {
+            /**
+             * Format: uuid
+             * @description null desasocia la imagen de toda variante.
+             */
+            productVariantId?: string | null;
+        };
         CreateProductVariantDto: {
             sku: string;
             size?: string;
             color?: string;
+            colorHex?: string | null;
             garmentType?: string;
             /** @enum {string} */
             stockMode?: "MADE_TO_ORDER" | "TRACKED";
@@ -4058,6 +4118,7 @@ export interface components {
             sku?: string;
             size?: string;
             color?: string;
+            colorHex?: string | null;
             garmentType?: string;
             /** @enum {string} */
             stockMode?: "MADE_TO_ORDER" | "TRACKED";
@@ -4092,6 +4153,8 @@ export interface components {
             sku: string;
             size?: string;
             color?: string;
+            /** @description Color de la variante en formato HEX */
+            colorHex?: string | null;
             garmentType?: string;
             stockMode: string;
             productionLeadTimeDays: number;
@@ -4129,7 +4192,7 @@ export interface components {
             filename: string;
             mimeType: string;
             /** @enum {string} */
-            purpose?: "CATALOG_IMAGE" | "CUSTOM_DESIGN_ASSET" | "PRINT_FILE" | "REVIEW_IMAGE";
+            purpose?: "CATALOG_IMAGE" | "CUSTOM_DESIGN_ASSET" | "PRODUCT_VIDEO" | "PRINT_FILE" | "REVIEW_IMAGE";
             size?: number;
         };
         PresignAssetResponseDto: {
@@ -5161,7 +5224,7 @@ export interface components {
             slug: string;
             /** @example Acme Store */
             name: string;
-            /** @example acme.nova.app */
+            /** @example acme.nova.com */
             domain?: string;
             /**
              * Format: email
@@ -6833,6 +6896,31 @@ export interface operations {
             };
         };
     };
+    AdminProductController_reorderImages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReorderProductImagesDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminProductDetailDto"];
+                };
+            };
+        };
+    };
     AdminProductController_removeImage: {
         parameters: {
             query?: never;
@@ -6855,18 +6943,19 @@ export interface operations {
             };
         };
     };
-    AdminProductController_reorderImages: {
+    AdminProductController_updateImage: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 id: string;
+                imageId: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ReorderProductImagesDto"];
+                "application/json": components["schemas"]["UpdateProductImageDto"];
             };
         };
         responses: {
@@ -6875,7 +6964,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AdminProductDetailDto"];
+                    "application/json": components["schemas"]["ProductImageResponseDto"];
                 };
             };
         };
@@ -7077,7 +7166,9 @@ export interface operations {
     };
     AssetsController_upload: {
         parameters: {
-            query?: never;
+            query?: {
+                purpose?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -10816,6 +10907,25 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminStorefrontController_version: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;

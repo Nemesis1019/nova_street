@@ -93,12 +93,12 @@ export default function AddressesPage() {
   const form = useForm<AddressFormValues>({
     initialValues: EMPTY_ADDRESS,
     validate: {
-      label: (value: string) => (value.trim() ? null : 'Ingresá un nombre (Casa, Oficina...)'),
-      line1: (value: string) => (value.trim() ? null : 'Ingresá la dirección'),
-      country: (value: string) => (value.trim() ? null : 'Elegí el país'),
-      state: (value: string) => (value.trim() ? null : 'Elegí el estado / departamento'),
-      city: (value: string) => (value.trim() ? null : 'Elegí la ciudad'),
-      zipCode: (value: string) => (value.trim() ? null : 'Ingresá el código postal'),
+      label: (value: string) => (value.trim() ? null : 'Ingresa un nombre (Casa, Oficina...)'),
+      line1: (value: string) => (value.trim() ? null : 'Ingresa la dirección'),
+      country: (value: string) => (value.trim() ? null : 'Elige el país'),
+      state: (value: string) => (value.trim() ? null : 'Elige el estado / departamento'),
+      city: (value: string) => (value.trim() ? null : 'Elige la ciudad'),
+      zipCode: (value: string) => (value.trim() ? null : 'Ingresa el código postal'),
     },
   });
 
@@ -269,7 +269,7 @@ export default function AddressesPage() {
 
       notifySuccess({
         title: 'Ubicación detectada',
-        message: result.displayName ? result.displayName.slice(0, 140) : 'Revisá y completá los datos.',
+        message: result.displayName ? result.displayName.slice(0, 140) : 'Revisa y completa los datos.',
       });
     } catch (error) {
       notifyError({
@@ -323,7 +323,7 @@ export default function AddressesPage() {
               <Stack gap="md" align="center" py="md">
                 <EmptyState
                   title="No hay direcciones registradas"
-                  description="Agregá tu primer punto de entrega para agilizar tus compras."
+                  description="Agrega tu primer punto de entrega para agilizar tus compras."
                 />
                 <Button
                   onClick={openCreate}
@@ -409,7 +409,7 @@ export default function AddressesPage() {
           <Stack gap="md">
             <Group justify="space-between" wrap="wrap">
               <Text size="xs" c="dimmed" maw={420}>
-                Completá a mano (país → estado → ciudad) o usá tu ubicación actual. El mapa se actualiza solo.
+                Completa a mano (país → estado → ciudad) o usa tu ubicación actual. El mapa se actualiza solo.
               </Text>
               <Button
                 type="button"
@@ -453,7 +453,7 @@ export default function AddressesPage() {
             <Group grow align="flex-start">
               <Autocomplete
                 label="País"
-                placeholder={countriesLoading ? 'Cargando países...' : 'Escribí para buscar'}
+                placeholder={countriesLoading ? 'Cargando países...' : 'Escribe para buscar'}
                 data={countries.map((country) => country.name)}
                 limit={8}
                 maxDropdownHeight={240}
@@ -468,7 +468,7 @@ export default function AddressesPage() {
               />
               <Autocomplete
                 label="Estado / Departamento"
-                placeholder={selectedCountry ? 'Escribí para buscar' : 'Elegí primero el país'}
+                placeholder={selectedCountry ? 'Escribe para buscar' : 'Elige primero el país'}
                 disabled={!selectedCountry}
                 data={states.map((state) => state.label)}
                 limit={8}
@@ -486,7 +486,7 @@ export default function AddressesPage() {
             <Group grow align="flex-start">
               <Autocomplete
                 label="Ciudad"
-                placeholder={form.values.state ? 'Escribí para buscar' : 'Elegí primero el estado'}
+                placeholder={form.values.state ? 'Escribe para buscar' : 'Elige primero el estado'}
                 disabled={!form.values.state.trim()}
                 data={cities}
                 limit={8}
@@ -517,7 +517,7 @@ export default function AddressesPage() {
                   <Text size="xs" c="dimmed">
                     {geocoding
                       ? 'Buscando la dirección en el mapa...'
-                      : 'Completá país y ciudad (o usá tu ubicación) para verla en el mapa.'}
+                      : 'Completa país y ciudad (o usa tu ubicación) para verla en el mapa.'}
                   </Text>
                 </div>
               )}

@@ -1,0 +1,34 @@
+# Contexto de build para los Dockerfiles de deploy/.
+# Mantener el contexto pequeño también evita filtrar secretos o datos locales.
+.git
+.gitignore
+.github
+.vscode
+.idea
+
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/coverage
+**/test-results
+**/playwright-report
+**/*.tsbuildinfo
+
+.env
+.env.*
+!.env.example
+
+backups
+apps/api/backups
+apps/api/uploads
+apps/api/demo-images
+
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+docs/stitch
+opencode.jsonc
+opencode.jsonc.*

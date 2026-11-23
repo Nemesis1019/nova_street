@@ -22,7 +22,7 @@ export function EmailVerificationBanner() {
     onSuccess: () => {
       notifySuccess({
         title: 'Email reenviado',
-        message: `Revisá tu bandeja de entrada${email ? ` (${email})` : ''}, incluido el spam.`,
+        message: `Revisa tu bandeja de entrada${email ? ` (${email})` : ''}, incluido el spam.`,
       });
     },
     onError: (error) => {

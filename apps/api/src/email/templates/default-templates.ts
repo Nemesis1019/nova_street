@@ -32,10 +32,10 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateDefinition[] = [
     html: `
       <h2>Hola, {{firstName}}</h2>
       <p>Tu cuenta en <strong>{{storeName}}</strong> fue creada exitosamente.</p>
-      <p>Ya podés explorar el catálogo, guardar direcciones y seguir tus pedidos.</p>
+      <p>Ya puedes explorar el catálogo, guardar direcciones y seguir tus pedidos.</p>
       <a href="#" style="${BUTTON_STYLE}">Explorar ahora</a>
     `,
-    text: 'Hola {{firstName}}, tu cuenta en {{storeName}} fue creada. Ya podés explorar el catálogo.',
+    text: 'Hola {{firstName}}, tu cuenta en {{storeName}} fue creada. Ya puedes explorar el catálogo.',
     variables: [
       { name: 'firstName', description: 'Nombre del cliente', sample: 'María' },
       storeNameVar,
@@ -68,7 +68,7 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateDefinition[] = [
     subject: 'Restablecé tu contraseña — {{storeName}}',
     html: `
       <h2>Hola, {{firstName}}</h2>
-      <p>Recibimos una solicitud para restablecer tu contraseña. Hacé clic en el botón:</p>
+      <p>Recibimos una solicitud para restablecer tu contraseña. Haz clic en el botón:</p>
       <a href="{{resetUrl}}" style="${BUTTON_STYLE}">Restablecer contraseña</a>
       <p style="font-size:12px;color:#747878;">El enlace expira en {{expirationMinutes}} minutos. Si no solicitaste este cambio, ignorá este mensaje.</p>
     `,
@@ -88,7 +88,7 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateDefinition[] = [
     html: `
       <h2>Gracias por suscribirte</h2>
       <p>Recibirás primicias sobre drops exclusivos, colaboraciones y lanzamientos de {{storeName}}.</p>
-      <p style="font-size:12px;color:#747878;">Si no solicitaste esta suscripción, podés ignorar este mensaje.</p>
+      <p style="font-size:12px;color:#747878;">Si no solicitaste esta suscripción, puedes ignorar este mensaje.</p>
     `,
     text: 'Gracias por suscribirte al newsletter de {{storeName}}. Recibirás primicias sobre drops exclusivos.',
     variables: [storeNameVar],
@@ -122,7 +122,7 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateDefinition[] = [
       <p>Número de orden: <strong>#{{orderNumber}}</strong></p>
       <p>Estado actual: <strong>{{status}}</strong></p>
       {{{trackingBlock}}}
-      <p>Podés ver el detalle en tu cuenta.</p>
+      <p>Puedes ver el detalle en tu cuenta.</p>
     `,
     text: 'Tu orden #{{orderNumber}} ahora está en estado {{status}}.',
     variables: [
@@ -159,10 +159,10 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateDefinition[] = [
     html: `
       <h2>Hola, {{firstName}}</h2>
       <p>Tu diseño personalizado basado en <strong>{{templateName}}</strong> fue aprobado.</p>
-      <p>Ya podés agregarlo al carrito y continuar con la compra.</p>
+      <p>Ya puedes agregarlo al carrito y continuar con la compra.</p>
       <a href="/personalizar" style="${BUTTON_STYLE}">Ver mis diseños</a>
     `,
-    text: 'Hola {{firstName}}, tu diseño basado en {{templateName}} fue aprobado. Ya podés agregarlo al carrito.',
+    text: 'Hola {{firstName}}, tu diseño basado en {{templateName}} fue aprobado. Ya puedes agregarlo al carrito.',
     variables: [
       { name: 'firstName', description: 'Nombre del cliente', sample: 'María' },
       { name: 'templateName', description: 'Nombre de la plantilla de diseño', sample: 'Remera básica' },
@@ -178,10 +178,10 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateDefinition[] = [
       <h2>Hola, {{firstName}}</h2>
       <p>Tu diseño personalizado basado en <strong>{{templateName}}</strong> no fue aprobado.</p>
       <p><strong>Motivo:</strong> {{reason}}</p>
-      <p>Podés editar el diseño y volver a enviarlo para revisión.</p>
+      <p>Puedes editar el diseño y volver a enviarlo para revisión.</p>
       <a href="/personalizar" style="${BUTTON_STYLE}">Ver mis diseños</a>
     `,
-    text: 'Hola {{firstName}}, tu diseño basado en {{templateName}} no fue aprobado. Motivo: {{reason}}. Podés editarlo y reenviarlo.',
+    text: 'Hola {{firstName}}, tu diseño basado en {{templateName}} no fue aprobado. Motivo: {{reason}}. Puedes editarlo y reenviarlo.',
     variables: [
       { name: 'firstName', description: 'Nombre del cliente', sample: 'María' },
       { name: 'templateName', description: 'Nombre de la plantilla de diseño', sample: 'Remera básica' },

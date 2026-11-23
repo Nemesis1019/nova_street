@@ -46,7 +46,7 @@ export class PlatformUsersController {
   async update(@Req() req: Request, @Param('id') id: string, @Body() dto: UpdatePlatformUserDto) {
     const actor = assertOwner(req);
     if (id === actor.platformUserId && dto.isActive === false) {
-      throw new ForbiddenException('No podés desactivar tu propia cuenta');
+      throw new ForbiddenException('No puedes desactivar tu propia cuenta');
     }
     const user = await this.auth.updateUser(id, dto);
     await this.audit.log(

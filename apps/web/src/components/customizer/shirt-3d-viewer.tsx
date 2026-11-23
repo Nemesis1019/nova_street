@@ -393,12 +393,12 @@ export function Shirt3DViewer({
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#f6f3f2', padding: '0 24px', textAlign: 'center' }}>
           <span className="font-label-md text-label-md text-on-surface">No se pudo cargar el modelo 3D</span>
           <span className="max-w-sm font-body-sm text-body-sm text-on-surface-variant">
-            Revisá la URL del GLB en el admin o volvé a la vista 2D.
+            Revisa la URL del GLB en el admin o vuelve a la vista 2D.
           </span>
         </div>
       ) : null}
       <div style={{ pointerEvents: 'none', position: 'absolute', left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, background: 'linear-gradient(to top, rgba(0,0,0,0.45), transparent)', padding: '12px 16px', fontSize: 10, color: 'rgba(255,255,255,0.82)' }}>
-        <span>Arrastrá para girar · scroll para acercar</span>
+        <span>Arrastra para girar · scroll para acercar</span>
         <span>
           {modelUrl && !modelUrl.includes('/models/tee-base.glb')
             ? 'Modelo configurado por la tienda'

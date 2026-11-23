@@ -318,7 +318,7 @@ export const errorTranslations: Record<
     pt: "Você já avaliou este produto",
   },
   "You can only review products from paid orders": {
-    es: "Solo podés reseñar productos de órdenes pagadas",
+    es: "Solo puedes reseñar productos de órdenes pagadas",
     pt: "Você só pode avaliar produtos de pedidos pagos",
   },
   "El email ya está suscrito al newsletter.": {
@@ -350,7 +350,7 @@ export const errorTranslations: Record<
     pt: "Email não verificado",
   },
   "You do not own this design": {
-    es: "No sos el dueño de este diseño",
+    es: "No eres el dueño de este diseño",
     pt: "Você não é o dono deste design",
   },
   "Address not found": {

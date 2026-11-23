@@ -6,7 +6,7 @@ import { TenantRegistryService } from '../tenant/tenant-registry.service';
 /**
  * Política CORS multi-tenant:
  * - Orígenes estáticos de la plataforma (`FRONTEND_URL`/`ADMIN_URL`).
- * - Subdominios de las bases de plataforma (`PLATFORM_BASE_DOMAINS`, ej. nova.app).
+ * - Subdominios de las bases de plataforma (`PLATFORM_BASE_DOMAINS`, ej. nova.com).
  * - Dominios de clientes registrados en la BD maestra.
  *
  * En desarrollo se permite cualquier origen (igual que antes) para no
@@ -25,7 +25,7 @@ export class CorsPolicyService {
     if (process.env.ADMIN_URL) origins.push(process.env.ADMIN_URL.trim().replace(/\/$/, ''));
     this.staticOrigins = [...new Set(origins)];
 
-    this.baseDomains = (process.env.PLATFORM_BASE_DOMAINS ?? 'nova.app')
+    this.baseDomains = (process.env.PLATFORM_BASE_DOMAINS ?? 'nova.com')
       .split(',')
       .map((value) => value.trim().toLowerCase())
       .filter(Boolean);

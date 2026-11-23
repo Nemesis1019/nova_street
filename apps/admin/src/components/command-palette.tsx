@@ -80,7 +80,7 @@ export function CommandPalette() {
 
   return (
     <div ref={rootRef} className="relative">
-      {/* Barra de búsqueda (desktop): el input vive acá, sin duplicados en el panel */}
+      {/* Barra de búsqueda (desktop): el input vive aquí, sin duplicados en el panel */}
       <div className="relative hidden w-72 items-center md:flex xl:w-96">
         <Icon name="search" className="pointer-events-none absolute left-3 z-10 text-[18px] text-on-surface-variant" />
         <input

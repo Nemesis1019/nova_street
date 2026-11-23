@@ -17,7 +17,7 @@ interface SubscriptionOverview {
 
 /**
  * Recordatorio operativo para admins de tienda. El pago real vive en
- * `/subscription`; acá sólo mostramos el estado y el acceso directo.
+ * `/subscription`; aquí sólo mostramos el estado y el acceso directo.
  */
 export function SubscriptionBanner() {
   const { t } = useTranslation();

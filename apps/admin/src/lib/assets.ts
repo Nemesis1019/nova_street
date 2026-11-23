@@ -1,7 +1,12 @@
 import { getAuthToken } from './api';
 import { getAdminTenantSlug } from './tenant';
 
-export type AssetPurpose = 'CATALOG_IMAGE' | 'CUSTOM_DESIGN_ASSET' | 'PRINT_FILE' | 'REVIEW_IMAGE';
+export type AssetPurpose =
+  | 'CATALOG_IMAGE'
+  | 'CUSTOM_DESIGN_ASSET'
+  | 'PRODUCT_VIDEO'
+  | 'PRINT_FILE'
+  | 'REVIEW_IMAGE';
 
 function tenantHeaders(): Record<string, string> {
   const tenant = getAdminTenantSlug();
@@ -51,12 +56,17 @@ async function uploadToPresignedUrl(file: File, uploadUrl: string): Promise<void
   }
 }
 
-async function uploadAssetDirect(file: File): Promise<{ id: string; url: string }> {
+async function uploadAssetDirect(
+  file: File,
+  purpose: AssetPurpose = 'CATALOG_IMAGE',
+): Promise<{ id: string; url: string }> {
   const token = getAuthToken();
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/admin/assets/upload`, {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/admin/assets/upload?purpose=${purpose}`,
+    {
     method: 'POST',
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -85,7 +95,7 @@ export async function uploadAsset(
     const message = error instanceof Error ? error.message : '';
     const isPresignUnavailable = message.toLowerCase().includes('presigned uploads require r2');
     if (isPresignUnavailable) {
-      return uploadAssetDirect(file);
+      return uploadAssetDirect(file, purpose);
     }
     throw error;
   }

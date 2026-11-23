@@ -1,4 +1,4 @@
-import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Matches, MaxLength, Min } from 'class-validator';
+import { IsArray, IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Matches, MaxLength, Min } from 'class-validator';
 
 export class CreateProductDto {
   @IsString()
@@ -15,6 +15,19 @@ export class CreateProductDto {
   @IsString()
   @IsOptional()
   description?: string;
+
+  @IsString()
+  @IsOptional()
+  videoUrl?: string | null;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  videoUrls?: string[];
+
+  @IsArray()
+  @IsOptional()
+  variantVideos?: Array<{ url: string; productVariantId: string }>;
 
   @IsUUID()
   @IsOptional()

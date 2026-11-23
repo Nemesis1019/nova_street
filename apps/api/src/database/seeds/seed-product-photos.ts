@@ -44,7 +44,7 @@ async function uploadObject(key: string, buffer: Buffer): Promise<void> {
 
 async function main() {
   if (!R2_PUBLIC || !process.env.R2_ENDPOINT || !process.env.R2_ACCESS_KEY_ID) {
-    throw new Error('R2 no está configurado: revisá R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY y R2_PUBLIC_URL.');
+    throw new Error('R2 no está configurado: revisa R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY y R2_PUBLIC_URL.');
   }
 
   const admin = await prisma.user.findFirst({ where: { email: 'admin@tienda.com' } });

@@ -10,7 +10,7 @@ export class CreateTenantDto {
   @IsString()
   name!: string;
 
-  @ApiPropertyOptional({ example: 'acme.nova.app' })
+  @ApiPropertyOptional({ example: 'acme.nova.com' })
   @IsString()
   @IsOptional()
   domain?: string;

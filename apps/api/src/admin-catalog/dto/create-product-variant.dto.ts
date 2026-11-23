@@ -1,5 +1,5 @@
 import { StockMode } from '@prisma/client';
-import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Matches, Min } from 'class-validator';
 
 export class CreateProductVariantDto {
   @IsString()
@@ -13,6 +13,10 @@ export class CreateProductVariantDto {
   @IsString()
   @IsOptional()
   color?: string;
+
+  @Matches(/^#[0-9A-Fa-f]{6}$/)
+  @IsOptional()
+  colorHex?: string | null;
 
   @IsString()
   @IsOptional()

@@ -40,7 +40,7 @@ function ResetPasswordForm() {
       if (error) throw error;
     },
     onSuccess: () => {
-      notifySuccess({ title: 'Contraseña actualizada', message: 'Ya podés iniciar sesión con tu nueva contraseña.' });
+      notifySuccess({ title: 'Contraseña actualizada', message: 'Ya puedes iniciar sesión con tu nueva contraseña.' });
       router.push('/login');
     },
     onError: (error) => {
@@ -53,7 +53,7 @@ function ResetPasswordForm() {
       eyebrow="Recuperar acceso"
       title={
         <>
-          ELEGÍ TU NUEVA
+          Elige TU NUEVA
           <br />
           CONTRASEÑA.
         </>
@@ -67,7 +67,7 @@ function ResetPasswordForm() {
           </Title>
               <Text size="sm" c="dimmed">
                 {token
-                  ? 'Ingresá tu nueva contraseña. Al guardar, se cerrarán tus sesiones activas.'
+                  ? 'Ingresa tu nueva contraseña. Al guardar, se cerrarán tus sesiones activas.'
                   : 'El enlace es inválido o está incompleto. Solicitá uno nuevo desde la pantalla de login.'}
               </Text>
             </Stack>

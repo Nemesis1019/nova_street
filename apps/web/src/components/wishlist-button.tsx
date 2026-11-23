@@ -4,9 +4,11 @@ import { ActionIcon, Tooltip } from "@mantine/core";
 import { IconHeart, IconHeartFilled } from "@tabler/icons-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { useWishlistVariantIds } from "../hooks/use-wishlist";
 import { apiClient } from "../lib/api";
 import { notifyError, notifySuccess } from "../lib/notifications";
 import { useAuthStore } from "../store/auth-store";
+import { useProductVariantContext } from "./product-variant-context";
 
 interface WishlistButtonProps {
   productVariantId: string;
@@ -22,25 +24,29 @@ interface WishlistButtonProps {
  */
 export function WishlistButton({ productVariantId, isInWishlist, size = 22, overlay = false }: WishlistButtonProps) {
   const { isAuthenticated } = useAuthStore();
+  const variantContext = useProductVariantContext();
+  const { variantIds } = useWishlistVariantIds();
   const queryClient = useQueryClient();
+  const activeVariantId = variantContext?.selectedVariantId || productVariantId;
+  const inWishlist = isInWishlist ?? variantIds.has(activeVariantId);
 
   const toggle = useMutation({
     mutationFn: async () => {
-      if (isInWishlist) {
+      if (inWishlist) {
         const { error } = await apiClient.DELETE("/wishlist/{productVariantId}", {
-          params: { path: { productVariantId } },
+          params: { path: { productVariantId: activeVariantId } },
         });
         if (error) throw error;
       } else {
         const { error } = await apiClient.POST("/wishlist", {
-          body: { productVariantId },
+          body: { productVariantId: activeVariantId },
         });
         if (error) throw error;
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wishlist"] });
-      notifySuccess({ title: isInWishlist ? "Quitado de favoritos" : "Agregado a favoritos" });
+      notifySuccess({ title: inWishlist ? "Quitado de favoritos" : "Agregado a favoritos" });
     },
     onError: () => {
       notifyError({ title: "No se pudo actualizar favoritos" });
@@ -50,7 +56,7 @@ export function WishlistButton({ productVariantId, isInWishlist, size = 22, over
   if (!isAuthenticated) return null;
 
   return (
-    <Tooltip label={isInWishlist ? "Quitar de favoritos" : "Agregar a favoritos"} withArrow>
+    <Tooltip label={inWishlist ? "Quitar de favoritos" : "Agregar a favoritos"} withArrow>
       <ActionIcon
         variant={overlay ? "default" : "subtle"}
         color="dark"
@@ -63,7 +69,7 @@ export function WishlistButton({ productVariantId, isInWishlist, size = 22, over
           event.stopPropagation();
           toggle.mutate();
         }}
-        aria-label={isInWishlist ? "Quitar de favoritos" : "Agregar a favoritos"}
+        aria-label={inWishlist ? "Quitar de favoritos" : "Agregar a favoritos"}
         style={
           overlay
             ? {
@@ -74,7 +80,7 @@ export function WishlistButton({ productVariantId, isInWishlist, size = 22, over
             : undefined
         }
       >
-        {isInWishlist ? <IconHeartFilled size={size} /> : <IconHeart size={size} />}
+        {inWishlist ? <IconHeartFilled size={size} /> : <IconHeart size={size} />}
       </ActionIcon>
     </Tooltip>
   );

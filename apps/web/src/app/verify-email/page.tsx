@@ -62,7 +62,7 @@ function VerifyEmailForm() {
     onSuccess: () => {
       notifySuccess({
         title: 'Email reenviado',
-        message: `Revisá tu bandeja de entrada${email ? ` (${email})` : ''}, incluido el spam.`,
+        message: `Revisa tu bandeja de entrada${email ? ` (${email})` : ''}, incluido el spam.`,
       });
     },
     onError: (error) => {
@@ -97,7 +97,7 @@ function VerifyEmailForm() {
               CUENTA CONFIRMADA
             </Title>
             <Text size="sm" c="dimmed">
-              Tu email fue confirmado correctamente. Ya podés realizar compras y acceder a todas las funciones.
+              Tu email fue confirmado correctamente. Ya puedes realizar compras y acceder a todas las funciones.
             </Text>
           </Stack>
           <Button
@@ -158,11 +158,11 @@ function VerifyEmailForm() {
           <Text size="sm" c="dimmed">
             {email ? (
               <>
-                Te enviamos un link de confirmación a <strong>{email}</strong>. Revisá tu bandeja de entrada (y el
-                spam) y hacé clic en el enlace.
+                Te enviamos un link de confirmación a <strong>{email}</strong>. Revisa tu bandeja de entrada (y el
+                spam) y haz clic en el enlace.
               </>
             ) : (
-              'Te enviamos un link de confirmación a tu correo. Revisá tu bandeja de entrada (y el spam) y hacé clic en el enlace.'
+              'Te enviamos un link de confirmación a tu correo. Revisa tu bandeja de entrada (y el spam) y haz clic en el enlace.'
             )}
           </Text>
         </Stack>

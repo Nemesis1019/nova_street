@@ -2,7 +2,7 @@
  * Utilidades de multi-tenancy compartidas entre API y frontends.
  *
  * Convención de dominios: cada cliente vive en un subdominio de la plataforma
- * (`cliente.nova.app` → slug `cliente`). En desarrollo también se acepta
+ * (`cliente.nova.com` → slug `cliente`). En desarrollo también se acepta
  * `cliente.localhost`.
  */
 

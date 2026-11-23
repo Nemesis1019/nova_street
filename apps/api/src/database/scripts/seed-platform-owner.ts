@@ -3,7 +3,7 @@
  *
  * Uso:
  *   doppler run -- ts-node src/database/scripts/seed-platform-owner.ts \
- *     --email=owner@nova.app --password='Owner12345678' --name="Platform Owner"
+ *     --email=owner@nova.com --password='Owner12345678' --name="Platform Owner"
  */
 import { PrismaClient as MasterPrismaClient } from '@prisma/master-client';
 import * as argon2 from 'argon2';
@@ -20,7 +20,7 @@ function parseArgs(argv: string[]) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const email = (args.get('email') ?? 'owner@nova.app').trim().toLowerCase();
+  const email = (args.get('email') ?? 'owner@nova.com').trim().toLowerCase();
   const password = args.get('password') ?? 'Owner12345678';
   const name = args.get('name') ?? 'Platform Owner';
 

@@ -190,7 +190,7 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
     },
     onSuccess: (data) => {
       setDesignId(data.id);
-      notifySuccess({ title: 'Diseño creado', message: 'Podés comenzar a personalizar.' });
+      notifySuccess({ title: 'Diseño creado', message: 'Puedes comenzar a personalizar.' });
     },
     onError: (error) => notifyError({ title: 'Error', message: getApiErrorMessage(error) }),
   });
@@ -428,7 +428,7 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
             PERSONALIZACIÓN
           </Title>
           <MantineText size="sm" c="dimmed">
-            Iniciá sesión o creá una cuenta para empezar a diseñar tu prenda.
+            Iniciá sesión o crea una cuenta para empezar a diseñar tu prenda.
           </MantineText>
           <Button
             component="a"
@@ -440,7 +440,7 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
             Iniciar sesión
           </Button>
           <MantineText size="sm" ta="center">
-            ¿No tenés cuenta?{' '}
+            ¿No tienes cuenta?{' '}
             <Link href="/register" style={{ color: '#0d0d0d', fontWeight: 600 }}>
               Crear cuenta
             </Link>
@@ -613,7 +613,7 @@ export function CustomizerEditor({ templateId }: CustomizerEditorProps) {
         ) : null}
         {crossOriginBlocked && (
           <MantineText size="xs" c="yellow.8" mt={4}>
-            La imagen base se cargó sin CORS para este dominio: podés editar y guardar, pero la vista previa no se
+            La imagen base se cargó sin CORS para este dominio: puedes editar y guardar, pero la vista previa no se
             generará.
           </MantineText>
         )}

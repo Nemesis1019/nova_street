@@ -19,7 +19,7 @@ export default function SecurityPage() {
   const form = useForm<PasswordFormValues>({
     initialValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
     validate: {
-      currentPassword: (value) => (value.length > 0 ? null : 'Ingresá tu contraseña actual'),
+      currentPassword: (value) => (value.length > 0 ? null : 'Ingresa tu contraseña actual'),
       newPassword: (value) => (isValidPassword(value) ? null : PASSWORD_POLICY_MESSAGE),
       confirmPassword: (value, values) =>
         value === values.newPassword ? null : 'Las contraseñas no coinciden',
@@ -34,7 +34,7 @@ export default function SecurityPage() {
       if (error) throw error;
     },
     onSuccess: () => {
-      notifySuccess({ title: 'Contraseña actualizada', message: 'Volvé a iniciar sesión con la nueva contraseña.' });
+      notifySuccess({ title: 'Contraseña actualizada', message: 'Vuelve a iniciar sesión con la nueva contraseña.' });
       form.reset();
     },
     onError: (error) => {

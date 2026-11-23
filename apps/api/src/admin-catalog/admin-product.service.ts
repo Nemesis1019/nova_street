@@ -11,6 +11,7 @@ import { AddProductImageDto } from './dto/add-product-image.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ReorderProductImagesDto } from './dto/reorder-product-images.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { UpdateProductImageDto } from './dto/update-product-image.dto';
 
 @Injectable()
 export class AdminProductService {
@@ -40,6 +41,11 @@ export class AdminProductService {
           name: dto.name,
           slug: dto.slug,
           description: dto.description,
+          videoUrl: dto.videoUrls?.find(Boolean) ?? dto.videoUrl ?? null,
+          videoUrls: (dto.videoUrls ?? (dto.videoUrl ? [dto.videoUrl] : [])).filter(Boolean),
+          variantVideos: (dto.variantVideos ?? [])
+            .filter((video) => video.url?.trim() && video.productVariantId)
+            .map((video) => ({ url: video.url.trim(), productVariantId: video.productVariantId })) as unknown as Prisma.InputJsonValue,
           metaTitle: dto.metaTitle,
           metaDescription: dto.metaDescription,
           categoryId: dto.categoryId,
@@ -167,6 +173,27 @@ export class AdminProductService {
         name: dto.name,
         slug: dto.slug,
         description: dto.description,
+        videoUrl:
+          dto.videoUrls === undefined && dto.videoUrl === undefined
+            ? undefined
+            : (dto.videoUrls?.find(Boolean) ?? dto.videoUrl?.trim()) || null,
+        videoUrls:
+          dto.videoUrls === undefined
+            ? dto.videoUrl === undefined
+              ? undefined
+              : dto.videoUrl
+                ? [dto.videoUrl]
+                : []
+            : dto.videoUrls.map((url) => url.trim()).filter(Boolean),
+        variantVideos:
+          dto.variantVideos === undefined
+            ? undefined
+            : (dto.variantVideos
+                .filter((video) => video.url?.trim() && video.productVariantId)
+                .map((video) => ({
+                  url: video.url.trim(),
+                  productVariantId: video.productVariantId,
+                })) as unknown as Prisma.InputJsonValue),
         metaTitle: dto.metaTitle,
         metaDescription: dto.metaDescription,
         categoryId: dto.categoryId,
@@ -328,6 +355,38 @@ export class AdminProductService {
     });
     await this.invalidateCatalogCache();
     return image;
+  }
+
+  async updateImage(productId: string, imageId: string, dto: UpdateProductImageDto) {
+    const image = await this.prisma.productImage.findFirst({
+      where: { id: imageId, productId },
+    });
+
+    if (!image) {
+      throw new NotFoundException('Image not found');
+    }
+
+    if (dto.productVariantId) {
+      const variant = await this.prisma.productVariant.findFirst({
+        where: { id: dto.productVariantId, productId },
+        select: { id: true },
+      });
+      if (!variant) {
+        throw new BadRequestException('La variante no pertenece a este producto');
+      }
+    }
+
+    const updated = await this.prisma.productImage.update({
+      where: { id: imageId },
+      data: {
+        ...(dto.productVariantId !== undefined
+          ? { productVariantId: dto.productVariantId }
+          : {}),
+      },
+      include: { asset: true },
+    });
+    await this.invalidateCatalogCache();
+    return updated;
   }
 
   async removeImage(productId: string, imageId: string) {

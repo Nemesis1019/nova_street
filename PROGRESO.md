@@ -2564,7 +2564,7 @@ Se auditó la pantalla de referencia contra la implementación. **17 secciones**
 - `POST /platform/auth/login` (+ `/login/2fa`), `/refresh`, `/logout`, `/me`, `/2fa/setup|confirm|disable`, `/sessions`, `/sessions/revoke`, `/audit`; `GET/POST/PATCH /platform/users` (solo OWNER crea/edita). Cookie `platform_refresh_token` httpOnly.
 - `PlatformAuthGuard`: valida el token de plataforma contra la maestra; compatibilidad legacy (SUPER_ADMIN del tenant por defecto) solo en dev o con `ALLOW_LEGACY_PLATFORM_ADMIN=true`.
 - Impersonación: `reason` obligatorio, step-up con contraseña del operador, `readOnly` opcional (interceptor global bloquea mutaciones con 403), auditoría en `platform_audit_logs` (IP/UA/motivo) + auditoría en el tenant.
-- Seed `seed:platform-owner` → `owner@nova.app / Owner12345678` (sin 2FA en dev; se configura por API).
+- Seed `seed:platform-owner` → `owner@nova.com / Owner12345678` (sin 2FA en dev; se configura por API).
 - Admin: botón **Acceso de plataforma** (modal email/password/código), sesión de plataforma con refresh automático, y modal de impersonación con motivo/solo lectura/contraseña. La sesión legacy sigue funcionando en dev.
 
 ### P0.3 Secretos cifrados en reposo
@@ -2611,7 +2611,7 @@ Se auditó la pantalla de referencia contra la implementación. **17 secciones**
 ### Verificación
 - API 39 tests ✓ (incluye filtro SSE por tenant), web 40 ✓, admin 15 ✓; typecheck/lint ✓; `check:isolation` ✓.
 - En vivo: login de plataforma → step-up → cambio demo/nova (201 sin contraseña con step-up, 401 con token inválido), auditoría de ambos switches; SSE demo/nova 401 y demo/demo 200; `storefrontUrl` demo = `http://demo.localhost:3000`.
-- **Credenciales**: `owner@nova.app / Owner12345678` en `/platform-login` (o el link del login). El modo legacy con `admin@tienda.com` sigue disponible en dev.
+- **Credenciales**: `owner@nova.com / Owner12345678` en `/platform-login` (o el link del login). El modo legacy con `admin@tienda.com` sigue disponible en dev.
 
 ### Modo plataforma al cerrar un cliente (cont. 46)
 - Problema: al impersonar sin PlatformUser (modo legacy), "Salir" reseteaba al tenant por defecto y el header volvía a mostrar `admin@tienda.com`; el módulo Clientes se ocultaba.
@@ -2633,7 +2633,7 @@ Se auditó la pantalla de referencia contra la implementación. **17 secciones**
 ## Sesión 2026-10-21 (cont. 47) — Superadmins globales (mismas credenciales en todas las tiendas)
 
 ### Modelo
-- Los **dos únicos superadmins** son `PlatformUser` en la maestra: `admin@tienda.com` y `admin2@tienda.com`, con el **mismo hash de contraseña** de sus usuarios del tenant por defecto (se eliminó `owner@nova.app`). Seed: `seed:platform-admins`.
+- Los **dos únicos superadmins** son `PlatformUser` en la maestra: `admin@tienda.com` y `admin2@tienda.com`, con el **mismo hash de contraseña** de sus usuarios del tenant por defecto (se eliminó `owner@nova.com`). Seed: `seed:platform-admins`.
 - Su **token de plataforma es también la sesión de los módulos de tienda**. `JwtStrategy` acepta `scope: 'platform'` y resuelve en la BD del tenant un **usuario espejo** (`User.platformUserId`, migración `platform_shadow_users`) con rol SUPER_ADMIN, para que FKs/auditoría sigan siendo válidas. Si el email ya existe como SUPER_ADMIN (admin@tienda.com en nova) se vincula; si pertenece a un cliente, se usa un email sintético.
 - **No hay impersonación** al cambiar de cliente: `POST /platform/tenants/:id/select` audita el cambio y el frontend solo fija `X-Tenant` + recarga. El header mantiene la identidad de plataforma y el usuario de la tienda nunca cambia.
 - AdminFrame: con PlatformUser autentica los módulos de tienda aunque no exista cookie de tenant; en modo plataforma muestra solo el panel de clientes; sin credenciales redirige al login; `/clients` requiere plataforma (o legacy del SUPER_ADMIN del tenant por defecto).
@@ -3258,3 +3258,201 @@ Se auditó la pantalla de referencia contra la implementación. **17 secciones**
   - Mostrar miniaturas.
   - Habilitar swipe de galería.
 - Verificado: cambio con flechas, miniaturas, swipe móvil, proporción y fit.
+
+### Hover configurable y medios por variante
+- Admin → Tarjeta de producto → Efecto hover: heredar del tema, zoom + elevación, solo zoom, solo elevación o sin efecto.
+- Se eliminó el fallback de zoom que anulaba el efecto en tarjetas sin imagen secundaria.
+- Admin → Producto → Medios por variante: cada imagen se puede asociar a una variante o dejar en “Todas las variantes”.
+- API `PATCH /admin/products/{id}/images/{imageId}` para asignar/desasignar variante.
+- La galería de la ficha filtra imágenes por la variante seleccionada; las imágenes generales se mantienen como fallback.
+- Las tarjetas priorizan imágenes generales y de la variante/color por defecto.
+- Verificado: asignación desde API, cambio de galería al cambiar variante, hover “sin efecto” y restauración de datos.
+
+### Swatches de color y densidad de tarjeta
+- Nueva columna `ProductVariant.colorHex` (migración `20261111120000_variant_color_hex`).
+- Admin de variantes: selector de color HEX junto al nombre del color; la tabla muestra el swatch real.
+- Tarjetas: swatches de colores únicos, selección local sin navegar, y cambio de imágenes por color.
+- Admin → Tarjeta de producto:
+  - `showColorSwatches`.
+  - `textAlign`: izquierda o centrada.
+  - `density`: compacta, cómoda o amplia.
+- Fallback de colores por nombre para variantes existentes sin HEX (`Negro`, `Blanco`, `Crema`, `Oliva`, etc.).
+- Verificado: swatches visibles, cambio de color activo, migración aplicada en NÖVA y demo.
+
+### Badges, grilla y zoom de galería
+- Admin → Tarjeta de producto: posición de badges (izquierda/derecha), forma (rectangular/píldora) y estilo (contorno/sólido).
+- Admin → Catálogo: espaciado de grilla compacto, cómodo o amplio.
+- Ficha de producto: click en la imagen abre lightbox con navegación, contador, cierre con Escape y bloqueo del scroll.
+- Admin → Diseño → Ficha de producto: toggle “Permitir zoom de la imagen”.
+- Verificado: lightbox abre/cierra sin navegar, gap de grilla cambia y configuración se restaura.
+
+### Autenticación de plataforma y refresh
+- Login de plataforma y formulario de `/clients` con mostrar/ocultar contraseña.
+- La sesión de plataforma se restaura solo en rutas de plataforma o si existe una marca persistente de sesión de plataforma.
+- El login de tienda y el login de plataforma ya no disparan ambos refresh: cada uno consulta únicamente su endpoint.
+- Mensaje 401 unificado para `/auth/refresh` y `/platform/auth/refresh`: “No refresh token”.
+- Verificado: `/platform-login` y `/clients` hacen solo `/platform/auth/refresh`; `/` y `/dashboard` hacen solo `/auth/refresh`; ambos endpoints devuelven el mismo JSON 401.
+
+### Favorito en ficha de producto
+- `WishlistButton` ahora consulta `useWishlistVariantIds` cuando no recibe `isInWishlist`.
+- En la ficha usa la variante seleccionada mediante `ProductVariantContext`.
+- El corazón aparece relleno al entrar a un producto ya guardado y se actualiza al cambiar de variante.
+- Verificado con la Campera Bomber Midnight y una variante previamente marcada como favorita.
+
+### Notificaciones, tooltips y swatches en ficha
+- Admin → Configuración de la tienda → Notificaciones: estilo editorial/minimal/sólido y posición.
+- Las notificaciones usan el lenguaje visual NÖVA: borde negro, esquinas rectas, título display y mensaje mono.
+- Tooltips de Mantine alineados al tema: fondo oscuro, tipografía mono, borde recto.
+- Ficha de producto: swatches de color convierten la selección de color en una acción directa y mantienen sincronizada la variante.
+- Toggle en Diseño → Ficha de producto para mostrar/ocultar swatches.
+- Verificado: notificación renderizada con clase `nova-notification`, body con estilo editorial y swatches visibles.
+
+### Configuraciones de notificaciones y vista previa
+- Nueva tarjeta “Apariencia de notificaciones” dentro de `Configuración de la tienda → Notificaciones & Legal`.
+- Selector de estilo y posición de la configuración activa.
+- Botón **Nueva configuración**: nombre + estilo + posición.
+- Acciones **Guardar y aplicar** o **Solo guardar**.
+- Lista de configuraciones guardadas con estado activo, aplicar y eliminar.
+- Vista previa realista de la notificación según estilo y posición.
+- La vista previa usa el mismo lenguaje visual que el storefront (editorial, minimal o sólido).
+- Verificado creando “Avisos checkout” y previsualizándolo en modo sólido.
+
+### Editor real de estilos de notificación
+- La sección “Apariencia de notificaciones” ahora edita la configuración activa completa:
+  - Fondo, texto, borde y acento.
+  - Ancho y radio del borde.
+  - Sombra.
+  - Tipografía, tamaño y mayúsculas del título.
+  - Tamaño del mensaje.
+  - Posición y estilo base.
+- La vista previa se actualiza con los valores editados, sin guardar primero.
+- “Guardar configuración” crea una configuración reutilizable con el estilo completo actual; ya no clona solo nombre/estilo/posición.
+- Las configuraciones guardadas se pueden aplicar o eliminar con todos sus atributos.
+- El storefront consume las mismas variables CSS que usa la vista previa.
+
+### Undo/redo del Storefront Builder
+- Historial local de hasta 50 cambios sobre el documento del storefront.
+- Botones **Deshacer** y **Rehacer** en el header del builder.
+- Atajos: `Ctrl/Cmd+Z`, `Ctrl/Cmd+Shift+Z` y `Ctrl/Cmd+Y`.
+- El historial se limpia al guardar/publicar, aplicar un preset o importar un tema.
+- Verificado editando el título del hero, deshaciendo y rehaciendo el cambio.
+
+### Video de producto y comparación de versiones
+- Campo `Product.videoUrl` (migración `20261121120000_product_video_url`) editable desde el admin.
+- Soporte en la galería para YouTube, Vimeo y MP4/WebM directo.
+- El video aparece como miniatura adicional, respeta flechas, swipe y teclado, y no interfiere con el lightbox de imágenes.
+- Comparación de versiones:
+  - `GET /admin/storefront/versions/:id` devuelve el snapshot completo.
+  - Modal “Comparar versión” muestra ruta, valor histórico y valor del borrador actual.
+  - Se respeta el límite visual de 250 cambios.
+- Verificado con YouTube, miniatura de video, iframe embebido y comparación de la versión 4 contra el borrador.
+
+### Múltiples videos y swatches de talle
+- `Product.videoUrls String[]` con migración `20261121130000_product_video_urls`.
+- El admin permite agregar, quitar y editar múltiples URLs de video por producto.
+- La galería muestra todas las miniaturas de video, con navegación por flechas, swipe y teclado.
+- Soporte para YouTube, Vimeo y archivos MP4/WebM directos.
+- Ficha de producto: swatches de talle sincronizados con color y variante.
+- Toggle `showSizeSwatches` en Diseño → Ficha de producto.
+- Verificado: dos videos (YouTube + Vimeo), miniaturas y selección de talle S/M/L/XL.
+
+### Subida de videos propios
+- Nuevo propósito de asset `PRODUCT_VIDEO`.
+- Migración `20261121140000_product_video_assets`.
+- Formatos permitidos: MP4, WebM, OGG y QuickTime.
+- Límite específico de video: 100 MB configurable con `VIDEO_MAX_FILE_SIZE_BYTES`.
+- Admin de producto: botón **Subir video** que sube a R2/local y agrega la URL a `videoUrls`.
+- El upload directo acepta `?purpose=PRODUCT_VIDEO` y el presign ya soporta el propósito.
+- Verificado: subida de un MP4 de prueba, asset creado con URL pública y eliminación del asset.
+
+### Videos por variante
+- Campo `Product.variantVideos` JSON con `{ url, productVariantId }`.
+- Migración `20261121150000_product_variant_videos`.
+- Admin de producto: sección “Videos por variante” para agregar URL, elegir variante y eliminar.
+- La galería combina videos generales y videos de la variante activa, sin duplicados.
+- Al cambiar de talle/color se actualizan los videos disponibles.
+- Verificado: video de YouTube para S y video de Vimeo para M; la galería cambió al cambiar la variante.
+
+### Swatches de talle en tarjetas y diff agrupado
+- ProductCard ahora muestra talles disponibles por color, con toggle `showSizeSwatches`.
+- Al elegir talle se actualiza la variante activa, el corazón de favoritos y las imágenes preferidas.
+- La comparación de versiones muestra un resumen por sección (chips con cantidad) y resalta valores anteriores/nuevos.
+- Verificado: tarjeta de Remera Oversize Autonomy con talles M/L y cambio sin navegar.
+
+### Biblioteca filtrable y diff visual
+- Biblioteca de videos en el editor de producto: busca por URL/MIME, previsualiza videos y los asocia al producto o a una variante.
+- Los assets propios `PRODUCT_VIDEO` se reutilizan sin volver a subirlos.
+- Comparación de versiones: resumen por sección y miniaturas cuando el valor modificado es una URL de imagen.
+- Verificado: biblioteca muestra el video subido, permite seleccionarlo y el asset se elimina correctamente después de la prueba.
+
+### Comparación visual de imágenes en versiones
+- El modal de comparación detecta URLs de imagen modificadas y muestra una tarjeta lado a lado:
+  - Imagen de la versión histórica.
+  - Imagen del borrador actual.
+- Si falta una de las imágenes, muestra un placeholder.
+- Se mantiene la tabla de rutas y el resumen por sección.
+- Verificado por typecheck/lint; la estructura reutiliza las URLs ya presentes en el snapshot.
+
+### Biblioteca de medios unificada
+- Nueva página `/media` en el admin con imágenes y videos en una sola grilla.
+- Filtros Todos / Imágenes / Videos.
+- Búsqueda por URL, tipo MIME o propósito.
+- Previsualización de imágenes y reproductor de video.
+- Subida automática según MIME (`CATALOG_IMAGE` o `PRODUCT_VIDEO`).
+- Copiar URL y eliminar asset.
+- Acceso agregado al sidebar en Storefront & Contenido → Biblioteca de medios.
+- Verificado: página carga los assets del tenant y muestra la grilla con filtros.
+
+### Moneda y español de Colombia
+- Eliminados los `ARS` y `es-AR` hardcodeados del admin.
+- Diseños personalizados y detalle de usuario usan `StoreConfig.currencyCode` (COP por defecto).
+- Formato de importes y fechas migrado a `es-CO`.
+- Sustituido el voseo rioplatense por tuteo colombiano en admin, storefront y mensajes del API:
+  - podés → puedes
+  - tenés → tienes
+  - elegí → elige
+  - completá → completa
+  - revisá → revisa
+  - acá → aquí
+  - móvil → celular
+- Actualizados los diccionarios y las claves de traducción de forma consistente.
+- Verificado: Diseños Personalizados muestra COP en KPI y filas; no quedan ocurrencias de ARS/es-AR/voseo en los textos de UI.
+- Contenido existente de NÖVA normalizado en base de datos: páginas, productos, categorías y plantillas de email sin voseo; backup previo en `Temp/opencode/nova-content-backup.json`.
+- Verificación directa en BD: moneda `COP`, sin textos voseo en páginas ni descripciones de producto.
+
+### Indicador animado de sección activa
+- Header detecta la ruta actual con `usePathname`.
+- Catálogo se marca activo también en fichas de producto.
+- Personalizar se marca en todas sus subrutas.
+- Nosotros se marca en `/pagina/sobre-nosotros`.
+- Indicador: línea de acento que crece desde la izquierda; los links inactivos muestran una línea parcial al hover.
+- Versión móvil: barra lateral de acento en el link activo.
+- Respeta `prefers-reduced-motion`.
+- Verificado en catálogo, personalizar, producto y sobre nosotros.
+
+### Indicador de enlace activo configurable
+- El indicador se aplica a todos los enlaces internos del header, footer, páginas dinámicas y enlaces extra del footer.
+- No requiere registrar cada enlace: cualquier href nuevo se evalúa contra la ruta actual.
+- Admin → Storefront & Layout → Navegación:
+  - Subrayado animado.
+  - Fondo tipo píldora.
+  - Sin indicador.
+  - Animación on/off.
+- Los links del footer también respetan `aria-current` y el efecto elegido.
+- Verificado en `/catalogo` y `/pagina/sobre-nosotros`, incluyendo enlaces dinámicos del footer.
+
+### Catálogo restaurado a su configuración anterior
+- Publicada la versión 5 del storefront de NÖVA.
+- Catálogo con 4 columnas, filtros visibles, orden visible y tarjetas estándar.
+- Verificado en `/catalogo` a 1440 px: panel de filtros activo, grilla de 4 columnas y 12 productos.
+- Cambio aplicado sobre el documento del Storefront Builder, sin modificar código.
+
+### Guía de despliegue en Hostinger + Docker + Coolify
+- Guía completa en `docs/DEPLOYMENT_COOLIFY.md`.
+- Dockerfiles de producción en `deploy/Dockerfile.api`, `deploy/Dockerfile.web` y `deploy/Dockerfile.admin`.
+- `.dockerignore` en la raíz del monorepo.
+- Imágenes de API, web y admin construidas localmente; web y admin verificados respondiendo `200`.
+- Incluye PostgreSQL maestra + tenant, Redis, R2, variables, migraciones, backups, webhooks, smoke tests y troubleshooting.
+- Dominios: `<cliente>.nova.com` para storefront, `admin.nova.com` para admin y `api.nova.com` para API.
+- Router wildcard de Traefik para tenants, excluyendo admin/api/cdn/www; certificado wildcard `*.nova.com` con DNS-01 de Hostinger.
+- Recomendación: primer deploy con un solo tenant (`nova`, URL `nova.nova.com`); dominios propios y autoservicio quedan para una fase posterior.

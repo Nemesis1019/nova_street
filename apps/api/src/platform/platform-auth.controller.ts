@@ -95,7 +95,7 @@ export class PlatformAuthController {
   @HttpCode(HttpStatus.OK)
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const token = getPlatformRefreshToken(req);
-    if (!token) throw new UnauthorizedException('Missing refresh token');
+    if (!token) throw new UnauthorizedException('No refresh token');
 
     const result = await this.auth.refresh(token, {
       ip: req.ip,

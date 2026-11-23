@@ -26,10 +26,17 @@ import { useTranslation } from '../../../providers/i18n-provider';
 
 type ImageMode = 'file' | 'url';
 
+interface ProductVariantVideo {
+  url: string;
+  productVariantId: string;
+}
+
 interface ProductFormValues {
   name: string;
   slug: string;
   description: string;
+  videoUrls: string[];
+  variantVideos: ProductVariantVideo[];
   metaTitle: string;
   metaDescription: string;
   basePrice: number;
@@ -41,6 +48,7 @@ interface VariantFormValues {
   sku: string;
   size: string;
   color: string;
+  colorHex: string;
   garmentType: string;
   stockMode: 'MADE_TO_ORDER' | 'TRACKED';
   productionLeadTimeDays: number;
@@ -48,10 +56,19 @@ interface VariantFormValues {
   isActive: boolean;
 }
 
+interface VideoAsset {
+  id: string;
+  url: string;
+  mimeType: string;
+  size: number;
+  createdAt: string;
+}
+
 interface ProductImageWithUrl {
   id: string;
   url?: string;
   sortOrder?: number;
+  productVariantId?: string | null;
 }
 
 function formatPrice(value: number) {
@@ -72,12 +89,19 @@ export default function ProductDetailPage() {
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [videoLibraryOpen, setVideoLibraryOpen] = useState(false);
+  const [videoLibraryLoading, setVideoLibraryLoading] = useState(false);
+  const [videoLibraryAssets, setVideoLibraryAssets] = useState<VideoAsset[]>([]);
+  const [videoLibraryTarget, setVideoLibraryTarget] = useState<'general' | 'variant'>('general');
+  const [videoSearch, setVideoSearch] = useState('');
 
   const variantForm = useForm<VariantFormValues>({
     initialValues: {
       sku: '',
       size: '',
       color: '',
+      colorHex: '',
       garmentType: '',
       stockMode: 'MADE_TO_ORDER',
       productionLeadTimeDays: 7,
@@ -110,6 +134,8 @@ export default function ProductDetailPage() {
       name: '',
       slug: '',
       description: '',
+      videoUrls: [],
+      variantVideos: [],
       metaTitle: '',
       metaDescription: '',
       basePrice: 0,
@@ -124,6 +150,13 @@ export default function ProductDetailPage() {
         name: product.name,
         slug: product.slug,
         description: product.description ?? '',
+        videoUrls:
+          product.videoUrls && product.videoUrls.length > 0
+            ? product.videoUrls
+            : product.videoUrl
+              ? [product.videoUrl]
+              : [],
+        variantVideos: (product.variantVideos as ProductVariantVideo[] | null) ?? [],
         metaTitle: product.metaTitle ?? '',
         metaDescription: product.metaDescription ?? '',
         basePrice: product.basePrice,
@@ -166,7 +199,13 @@ export default function ProductDetailPage() {
   const restoreDraft = () => {
     const saved = localStorage.getItem(`product-draft-${productId}`);
     if (saved) {
-      form.setValues(JSON.parse(saved) as ProductFormValues);
+      const parsed = JSON.parse(saved) as Partial<ProductFormValues>;
+      form.setValues({
+        ...form.values,
+        ...parsed,
+        videoUrls: parsed.videoUrls ?? [],
+        variantVideos: parsed.variantVideos ?? [],
+      });
       notifySuccess({ title: t('pages.productDetail.toastDraftRestored') });
     }
     setHasDraft(false);
@@ -180,6 +219,13 @@ export default function ProductDetailPage() {
         name: product.name,
         slug: product.slug,
         description: product.description ?? '',
+        videoUrls:
+          product.videoUrls && product.videoUrls.length > 0
+            ? product.videoUrls
+            : product.videoUrl
+              ? [product.videoUrl]
+              : [],
+        variantVideos: (product.variantVideos as ProductVariantVideo[] | null) ?? [],
         metaTitle: product.metaTitle ?? '',
         metaDescription: product.metaDescription ?? '',
         basePrice: product.basePrice,
@@ -213,7 +259,7 @@ export default function ProductDetailPage() {
     mutationFn: async (values: VariantFormValues) => {
       const { error } = await apiClient.POST('/admin/products/{id}/variants', {
         params: { path: { id: productId } },
-        body: values as never,
+        body: { ...values, colorHex: values.colorHex.trim() || null } as never,
       });
       if (error) throw error;
     },
@@ -232,7 +278,7 @@ export default function ProductDetailPage() {
     mutationFn: async ({ variantId, values }: { variantId: string; values: VariantFormValues }) => {
       const { error } = await apiClient.PATCH('/admin/products/{id}/variants/{variantId}', {
         params: { path: { id: productId, variantId } },
-        body: values as never,
+        body: { ...values, colorHex: values.colorHex.trim() || null } as never,
       });
       if (error) throw error;
     },
@@ -298,6 +344,33 @@ export default function ProductDetailPage() {
     },
   });
 
+  const updateImageVariant = useMutation({
+    mutationFn: async ({
+      imageId,
+      productVariantId,
+    }: {
+      imageId: string;
+      productVariantId: string | null;
+    }) => {
+      const { error } = await apiClient.PATCH('/admin/products/{id}/images/{imageId}', {
+        params: { path: { id: productId, imageId } },
+        body: { productVariantId } as never,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-product', productId] });
+      queryClient.invalidateQueries({ queryKey: ['catalog'] });
+      notifySuccess({ title: t('pages.productDetail.toastImageVariantUpdated') });
+    },
+    onError: (error) => {
+      notifyError({
+        title: t('pages.productDetail.toastImageVariantError'),
+        message: getApiErrorMessage(error),
+      });
+    },
+  });
+
   const removeImage = useMutation({
     mutationFn: async (imageId: string) => {
       const { error } = await apiClient.DELETE('/admin/products/{id}/images/{imageId}', {
@@ -331,6 +404,62 @@ export default function ProductDetailPage() {
     },
   });
 
+  const uploadVideo = async (file: File | undefined) => {
+    if (!file) return;
+    setUploadingVideo(true);
+    try {
+      const asset = await uploadAsset(file, 'PRODUCT_VIDEO');
+      form.setFieldValue('videoUrls', [
+        ...form.values.videoUrls.filter((url) => url.trim()),
+        asset.url,
+      ]);
+      notifySuccess({ title: t('pages.productDetail.toastVideoUploaded') });
+    } catch (error) {
+      notifyError({
+        title: t('pages.productDetail.toastVideoUploadError'),
+        message: getApiErrorMessage(error),
+      });
+    } finally {
+      setUploadingVideo(false);
+    }
+  };
+
+  const openVideoLibrary = async (target: 'general' | 'variant') => {
+    setVideoLibraryTarget(target);
+    setVideoSearch('');
+    setVideoLibraryOpen(true);
+    setVideoLibraryLoading(true);
+    try {
+      const { data, error } = await apiClient.GET('/admin/assets', {
+        params: { query: { purpose: 'PRODUCT_VIDEO', limit: '100' } },
+      });
+      if (error) throw error;
+      setVideoLibraryAssets(((data as { data?: VideoAsset[] } | undefined)?.data ?? []) as VideoAsset[]);
+    } catch (error) {
+      notifyError({
+        title: t('pages.productDetail.videoLibraryError'),
+        message: getApiErrorMessage(error),
+      });
+    } finally {
+      setVideoLibraryLoading(false);
+    }
+  };
+
+  const useLibraryVideo = (asset: VideoAsset) => {
+    if (videoLibraryTarget === 'variant') {
+      form.setFieldValue('variantVideos', [
+        ...form.values.variantVideos,
+        { url: asset.url, productVariantId: product?.variants[0]?.id ?? '' },
+      ]);
+    } else {
+      form.setFieldValue('videoUrls', [
+        ...form.values.videoUrls.filter((url) => url.trim()),
+        asset.url,
+      ]);
+    }
+    setVideoLibraryOpen(false);
+  };
+
   const submitProduct = () => {
     form.onSubmit((values) => updateProduct.mutate(values))();
   };
@@ -352,6 +481,7 @@ export default function ProductDetailPage() {
       sku: variant.sku,
       size: variant.size ?? '',
       color: variant.color ?? '',
+      colorHex: variant.colorHex ?? '',
       garmentType: variant.garmentType ?? '',
       stockMode: variant.stockMode as 'MADE_TO_ORDER' | 'TRACKED',
       productionLeadTimeDays: variant.productionLeadTimeDays,
@@ -480,6 +610,145 @@ export default function ProductDetailPage() {
 
                 <Field label={t('pages.productDetail.productDescription')} hint={t('pages.productDetail.markdownCompatible')}>
                   <Textarea rows={5} {...form.getInputProps('description')} />
+                </Field>
+
+                <Field
+                  label={t('pages.productDetail.productVideoUrl')}
+                  hint={t('pages.productDetail.productVideoUrlHint')}
+                >
+                  <div className="flex flex-col gap-2">
+                    {form.values.videoUrls.map((url, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input
+                          value={url}
+                          placeholder="https://www.youtube.com/watch?v=..."
+                          onChange={(event) => {
+                            const next = [...form.values.videoUrls];
+                            next[index] = event.currentTarget.value;
+                            form.setFieldValue('videoUrls', next);
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            form.setFieldValue(
+                              'videoUrls',
+                              form.values.videoUrls.filter((_, itemIndex) => itemIndex !== index),
+                            )
+                          }
+                          className="rounded-lg p-2 text-on-surface-variant hover:bg-error-container/20 hover:text-error"
+                          title={t('common.delete')}
+                        >
+                          <Icon name="delete" className="text-[18px]" />
+                        </button>
+                      </div>
+                    ))}
+                    <div className="flex flex-wrap gap-2">
+                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-outline-variant/50 px-3 py-2 font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-low">
+                        <Icon
+                          name={uploadingVideo ? 'progress_activity' : 'upload'}
+                          className={`text-[18px] ${uploadingVideo ? 'animate-spin' : ''}`}
+                        />
+                        {uploadingVideo
+                          ? t('pages.productDetail.uploadingVideo')
+                          : t('pages.productDetail.uploadVideo')}
+                        <input
+                          type="file"
+                          accept="video/mp4,video/webm,video/ogg,video/quicktime"
+                          className="hidden"
+                          disabled={uploadingVideo}
+                          onChange={(event) => void uploadVideo(event.currentTarget.files?.[0])}
+                        />
+                      </label>
+                      <Button
+                        variant="secondary"
+                        icon="video_library"
+                        onClick={() => void openVideoLibrary('general')}
+                      >
+                        {t('pages.productDetail.videoLibrary')}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        icon="add"
+                        onClick={() => form.setFieldValue('videoUrls', [...form.values.videoUrls, ''])}
+                      >
+                        {t('pages.productDetail.addVideo')}
+                      </Button>
+                    </div>
+                  </div>
+                </Field>
+
+                <Field
+                  label={t('pages.productDetail.variantVideos')}
+                  hint={t('pages.productDetail.variantVideosHint')}
+                >
+                  <div className="flex flex-col gap-2">
+                    {form.values.variantVideos.map((video, index) => (
+                      <div key={index} className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <Input
+                          value={video.url}
+                          placeholder="https://www.youtube.com/watch?v=..."
+                          onChange={(event) => {
+                            const next = [...form.values.variantVideos];
+                            next[index] = { ...next[index], url: event.currentTarget.value };
+                            form.setFieldValue('variantVideos', next);
+                          }}
+                        />
+                        <Select
+                          value={video.productVariantId}
+                          onChange={(event) => {
+                            const next = [...form.values.variantVideos];
+                            next[index] = {
+                              ...next[index],
+                              productVariantId: event.currentTarget.value,
+                            };
+                            form.setFieldValue('variantVideos', next);
+                          }}
+                          className="sm:w-60"
+                        >
+                          {product.variants.map((variant) => (
+                            <option key={variant.id} value={variant.id}>
+                              {[variant.size, variant.color].filter(Boolean).join(' / ') || variant.sku}
+                            </option>
+                          ))}
+                        </Select>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            form.setFieldValue(
+                              'variantVideos',
+                              form.values.variantVideos.filter((_, itemIndex) => itemIndex !== index),
+                            )
+                          }
+                          className="rounded-lg p-2 text-on-surface-variant hover:bg-error-container/20 hover:text-error"
+                          title={t('common.delete')}
+                        >
+                          <Icon name="delete" className="text-[18px]" />
+                        </button>
+                      </div>
+                    ))}
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="secondary"
+                        icon="video_library"
+                        onClick={() => void openVideoLibrary('variant')}
+                      >
+                        {t('pages.productDetail.videoLibrary')}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        icon="add"
+                        onClick={() =>
+                          form.setFieldValue('variantVideos', [
+                            ...form.values.variantVideos,
+                            { url: '', productVariantId: product.variants[0]?.id ?? '' },
+                          ])
+                        }
+                      >
+                        {t('pages.productDetail.addVariantVideo')}
+                      </Button>
+                    </div>
+                  </div>
                 </Field>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -613,7 +882,10 @@ export default function ProductDetailPage() {
                         <td className="px-3 py-3.5">
                           {variant.color ? (
                             <span className="flex items-center gap-2 font-body-sm text-body-sm text-on-surface">
-                              <span className="h-3.5 w-3.5 rounded-full border border-outline-variant bg-primary ring-2 ring-white" />
+                              <span
+                                className="h-3.5 w-3.5 rounded-full border border-outline-variant ring-2 ring-white"
+                                style={{ backgroundColor: variant.colorHex ?? 'var(--color-primary, #6f7a4e)' }}
+                              />
                               {variant.color}
                             </span>
                           ) : (
@@ -840,6 +1112,58 @@ export default function ProductDetailPage() {
                 </div>
               </div>
             </Card>
+
+            {images.length > 0 && product.variants.length > 0 && (
+              <Card>
+                <SectionTitle
+                  icon="link"
+                  title={t('pages.productDetail.imageVariantTitle')}
+                  subtitle={t('pages.productDetail.imageVariantSubtitle')}
+                  className="mb-5"
+                />
+                <div className="flex flex-col gap-3">
+                  {images.map((image, index) => (
+                    <div
+                      key={image.id}
+                      className="flex flex-col gap-3 rounded-xl border border-outline-variant/30 bg-surface-container-low p-3 sm:flex-row sm:items-center"
+                    >
+                      {image.url ? (
+                        <img
+                          src={image.url}
+                          alt=""
+                          className="h-14 w-12 shrink-0 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-14 w-12 shrink-0 items-center justify-center rounded-lg bg-surface-container text-on-surface-variant">
+                          <Icon name="image" className="text-[20px]" />
+                        </div>
+                      )}
+                      <span className="font-label-md text-label-md text-on-surface">
+                        Imagen {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <Select
+                        value={image.productVariantId ?? ''}
+                        disabled={updateImageVariant.isPending}
+                        onChange={(event) =>
+                          updateImageVariant.mutate({
+                            imageId: image.id,
+                            productVariantId: event.currentTarget.value || null,
+                          })
+                        }
+                        className="w-full sm:ml-auto sm:w-72"
+                      >
+                        <option value="">{t('pages.productDetail.imageVariantAll')}</option>
+                        {product.variants.map((variant) => (
+                          <option key={variant.id} value={variant.id}>
+                            {[variant.size, variant.color].filter(Boolean).join(' / ') || variant.sku}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
           </div>
 
           <div className="flex flex-col gap-6 xl:col-span-4">
@@ -1007,7 +1331,20 @@ export default function ProductDetailPage() {
               <Input {...variantForm.getInputProps('size')} />
             </Field>
             <Field label={t('pages.productDetail.fieldColor')}>
-              <Input {...variantForm.getInputProps('color')} />
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  aria-label={t('pages.productDetail.fieldColorHex')}
+                  value={/^#[0-9A-Fa-f]{6}$/.test(variantForm.values.colorHex) ? variantForm.values.colorHex : '#0d0d0d'}
+                  onChange={(event) => variantForm.setFieldValue('colorHex', event.currentTarget.value)}
+                  className="h-10 w-14 shrink-0 cursor-pointer rounded-lg border border-outline/70 bg-white p-1"
+                />
+                <Input
+                  {...variantForm.getInputProps('colorHex')}
+                  placeholder="#0d0d0d"
+                  className="flex-1"
+                />
+              </div>
             </Field>
             <Field
               label={t('pages.productDetail.fieldGarmentType')}
@@ -1057,6 +1394,73 @@ export default function ProductDetailPage() {
             />
           </div>
         </form>
+      </AppModal>
+
+      <AppModal
+        opened={videoLibraryOpen}
+        onClose={() => setVideoLibraryOpen(false)}
+        title={t('pages.productDetail.videoLibraryTitle')}
+        subtitle={t('pages.productDetail.videoLibraryHint')}
+        size="xl"
+        footer={
+          <Button variant="secondary" icon="close" onClick={() => setVideoLibraryOpen(false)}>
+            {t('common.close')}
+          </Button>
+        }
+      >
+        <div className="flex flex-col gap-4">
+          <Input
+            value={videoSearch}
+            onChange={(event) => setVideoSearch(event.currentTarget.value)}
+            placeholder={t('pages.productDetail.searchVideo')}
+          />
+          {videoLibraryLoading ? (
+            <div className="flex items-center justify-center gap-2 py-10 font-body-sm text-body-sm text-on-surface-variant">
+              <Icon name="progress_activity" className="animate-spin text-[20px]" />
+              {t('common.loading')}
+            </div>
+          ) : (() => {
+            const search = videoSearch.trim().toLowerCase();
+            const assets = videoLibraryAssets.filter(
+              (asset) =>
+                !search ||
+                asset.url.toLowerCase().includes(search) ||
+                asset.mimeType.toLowerCase().includes(search),
+            );
+            if (assets.length === 0) {
+              return (
+                <p className="rounded-lg bg-surface-container-low px-4 py-6 text-center font-body-sm text-body-sm text-on-surface-variant">
+                  {t('pages.productDetail.noVideos')}
+                </p>
+              );
+            }
+            return (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+                {assets.map((asset) => (
+                  <div
+                    key={asset.id}
+                    className="overflow-hidden rounded-xl border border-outline-variant/40 bg-surface-container-low"
+                  >
+                    <video
+                      src={asset.url}
+                      controls
+                      preload="metadata"
+                      className="h-40 w-full bg-black object-contain"
+                    />
+                    <div className="flex items-center justify-between gap-2 p-2">
+                      <span className="truncate font-mono text-[10px] text-on-surface-variant">
+                        {Math.max(1, Math.round(asset.size / 1024))} KB
+                      </span>
+                      <Button variant="secondary" onClick={() => useLibraryVideo(asset)}>
+                        {t('pages.productDetail.useVideo')}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
       </AppModal>
     </>
   );

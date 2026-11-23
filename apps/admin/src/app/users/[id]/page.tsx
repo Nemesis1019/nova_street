@@ -17,6 +17,7 @@ import { QueryError } from '../../../components/ui/query-error';
 import { StatusPill, StatusTone } from '../../../components/ui/status-pill';
 import { apiClient } from '../../../lib/api';
 import { getApiErrorMessage, notifyError, notifySuccess } from '../../../lib/notifications';
+import { useStoreConfig } from '../../../providers/config-provider';
 import { useTranslation } from '../../../providers/i18n-provider';
 
 type AdminUser = components['schemas']['AdminUserResponseDto'];
@@ -151,6 +152,8 @@ export default function UserDetailPage() {
   const id = params.id as string;
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+  const storeConfig = useStoreConfig();
+  const currencyCode = storeConfig.currencyCode || 'COP';
 
   const [suspendOpened, { open: openSuspendModal, close: closeSuspendModal }] = useDisclosure(false);
   const [roleOpened, { open: openRoleModal, close: closeRoleModal }] = useDisclosure(false);
@@ -499,7 +502,7 @@ export default function UserDetailPage() {
                 <div className="mt-3 flex items-baseline justify-between gap-2">
                   <span className="font-headline-lg text-headline-lg font-bold text-on-surface">
                     {formatPrice(totalSpent)}{' '}
-                    <span className="font-body-sm text-body-sm font-normal text-on-surface-variant">ARS</span>
+                    <span className="font-body-sm text-body-sm font-normal text-on-surface-variant">{currencyCode}</span>
                   </span>
                   {/* Tendencia estática del diseño: la API no expone histórico de gasto. */}
                   <span className="inline-flex items-center gap-0.5 font-label-sm text-label-sm text-emerald-600">
@@ -543,7 +546,7 @@ export default function UserDetailPage() {
                 <div className="mt-3 flex items-baseline justify-between gap-2">
                   <span className="font-headline-lg text-headline-lg font-bold text-on-surface">
                     {formatPrice(averageTicket)}{' '}
-                    <span className="font-body-sm text-body-sm font-normal text-on-surface-variant">ARS</span>
+                    <span className="font-body-sm text-body-sm font-normal text-on-surface-variant">{currencyCode}</span>
                   </span>
                   {/* Badge estático del diseño: no hay segmentación de clientes en la API. */}
                   <span className="rounded bg-surface-container px-1.5 py-0.5 font-label-sm text-label-sm text-on-surface">
@@ -705,7 +708,7 @@ export default function UserDetailPage() {
                           ).replace('{{count}}', String(orderCount))}
                         </span>
                         <span className="font-medium text-on-surface">
-                          {t('pages.userDetail.totalHistorical')} {formatPrice(totalSpent)} ARS
+                          {t('pages.userDetail.totalHistorical')} {formatPrice(totalSpent)} {currencyCode}
                         </span>
                       </div>
                     </>

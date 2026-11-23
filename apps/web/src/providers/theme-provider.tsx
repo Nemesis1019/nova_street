@@ -2,10 +2,12 @@
 
 import '@mantine/notifications/styles.css';
 
+import { resolveNotificationAppearance } from '@ecommerce/shared';
 import { MantineProvider, MantineThemeOverride } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 
+import { parseStorefrontConfig } from '../lib/storefront-config';
 import { useStoreConfig } from './config-provider';
 
 export type AppearanceMode = 'LIGHT' | 'DARK' | 'SYSTEM';
@@ -114,6 +116,45 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const systemDark = useSystemDark();
   const mode = resolveColorScheme(config.appearanceMode ?? 'LIGHT', systemDark);
   const isDark = mode === 'dark';
+  const notifications = useMemo(
+    () => parseStorefrontConfig(config.storefrontConfig).notifications,
+    [config.storefrontConfig],
+  );
+  const notificationAppearance = useMemo(
+    () => resolveNotificationAppearance(notifications),
+    [notifications],
+  );
+
+  useEffect(() => {
+    const body = document.body;
+    const shadow =
+      notificationAppearance.shadow === 'none'
+        ? 'none'
+        : notificationAppearance.shadow === 'soft'
+          ? '0 10px 30px rgba(13, 13, 13, 0.16)'
+          : '6px 6px 0 rgba(13, 13, 13, 0.18)';
+    const titleFont =
+      notificationAppearance.titleFont === 'mono'
+        ? 'var(--font-jetbrains-mono), monospace'
+        : notificationAppearance.titleFont === 'sans'
+          ? 'var(--font-inter), sans-serif'
+          : 'var(--font-bebas-neue), Bebas Neue, Impact, sans-serif';
+    body.dataset.novaNotificationStyle = notifications.style;
+    body.style.setProperty('--nova-notify-bg', notificationAppearance.backgroundColor);
+    body.style.setProperty('--nova-notify-text', notificationAppearance.textColor);
+    body.style.setProperty('--nova-notify-border', notificationAppearance.borderColor);
+    body.style.setProperty('--nova-notify-accent', notificationAppearance.accentColor);
+    body.style.setProperty('--nova-notify-border-width', `${notificationAppearance.borderWidth}px`);
+    body.style.setProperty('--nova-notify-radius', `${notificationAppearance.borderRadius}px`);
+    body.style.setProperty('--nova-notify-shadow', shadow);
+    body.style.setProperty('--nova-notify-title-font', titleFont);
+    body.style.setProperty('--nova-notify-title-size', `${notificationAppearance.titleSize}px`);
+    body.style.setProperty('--nova-notify-message-size', `${notificationAppearance.messageSize}px`);
+    body.style.setProperty(
+      '--nova-notify-uppercase',
+      notificationAppearance.uppercaseTitle ? 'uppercase' : 'none',
+    );
+  }, [notificationAppearance, notifications.style]);
 
   const primary = config.primaryColor || NOVA_COLORS.primary;
   const secondary = config.secondaryColor || NOVA_COLORS.secondary;
@@ -186,6 +227,28 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
               fontSize: '18px',
               padding: '16px 24px',
               height: 'auto',
+            },
+          },
+        },
+        Tooltip: {
+          defaultProps: {
+            withArrow: true,
+            radius: 0,
+            openDelay: 180,
+          },
+          styles: {
+            tooltip: {
+              backgroundColor: 'var(--color-text, #0d0d0d)',
+              color: 'var(--color-surface, #fcf9f8)',
+              border: '1px solid var(--color-text, #0d0d0d)',
+              borderRadius: 0,
+              fontFamily: 'var(--font-jetbrains-mono), JetBrains Mono, monospace',
+              fontSize: 11,
+              letterSpacing: '0.04em',
+              padding: '6px 9px',
+            },
+            arrow: {
+              backgroundColor: 'var(--color-text, #0d0d0d)',
             },
           },
         },
@@ -433,7 +496,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   return (
     <MantineProvider theme={theme} forceColorScheme={mode}>
-      <Notifications position="top-right" zIndex={1000} />
+      <Notifications position={notifications.position} zIndex={1000} />
       <div
         data-theme={mode}
         style={{

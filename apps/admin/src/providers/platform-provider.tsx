@@ -1,6 +1,7 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
+import { usePathname } from 'next/navigation';
 import {
   createContext,
   type ReactNode,
@@ -20,7 +21,12 @@ import {
   restorePlatformSession,
   verifyPlatformTwoFactor,
 } from '../lib/platform-auth';
-import { setAdminTenantSlug, setPlatformMode } from '../lib/tenant';
+import {
+  isPlatformMode,
+  isPlatformSession,
+  setAdminTenantSlug,
+  setPlatformMode,
+} from '../lib/tenant';
 
 interface TenantOption {
   id: string;
@@ -49,10 +55,26 @@ const PlatformContext = createContext<PlatformContextValue | null>(null);
 
 export function PlatformProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
+  const pathname = usePathname();
   const [user, setUser] = useState<PlatformUser | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    if (ready) return;
+
+    // No consultar la sesión de plataforma en el login de tienda ni en paneles
+    // de tenant sin una sesión de plataforma conocida. Evita el 401 doble.
+    const shouldRestorePlatform =
+      pathname === '/platform-login' ||
+      pathname.startsWith('/clients') ||
+      isPlatformMode() ||
+      isPlatformSession();
+
+    if (!shouldRestorePlatform) {
+      setReady(true);
+      return;
+    }
+
     let mounted = true;
     void restorePlatformSession()
       .then((restored) => {
@@ -64,7 +86,7 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [pathname, ready]);
 
   const login = useCallback(
     async (email: string, password: string, code?: string) => {

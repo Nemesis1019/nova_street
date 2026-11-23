@@ -379,7 +379,7 @@ export default function DesignTemplatesPage() {
           <EmptyState
             icon="checkroom"
             title="Todavía no hay prendas personalizables"
-            description="Creá la primera prenda, definí sus zonas de impresión y empezá a recibir diseños."
+            description="Crea la primera prenda, definí sus zonas de impresión y empezá a recibir diseños."
             action={<Button icon="add" onClick={openCreate}>Crear prenda</Button>}
           />
         </Card>

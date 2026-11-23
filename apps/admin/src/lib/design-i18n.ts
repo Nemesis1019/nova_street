@@ -24,11 +24,13 @@ const EN: Record<string, string> = {
   'Rechazado': 'Rejected',
   'Storefront & Contenido': 'Storefront & Content',
   'Diseño de tienda': 'Store design',
-  'Componé la identidad y el layout de tu storefront sin tocar código.':
+  'Compón la identidad y el layout de tu storefront sin tocar código.':
     'Build your storefront identity and layout without touching code.',
   'Ver tienda': 'View store',
   'Revisar': 'Review',
   'Aprobación': 'Approval',
+  'Deshacer': 'Undo',
+  'Rehacer': 'Redo',
   'Versiones': 'Versions',
   'Guardando...': 'Saving...',
   'Guardar borrador': 'Save draft',
@@ -52,7 +54,7 @@ const EN: Record<string, string> = {
   'Scripts sandbox': 'Scripts sandbox',
   'Página estática': 'Static page',
   'Cargando páginas...': 'Loading pages...',
-  'No hay páginas visibles. Creá una desde Páginas estáticas.':
+  'No hay páginas visibles. Crea una desde Páginas estáticas.':
     'No visible pages. Create one from Static pages.',
   'Ver página publicada': 'View published page',
   'Secciones': 'Sections',
@@ -73,7 +75,7 @@ const EN: Record<string, string> = {
   'Se guarda el borrador actual y se abre la tienda con un token temporal.':
     'The current draft is saved and the store opens with a temporary token.',
   'Previsualizar': 'Preview',
-  'Seleccioná una sección para editarla.': 'Select a section to edit it.',
+  'Selecciona una sección para editarla.': 'Select a section to edit it.',
   'Aprobación de publicación': 'Publish approval',
   'Workflow opcional para que los cambios del storefront pasen por revisión de plataforma.':
     'Optional workflow that sends storefront changes to platform review.',
@@ -94,7 +96,7 @@ const EN: Record<string, string> = {
   'Opcional: qué revisar o por qué se rechaza': 'Optional: what to review or why it was rejected',
   'El borrador está en revisión. Cuando plataforma lo apruebe vas a poder publicarlo.':
     'The draft is under review. Once the platform approves it, you can publish it.',
-  'Aprobado. Ya podés publicar esta versión.': 'Approved. You can publish this version now.',
+  'Aprobado. Ya puedes publicar esta versión.': 'Approved. You can publish this version now.',
   'Al activarlo, los admins del cliente dejan de publicar directo y deben enviar el borrador a revisión.':
     'When enabled, client admins can no longer publish directly and must submit the draft for review.',
   'La publicación está en modo directo. Plataforma puede activar un workflow de aprobación para este cliente.':
@@ -108,10 +110,10 @@ const EN: Record<string, string> = {
   'No hay otros clientes con temas disponibles para importar.':
     'No other clients have themes available to import.',
   'Seleccionado': 'Selected',
-  'Revisá imágenes y categorías antes de publicar: el catálogo y la configuración comercial del cliente destino no se modifican.':
+  'Revisa imágenes y categorías antes de publicar: el catálogo y la configuración comercial del cliente destino no se modifican.':
     'Review images and categories before publishing: the destination client catalog and commercial settings are not modified.',
   'Guardar como preset': 'Save as preset',
-  'Guardá el borrador actual como una plantilla reutilizable para este cliente.':
+  'Guarda el borrador actual como una plantilla reutilizable para este cliente.':
     'Save the current draft as a reusable template for this client.',
   'Guardar preset': 'Save preset',
   'Nombre': 'Name',
@@ -124,12 +126,25 @@ const EN: Record<string, string> = {
   'Cargando versiones...': 'Loading versions...',
   'Todavía no publicaste ninguna versión.': 'You have not published any version yet.',
   'Versión {{version}}': 'Version {{version}}',
+  'Comparar': 'Compare',
+  'Comparar versión': 'Compare version',
+  'Comparación de imágenes': 'Image comparison',
+  'Sin imagen': 'No image',
+  'Versión {{version}} contra el borrador actual': 'Version {{version}} against the current draft',
+  'Comparando cambios...': 'Comparing changes...',
+  'Cargando versión...': 'Loading version...',
+  'No se pudo cargar la versión.': 'Could not load the version.',
+  'No hay diferencias con el borrador actual.': 'There are no differences with the current draft.',
+  '{{count}} cambios encontrados': '{{count}} changes found',
+  'Ruta': 'Path',
+  'Borrador actual': 'Current draft',
+  'Mostrando los primeros 250 cambios.': 'Showing the first 250 changes.',
   'Restaurar': 'Restore',
   'No se pudieron cargar las páginas': 'Could not load pages',
   'Borrador guardado': 'Draft saved',
   'No se pudo guardar': 'Could not save',
   'Publicación pendiente de aprobación': 'Publication pending approval',
-  'Hay cambios sin guardar. Guardá y enviá una nueva revisión.':
+  'Hay cambios sin guardar. Guarda y enviá una nueva revisión.':
     'There are unsaved changes. Save and submit a new review.',
   'El borrador cambió después de la revisión. Enviá una nueva revisión.':
     'The draft changed after review. Submit a new review.',
@@ -139,11 +154,11 @@ const EN: Record<string, string> = {
   'No se pudo publicar': 'Could not publish',
   'No se pudo generar el preview': 'Could not generate the preview',
   'Preset aplicado al borrador': 'Preset applied to draft',
-  'Revisá el preview antes de publicar.': 'Review the preview before publishing.',
+  'Revisa el preview antes de publicar.': 'Review the preview before publishing.',
   'No se pudo aplicar el preset': 'Could not apply the preset',
   'Ponele un nombre al preset.': 'Give the preset a name.',
   'Preset guardado': 'Preset saved',
-  'Ya podés aplicarlo desde la lista.': 'You can now apply it from the list.',
+  'Ya puedes aplicarlo desde la lista.': 'You can now apply it from the list.',
   'No se pudo guardar el preset': 'Could not save the preset',
   'Preset eliminado': 'Preset deleted',
   'No se pudo eliminar el preset': 'Could not delete the preset',
@@ -166,7 +181,7 @@ const EN: Record<string, string> = {
   'No se pudo leer el tema del cliente de origen': 'Could not read the source client theme',
   'El cliente de origen no tiene un tema publicado': 'The source client has no published theme',
   'Tema importado al borrador': 'Theme imported into draft',
-  'Revisá imágenes, categorías y publicá cuando esté listo.':
+  'Revisa imágenes, categorías y publicá cuando esté listo.':
     'Review images and categories, then publish when ready.',
   'No se pudo importar el tema': 'Could not import the theme',
   'No se pudieron cargar las versiones': 'Could not load versions',
@@ -174,14 +189,14 @@ const EN: Record<string, string> = {
   'No se pudo restaurar': 'Could not restore',
   'Imagen subida': 'Image uploaded',
   'No se pudo subir la imagen': 'Could not upload the image',
-  'Podés pegar una URL o subir una imagen a R2.':
+  'Puedes pegar una URL o subir una imagen a R2.':
     'You can paste a URL or upload an image to R2.',
   'Subiendo': 'Uploading',
   'Biblioteca': 'Library',
   'No se pudo cargar la biblioteca': 'Could not load the library',
   'Imagen agregada a la biblioteca': 'Image added to the library',
   'Biblioteca de medios': 'Media library',
-  'Imágenes disponibles en este cliente. Podés subir una nueva o elegir una existente.':
+  'Imágenes disponibles en este cliente. Puedes subir una nueva o elegir una existente.':
     'Images available for this client. Upload a new one or choose an existing image.',
   'Subiendo...': 'Uploading...',
   'Subir imagen': 'Upload image',
@@ -278,7 +293,10 @@ const EN: Record<string, string> = {
   'Imagen a la izquierda': 'Image on the left',
   'Imagen a la derecha': 'Image on the right',
   'Mostrar miniaturas': 'Show thumbnails',
-  'Deslizar galería en móvil': 'Swipe gallery on mobile',
+  'Deslizar galería en celular': 'Swipe gallery on mobile',
+  'Permitir zoom de la imagen': 'Allow image zoom',
+  'Mostrar swatches de color': 'Show color swatches',
+  'Mostrar swatches de talle': 'Show size swatches',
   'Buy box sticky': 'Sticky buy box',
   'Mostrar reseñas': 'Show reviews',
   'Mostrar relacionados': 'Show related products',
@@ -289,7 +307,7 @@ const EN: Record<string, string> = {
   'Mostrar filtros': 'Show filters',
   'Mostrar orden': 'Show sort',
   'Experimento A/B': 'A/B experiment',
-  'Probá dos títulos del hero o dos personalidades de movimiento y medí cuál genera más clics. La asignación es estable por visitante.':
+  'Prueba dos títulos del hero o dos personalidades de movimiento y medí cuál genera más clics. La asignación es estable por visitante.':
     'Test two hero titles or two motion personalities and measure which one drives more clicks. Assignment is stable per visitor.',
   'Crear experimento': 'Create experiment',
   'Experimento activo': 'Active experiment',
@@ -311,7 +329,7 @@ const EN: Record<string, string> = {
   'Tráfico a la variante B (%)': 'Traffic to variant B (%)',
   'Desde': 'From',
   'Hasta': 'Until',
-  'Cargá una variante B para que el experimento entre en juego.':
+  'Carga una variante B para que el experimento entre en juego.':
     'Load a B variant for the experiment to take effect.',
   'Resultados': 'Results',
   'Actualizar resultados': 'Refresh results',
@@ -360,7 +378,7 @@ const EN: Record<string, string> = {
   'Accesibilidad': 'Accessibility',
   'Si el visitante tiene activado “reducir movimiento”, se desactivan reveals, zoom y marquee automáticamente. El marquee también se pausa al hover/focus.':
     'If the visitor has “reduce motion” enabled, reveals, zoom and marquee are disabled automatically. The marquee also pauses on hover/focus.',
-  'Usá “Actualizar preview” para ver el borrador. El perfil se aplica al guardar y publicar.':
+  'Usa “Actualizar preview” para ver el borrador. El perfil se aplica al guardar y publicar.':
     'Use “Refresh preview” to see the draft. The profile applies when saving and publishing.',
   'Color': 'Color',
   'Superficie': 'Surface',
@@ -474,11 +492,13 @@ const PT: Record<string, string> = {
   'Rechazado': 'Rejeitado',
   'Storefront & Contenido': 'Storefront & Conteúdo',
   'Diseño de tienda': 'Design da loja',
-  'Componé la identidad y el layout de tu storefront sin tocar código.':
+  'Compón la identidad y el layout de tu storefront sin tocar código.':
     'Monte a identidade e o layout da sua loja sem tocar em código.',
   'Ver tienda': 'Ver loja',
   'Revisar': 'Revisar',
   'Aprobación': 'Aprovação',
+  'Deshacer': 'Desfazer',
+  'Rehacer': 'Refazer',
   'Versiones': 'Versões',
   'Guardando...': 'Salvando...',
   'Guardar borrador': 'Salvar rascunho',
@@ -502,7 +522,7 @@ const PT: Record<string, string> = {
   'Scripts sandbox': 'Scripts sandbox',
   'Página estática': 'Página estática',
   'Cargando páginas...': 'Carregando páginas...',
-  'No hay páginas visibles. Creá una desde Páginas estáticas.':
+  'No hay páginas visibles. Crea una desde Páginas estáticas.':
     'Não há páginas visíveis. Crie uma em Páginas estáticas.',
   'Ver página publicada': 'Ver página publicada',
   'Secciones': 'Seções',
@@ -523,7 +543,7 @@ const PT: Record<string, string> = {
   'Se guarda el borrador actual y se abre la tienda con un token temporal.':
     'O rascunho atual é salvo e a loja abre com um token temporário.',
   'Previsualizar': 'Pré-visualizar',
-  'Seleccioná una sección para editarla.': 'Selecione uma seção para editar.',
+  'Selecciona una sección para editarla.': 'Selecione uma seção para editar.',
   'Aprobación de publicación': 'Aprovação de publicação',
   'Workflow opcional para que los cambios del storefront pasen por revisión de plataforma.':
     'Workflow opcional para que as alterações da loja passem por revisão da plataforma.',
@@ -544,7 +564,7 @@ const PT: Record<string, string> = {
   'Opcional: qué revisar o por qué se rechaza': 'Opcional: o que revisar ou por que foi rejeitado',
   'El borrador está en revisión. Cuando plataforma lo apruebe vas a poder publicarlo.':
     'O rascunho está em revisão. Quando a plataforma aprovar, você poderá publicá-lo.',
-  'Aprobado. Ya podés publicar esta versión.': 'Aprovado. Você já pode publicar esta versão.',
+  'Aprobado. Ya puedes publicar esta versión.': 'Aprovado. Você já pode publicar esta versão.',
   'Al activarlo, los admins del cliente dejan de publicar directo y deben enviar el borrador a revisión.':
     'Ao ativar, os admins do cliente deixam de publicar direto e precisam enviar o rascunho para revisão.',
   'La publicación está en modo directo. Plataforma puede activar un workflow de aprobación para este cliente.':
@@ -558,10 +578,10 @@ const PT: Record<string, string> = {
   'No hay otros clientes con temas disponibles para importar.':
     'Não há outros clientes com temas disponíveis para importar.',
   'Seleccionado': 'Selecionado',
-  'Revisá imágenes y categorías antes de publicar: el catálogo y la configuración comercial del cliente destino no se modifican.':
+  'Revisa imágenes y categorías antes de publicar: el catálogo y la configuración comercial del cliente destino no se modifican.':
     'Revise imagens e categorias antes de publicar: o catálogo e a configuração comercial do cliente de destino não são alterados.',
   'Guardar como preset': 'Salvar como preset',
-  'Guardá el borrador actual como una plantilla reutilizable para este cliente.':
+  'Guarda el borrador actual como una plantilla reutilizable para este cliente.':
     'Salve o rascunho atual como um modelo reutilizável para este cliente.',
   'Guardar preset': 'Salvar preset',
   'Nombre': 'Nome',
@@ -574,12 +594,24 @@ const PT: Record<string, string> = {
   'Cargando versiones...': 'Carregando versões...',
   'Todavía no publicaste ninguna versión.': 'Você ainda não publicou nenhuma versão.',
   'Versión {{version}}': 'Versão {{version}}',
-  'Restaurar': 'Restaurar',
+  'Comparar': 'Comparar',
+  'Comparar versión': 'Comparar versão',
+  'Comparación de imágenes': 'Comparação de imagens',
+  'Sin imagen': 'Sem imagem',
+  'Versión {{version}} contra el borrador actual': 'Versão {{version}} contra o rascunho atual',
+  'Comparando cambios...': 'Comparando alterações...',
+  'Cargando versión...': 'Carregando versão...',
+  'No se pudo cargar la versión.': 'Não foi possível carregar a versão.',
+  'No hay diferencias con el borrador actual.': 'Não há diferenças com o rascunho atual.',
+  '{{count}} cambios encontrados': '{{count}} alterações encontradas',
+  'Ruta': 'Caminho',
+  'Borrador actual': 'Rascunho atual',
+  'Mostrando los primeros 250 cambios.': 'Mostrando as primeiras 250 alterações.',
   'No se pudieron cargar las páginas': 'Não foi possível carregar as páginas',
   'Borrador guardado': 'Rascunho salvo',
   'No se pudo guardar': 'Não foi possível salvar',
   'Publicación pendiente de aprobación': 'Publicação pendente de aprovação',
-  'Hay cambios sin guardar. Guardá y enviá una nueva revisión.':
+  'Hay cambios sin guardar. Guarda y enviá una nueva revisión.':
     'Há alterações não salvas. Salve e envie uma nova revisão.',
   'El borrador cambió después de la revisión. Enviá una nueva revisión.':
     'O rascunho mudou após a revisão. Envie uma nova revisão.',
@@ -589,11 +621,11 @@ const PT: Record<string, string> = {
   'No se pudo publicar': 'Não foi possível publicar',
   'No se pudo generar el preview': 'Não foi possível gerar o preview',
   'Preset aplicado al borrador': 'Preset aplicado ao rascunho',
-  'Revisá el preview antes de publicar.': 'Revise o preview antes de publicar.',
+  'Revisa el preview antes de publicar.': 'Revise o preview antes de publicar.',
   'No se pudo aplicar el preset': 'Não foi possível aplicar o preset',
   'Ponele un nombre al preset.': 'Dê um nome ao preset.',
   'Preset guardado': 'Preset salvo',
-  'Ya podés aplicarlo desde la lista.': 'Você já pode aplicá-lo na lista.',
+  'Ya puedes aplicarlo desde la lista.': 'Você já pode aplicá-lo na lista.',
   'No se pudo guardar el preset': 'Não foi possível salvar o preset',
   'Preset eliminado': 'Preset excluído',
   'No se pudo eliminar el preset': 'Não foi possível excluir o preset',
@@ -616,7 +648,7 @@ const PT: Record<string, string> = {
   'No se pudo leer el tema del cliente de origen': 'Não foi possível ler o tema do cliente de origem',
   'El cliente de origen no tiene un tema publicado': 'O cliente de origem não tem um tema publicado',
   'Tema importado al borrador': 'Tema importado para o rascunho',
-  'Revisá imágenes, categorías y publicá cuando esté listo.':
+  'Revisa imágenes, categorías y publicá cuando esté listo.':
     'Revise imagens, categorias e publique quando estiver pronto.',
   'No se pudo importar el tema': 'Não foi possível importar o tema',
   'No se pudieron cargar las versiones': 'Não foi possível carregar as versões',
@@ -624,13 +656,13 @@ const PT: Record<string, string> = {
   'No se pudo restaurar': 'Não foi possível restaurar',
   'Imagen subida': 'Imagem enviada',
   'No se pudo subir la imagen': 'Não foi possível enviar a imagem',
-  'Podés pegar una URL o subir una imagen a R2.': 'Você pode colar uma URL ou enviar uma imagem para o R2.',
+  'Puedes pegar una URL o subir una imagen a R2.': 'Você pode colar uma URL ou enviar uma imagem para o R2.',
   'Subiendo': 'Enviando',
   'Biblioteca': 'Biblioteca',
   'No se pudo cargar la biblioteca': 'Não foi possível carregar a biblioteca',
   'Imagen agregada a la biblioteca': 'Imagem adicionada à biblioteca',
   'Biblioteca de medios': 'Biblioteca de mídia',
-  'Imágenes disponibles en este cliente. Podés subir una nueva o elegir una existente.':
+  'Imágenes disponibles en este cliente. Puedes subir una nueva o elegir una existente.':
     'Imagens disponíveis neste cliente. Você pode enviar uma nova ou escolher uma existente.',
   'Subiendo...': 'Enviando...',
   'Subir imagen': 'Enviar imagem',
@@ -727,7 +759,10 @@ const PT: Record<string, string> = {
   'Imagen a la izquierda': 'Imagem à esquerda',
   'Imagen a la derecha': 'Imagem à direita',
   'Mostrar miniaturas': 'Mostrar miniaturas',
-  'Deslizar galería en móvil': 'Deslizar galeria no celular',
+  'Deslizar galería en celular': 'Deslizar galeria no celular',
+  'Permitir zoom de la imagen': 'Permitir zoom da imagem',
+  'Mostrar swatches de color': 'Mostrar amostras de cor',
+  'Mostrar swatches de talle': 'Mostrar amostras de tamanho',
   'Buy box sticky': 'Buy box sticky',
   'Mostrar reseñas': 'Mostrar avaliações',
   'Mostrar relacionados': 'Mostrar relacionados',
@@ -738,7 +773,7 @@ const PT: Record<string, string> = {
   'Mostrar filtros': 'Mostrar filtros',
   'Mostrar orden': 'Mostrar ordenação',
   'Experimento A/B': 'Experimento A/B',
-  'Probá dos títulos del hero o dos personalidades de movimiento y medí cuál genera más clics. La asignación es estable por visitante.':
+  'Prueba dos títulos del hero o dos personalidades de movimiento y medí cuál genera más clics. La asignación es estable por visitante.':
     'Teste dois títulos do hero ou duas personalidades de movimento e meça qual gera mais cliques. A atribuição é estável por visitante.',
   'Crear experimento': 'Criar experimento',
   'Experimento activo': 'Experimento ativo',
@@ -760,7 +795,7 @@ const PT: Record<string, string> = {
   'Tráfico a la variante B (%)': 'Tráfego para a variante B (%)',
   'Desde': 'Desde',
   'Hasta': 'Até',
-  'Cargá una variante B para que el experimento entre en juego.':
+  'Carga una variante B para que el experimento entre en juego.':
     'Carregue uma variante B para o experimento entrar em ação.',
   'Resultados': 'Resultados',
   'Actualizar resultados': 'Atualizar resultados',
@@ -809,7 +844,7 @@ const PT: Record<string, string> = {
   'Accesibilidad': 'Acessibilidade',
   'Si el visitante tiene activado “reducir movimiento”, se desactivan reveals, zoom y marquee automáticamente. El marquee también se pausa al hover/focus.':
     'Se o visitante ativou “reduzir movimento”, reveals, zoom e marquee são desativados automaticamente. O marquee também pausa no hover/focus.',
-  'Usá “Actualizar preview” para ver el borrador. El perfil se aplica al guardar y publicar.':
+  'Usa “Actualizar preview” para ver el borrador. El perfil se aplica al guardar y publicar.':
     'Use “Atualizar preview” para ver o rascunho. O perfil é aplicado ao salvar e publicar.',
   'Color': 'Cor',
   'Superficie': 'Superfície',

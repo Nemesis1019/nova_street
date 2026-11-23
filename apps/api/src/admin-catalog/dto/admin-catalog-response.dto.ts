@@ -58,6 +58,9 @@ export class ProductVariantResponseDto {
   @ApiPropertyOptional()
   color?: string;
 
+  @ApiPropertyOptional({ description: 'Color de la variante en formato HEX' })
+  colorHex?: string | null;
+
   @ApiPropertyOptional()
   garmentType?: string;
 
@@ -103,6 +106,15 @@ export class ProductResponseDto {
 
   @ApiPropertyOptional()
   description?: string;
+
+  @ApiPropertyOptional({ description: 'URL de video externo del producto' })
+  videoUrl?: string | null;
+
+  @ApiPropertyOptional({ type: [String], description: 'URLs de video del producto' })
+  videoUrls?: string[];
+
+  @ApiPropertyOptional({ type: Object, description: 'Videos asociados a variantes' })
+  variantVideos?: unknown;
 
   @ApiPropertyOptional()
   metaTitle?: string;

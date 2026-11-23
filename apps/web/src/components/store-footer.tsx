@@ -3,8 +3,10 @@
 import { Button, Container, Divider, Group, Stack, Text, TextInput } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
+import { activeLinkClass, isPathActive } from '../lib/active-link';
 import { apiClient } from '../lib/api';
 import { bebasNeue, jetbrainsMono } from '../lib/fonts';
 import { getApiErrorMessage, notifyError, notifySuccess } from '../lib/notifications';
@@ -14,10 +16,20 @@ import { useTranslation } from '../providers/i18n-provider';
 import { openCookieConsent } from './cookie-consent';
 
 export function StoreFooter() {
+  const pathname = usePathname();
   const config = useStoreConfig();
   const { t } = useTranslation();
   const storefront = parseStorefrontConfig(config.storefrontConfig);
   const footer = storefront.footer;
+  const navLinkClass = activeLinkClass(storefront.activeLink);
+  const linkProps = (href: string) => {
+    const active = isPathActive(pathname, href);
+    return {
+      className: navLinkClass,
+      'data-active': active ? ('true' as const) : undefined,
+      'aria-current': active ? ('page' as const) : undefined,
+    };
+  };
   const footerVariant = config.storefrontDoc?.footer.variant ?? 'columns';
   const socialLinks = config.socialLinks && typeof config.socialLinks === 'object' ? (config.socialLinks as Record<string, string>) : {};
 
@@ -36,7 +48,7 @@ export function StoreFooter() {
   const subscribeToNewsletter = async () => {
     const email = newsletterEmail.trim();
     if (!email) {
-      notifyError({ title: 'Newsletter', message: 'Ingresá tu email para suscribirte.' });
+      notifyError({ title: 'Newsletter', message: 'Ingresa tu email para suscribirte.' });
       return;
     }
     setNewsletterLoading(true);
@@ -93,17 +105,26 @@ export function StoreFooter() {
                 >
                   Navegación
                 </Text>
-                <Link href="/catalogo" style={{ color: 'inherit', textDecoration: 'none', fontSize: '14px' }}>
+                <Link
+                  href="/catalogo"
+                  {...linkProps('/catalogo')}
+                  style={{ textDecoration: 'none', fontSize: '14px' }}
+                >
                   Catálogo
                 </Link>
-                <Link href="/account" style={{ color: 'inherit', textDecoration: 'none', fontSize: '14px' }}>
+                <Link
+                  href="/account"
+                  {...linkProps('/account')}
+                  style={{ textDecoration: 'none', fontSize: '14px' }}
+                >
                   Mi cuenta
                 </Link>
                 {pages.map((page) => (
                   <Link
                     key={page.id}
                     href={`/pagina/${page.slug}`}
-                    style={{ color: 'inherit', textDecoration: 'none', fontSize: '14px' }}
+                    {...linkProps(`/pagina/${page.slug}`)}
+                    style={{ textDecoration: 'none', fontSize: '14px' }}
                   >
                     {page.title}
                   </Link>
@@ -112,7 +133,8 @@ export function StoreFooter() {
                   <Link
                     key={`extra-${index}`}
                     href={link.href}
-                    style={{ color: 'inherit', textDecoration: 'none', fontSize: '14px' }}
+                    {...linkProps(link.href)}
+                    style={{ textDecoration: 'none', fontSize: '14px' }}
                   >
                     {link.label}
                   </Link>

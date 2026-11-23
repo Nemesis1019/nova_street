@@ -64,7 +64,7 @@ SUBSCRIPTION_BOLD_SECRET_KEY=...
 SUBSCRIPTION_BOLD_SANDBOX=false
 
 # URL pública del admin, para volver después del checkout.
-ADMIN_URL=https://admin.nova.app
+ADMIN_URL=https://admin.nova.com
 ```
 
 Si `SUBSCRIPTION_BOLD_*` falta, se usan `BOLD_*` como fallback. Se requieren API

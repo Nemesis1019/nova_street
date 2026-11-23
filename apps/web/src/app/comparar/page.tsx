@@ -48,7 +48,7 @@ function ComparePageContent() {
           </Title>
 
           {slugs.length === 0 ? (
-            <Text>Seleccioná productos desde el catálogo para comparar.</Text>
+            <Text>Selecciona productos desde el catálogo para comparar.</Text>
           ) : isLoading ? (
             <LoadingState />
           ) : error ? (

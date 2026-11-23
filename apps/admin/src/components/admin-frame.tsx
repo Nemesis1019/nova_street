@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { usePathname, useRouter } from 'next/navigation';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 
 import { restoreSession } from '../lib/api';
 import { getAccessToken, getCurrentUser } from '../lib/auth';
@@ -34,6 +34,7 @@ export function AdminFrame({ children }: { children: ReactNode }) {
   const [isClient, setIsClient] = useState(false);
   const [booting, setBooting] = useState(true);
   const [authVersion, setAuthVersion] = useState(0);
+  const tenantRestoreAttempted = useRef(false);
   const { user: platformUser, ready: platformReady } = usePlatformSession();
 
   useEffect(() => {
@@ -47,7 +48,16 @@ export function AdminFrame({ children }: { children: ReactNode }) {
     (async () => {
       // Con sesión de plataforma el token ya es válido para cualquier tenant.
       // En modo plataforma no se restaura la sesión de un tenant.
-      if (!getAccessToken() && !platformUser && !isPlatformMode()) {
+      if (
+        !tenantRestoreAttempted.current &&
+        !getAccessToken() &&
+        !platformUser &&
+        !isPlatformMode() &&
+        pathname !== '/platform-login' &&
+        pathname !== '/clients' &&
+        !pathname.startsWith('/clients/')
+      ) {
+        tenantRestoreAttempted.current = true;
         await restoreSession();
       }
       if (!cancelled) setBooting(false);
@@ -56,14 +66,14 @@ export function AdminFrame({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [platformReady, platformUser]);
+  }, [platformReady, platformUser, pathname]);
 
   useEffect(() => {
     // Si el modo plataforma quedó activo pero la sesión expiró, se vuelve al
     // login sin restaurar silenciosamente la cookie de un tenant.
     if (platformReady && !platformUser && isPlatformMode()) {
       setPlatformMode(false);
-      if (pathname !== '/' && pathname !== '/platform-login') router.replace('/');
+      if (pathname !== '/' && pathname !== '/platform-login') router.replace('/platform-login');
     }
   }, [platformReady, platformUser, pathname, router]);
 
@@ -98,7 +108,7 @@ export function AdminFrame({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!ready) return;
     if (needsLogin) {
-      router.replace('/');
+      router.replace(isPlatformRoute ? '/platform-login' : '/');
       return;
     }
     if (needsPlatformPanel) {

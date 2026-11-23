@@ -51,8 +51,8 @@ export function WishlistContent() {
   if (items.length === 0) {
     return (
       <EmptyState
-        title="No tenés favoritos"
-        description="Agregá productos a tu lista desde el catálogo."
+        title="No tienes favoritos"
+        description="Agrega productos a tu lista desde el catálogo."
         action={{ label: 'Ver catálogo', href: '/catalogo' }}
       />
     );

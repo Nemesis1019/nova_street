@@ -562,6 +562,73 @@ export function StorefrontConfigSection({
         ]}
         {...form.getInputProps('storefrontConfig.productCard.imageFit')}
       />
+      <Select
+        label={t('pages.storeConfig.hoverEffect')}
+        description={t('pages.storeConfig.hoverEffectHint')}
+        allowDeselect={false}
+        data={[
+          { value: 'inherit', label: t('pages.storeConfig.hoverEffectInherit') },
+          { value: 'both', label: t('pages.storeConfig.hoverEffectBoth') },
+          { value: 'zoom', label: t('pages.storeConfig.hoverEffectZoom') },
+          { value: 'lift', label: t('pages.storeConfig.hoverEffectLift') },
+          { value: 'none', label: t('pages.storeConfig.hoverEffectNone') },
+        ]}
+        {...form.getInputProps('storefrontConfig.productCard.hoverEffect')}
+      />
+      <Switch
+        label={t('pages.storeConfig.showColorSwatches')}
+        description={t('pages.storeConfig.showColorSwatchesHint')}
+        {...form.getInputProps('storefrontConfig.productCard.showColorSwatches', { type: 'checkbox' })}
+      />
+      <Switch
+        label={t('pages.storeConfig.showSizeSwatches')}
+        description={t('pages.storeConfig.showSizeSwatchesHint')}
+        {...form.getInputProps('storefrontConfig.productCard.showSizeSwatches', { type: 'checkbox' })}
+      />
+      <Select
+        label={t('pages.storeConfig.cardTextAlign')}
+        allowDeselect={false}
+        data={[
+          { value: 'left', label: t('pages.storeConfig.cardTextAlignLeft') },
+          { value: 'center', label: t('pages.storeConfig.cardTextAlignCenter') },
+        ]}
+        {...form.getInputProps('storefrontConfig.productCard.textAlign')}
+      />
+      <Select
+        label={t('pages.storeConfig.cardDensity')}
+        allowDeselect={false}
+        data={[
+          { value: 'compact', label: t('pages.storeConfig.cardDensityCompact') },
+          { value: 'comfortable', label: t('pages.storeConfig.cardDensityComfortable') },
+          { value: 'roomy', label: t('pages.storeConfig.cardDensityRoomy') },
+        ]}
+        {...form.getInputProps('storefrontConfig.productCard.density')}
+      />
+
+      </Reveal>
+
+      <Divider />
+
+      <Reveal className="flex flex-col gap-5">
+      <Title order={4} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+        {t('pages.storeConfig.activeLinkSection')}
+      </Title>
+      <Select
+        label={t('pages.storeConfig.activeLinkEffect')}
+        description={t('pages.storeConfig.activeLinkEffectHint')}
+        allowDeselect={false}
+        data={[
+          { value: 'underline', label: t('pages.storeConfig.activeLinkUnderline') },
+          { value: 'pill', label: t('pages.storeConfig.activeLinkPill') },
+          { value: 'none', label: t('pages.storeConfig.activeLinkNone') },
+        ]}
+        {...form.getInputProps('storefrontConfig.activeLink.effect')}
+      />
+      <Switch
+        label={t('pages.storeConfig.activeLinkAnimate')}
+        description={t('pages.storeConfig.activeLinkAnimateHint')}
+        {...form.getInputProps('storefrontConfig.activeLink.animate', { type: 'checkbox' })}
+      />
 
       </Reveal>
 
@@ -576,6 +643,33 @@ export function StorefrontConfigSection({
       <Switch label={t('pages.storeConfig.badgeLowStock')} {...form.getInputProps('storefrontConfig.productBadges.showLowStock', { type: 'checkbox' })} />
       <NumberInput label={t('pages.storeConfig.lowStockThreshold')} min={0} {...form.getInputProps('storefrontConfig.productBadges.lowStockThreshold')} />
       <NumberInput label={t('pages.storeConfig.newDaysThreshold')} min={0} {...form.getInputProps('storefrontConfig.productBadges.newDaysThreshold')} />
+      <Select
+        label={t('pages.storeConfig.badgePosition')}
+        allowDeselect={false}
+        data={[
+          { value: 'top-left', label: t('pages.storeConfig.badgeTopLeft') },
+          { value: 'top-right', label: t('pages.storeConfig.badgeTopRight') },
+        ]}
+        {...form.getInputProps('storefrontConfig.productCard.badgePosition')}
+      />
+      <Select
+        label={t('pages.storeConfig.badgeShape')}
+        allowDeselect={false}
+        data={[
+          { value: 'square', label: t('pages.storeConfig.badgeSquare') },
+          { value: 'pill', label: t('pages.storeConfig.badgePill') },
+        ]}
+        {...form.getInputProps('storefrontConfig.productCard.badgeShape')}
+      />
+      <Select
+        label={t('pages.storeConfig.badgeStyle')}
+        allowDeselect={false}
+        data={[
+          { value: 'outline', label: t('pages.storeConfig.badgeOutline') },
+          { value: 'solid', label: t('pages.storeConfig.badgeSolid') },
+        ]}
+        {...form.getInputProps('storefrontConfig.productCard.badgeStyle')}
+      />
 
       </Reveal>
 
@@ -598,6 +692,16 @@ export function StorefrontConfigSection({
       />
       <NumberInput label={t('pages.storeConfig.defaultPageSize')} min={1} max={96} {...form.getInputProps('storefrontConfig.catalog.defaultPageSize')} />
       <Switch label={t('pages.storeConfig.showFilters')} {...form.getInputProps('storefrontConfig.catalog.showFilters', { type: 'checkbox' })} />
+      <Select
+        label={t('pages.storeConfig.gridGap')}
+        allowDeselect={false}
+        data={[
+          { value: 'compact', label: t('pages.storeConfig.gridGapCompact') },
+          { value: 'comfortable', label: t('pages.storeConfig.gridGapComfortable') },
+          { value: 'roomy', label: t('pages.storeConfig.gridGapRoomy') },
+        ]}
+        {...form.getInputProps('storefrontConfig.catalog.gridGap')}
+      />
 
       </Reveal>
 

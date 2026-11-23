@@ -2,6 +2,8 @@
 
 > Fecha: 2026-10-21 · Alcance: monorepo completo (`apps/api`, `apps/web`, `apps/admin`, `packages/*`).
 > Objetivo del negocio: reutilizar la base de código para distintos clientes, con **una base de datos Postgres por cliente** y una **base maestra** que registre los clientes y resuelva a qué BD ir.
+>
+> **Dominios de producción:** `<cliente>.nova.com` para storefront, `admin.nova.com` para el panel y `api.nova.com` para la API. El subdominio del storefront debe coincidir con el `slug` del tenant.
 
 ---
 
@@ -89,12 +91,12 @@ Lo que falta **no está en el dominio, está en la capa de plataforma**:
 
 ### 3.1 BD maestra (nueva, ~4 tablas)
 - `Tenant`: `id`, `name`, `slug` (subdominio), `status` (`PROVISIONING|ACTIVE|SUSPENDED|DELETED`), `databaseUrl` (**cifrada**), `plan`, `createdAt`, `ownerUserId`.
-- `TenantDomain`: `tenantId`, `host` (único) — soporta `cliente.nova.app` y dominios propios.
+- `TenantDomain`: `tenantId`, `host` (único) — soporta `cliente.nova.com` y dominios propios.
 - `PlatformUser`: operadores del SaaS (distintos de los admins de tienda), con roles `PLATFORM_OWNER` / `PLATFORM_SUPPORT`.
 - `TenantEvent`/`ProvisioningJob`: bitácora de provisioning, migraciones aplicadas, estado de salud.
 
 ### 3.2 Resolución del tenant (el "redirección a la BD específica")
-1. **Storefront**: por `Host` (`tienda-a.nova.app` o dominio propio) → `TenantDomain` → tenant.
+1. **Storefront**: por `Host` (`tienda-a.nova.com` o dominio propio) → `TenantDomain` → tenant.
 2. **Admin**: el operador de plataforma elige cliente → el front manda `X-Tenant: <slug>` con su token de plataforma; los admins de tienda mandan su token normal (que ya trae `tenantId`).
 3. **Webhooks**: tenant en la URL (`/payments/webhook/:tenantSlug/bold`) — necesario porque la firma se valida con la config de esa BD.
 4. Un middleware global (lo primero del pipeline, antes de guards) resuelve el tenant y lo guarda en `AsyncLocalStorage`; si no resuelve → 404/400 claro.
@@ -130,7 +132,7 @@ Lo que falta **no está en el dominio, está en la capa de plataforma**:
 
 ### 5.2 Auth / sesiones / cookies (bloqueante #3)
 - JWT: agregar `tenantId` al payload (access y challenge 2FA) y validar en la estrategia.
-- Refresh tokens: viven en la BD del tenant ✓ (ya aislados); las **cookies** no: con API compartido en un mismo host, dos tenants en el mismo navegador se pisan. Opciones: (a) API por subdominio de tenant (`api.tienda-a.nova.app`) → `__Host-` aislada por host; (b) nombre de cookie por tenant (`refresh_token__<slug>`).
+- Refresh tokens: viven en la BD del tenant ✓ (ya aislados); las **cookies** no: con API compartido en un mismo host, dos tenants en el mismo navegador se pisan. Opciones: (a) API por subdominio de tenant (`api.tienda-a.nova.com`) → `__Host-` aislada por host; (b) nombre de cookie por tenant (`refresh_token__<slug>`).
 - `SameSite=Strict` + dominios distintos (API vs storefront) rompe el envío de cookies → si el API no comparte sitio con el storefront, hay que pasar a `SameSite=None; Secure` (con las limitaciones de cookies de terceros en Safari/Chrome) o servir el API en el mismo dominio (`/api` reverse-proxy) — **recomendado: mismo dominio con reverse proxy**.
 - Identidad: `User.email` único por BD → la misma persona puede tener cuentas separadas por tienda (normal en este modelo). No hay SSO entre tiendas (decisión de producto).
 - Roles: `SUPER_ADMIN` es de tienda; hace falta el rol de **plataforma** en la BD maestra.
@@ -158,7 +160,7 @@ Lo que falta **no está en el dominio, está en la capa de plataforma**:
 
 ### 5.7 Storefront (bloqueante #8)
 - Resolver la tienda por dominio: en el layout/middleware leer `host` (Next `headers()`) y pedir la config con `X-Tenant`/`Host` al API.
-- `NEXT_PUBLIC_API_URL` build-time → usar **una sola URL de plataforma** (`api.nova.app`) y resolver por host; o un rewrite/proxy `/api/*` por tenant.
+- `NEXT_PUBLIC_API_URL` build-time → usar **una sola URL de plataforma** (`api.nova.com`) y resolver por host; o un rewrite/proxy `/api/*` por tenant.
 - `middleware.ts` cachea redirects globalmente → cachear por host.
 - `localStorage` (carrito anónimo, sesión): aislado por origen ✓ si cada tienda tiene su dominio/subdominio (no usar multi-tenant por path).
 - SEO: `metadataBase` y canonical por tienda.
@@ -170,7 +172,7 @@ Lo que falta **no está en el dominio, está en la capa de plataforma**:
 
 ### 5.9 Provisioning, migraciones y seeds (bloqueante #11)
 Flujo de alta de un cliente (automatizable en un endpoint `POST /platform/tenants`):
-1. Insertar `Tenant` (estado `PROVISIONING`) + dominio `slug.nova.app`.
+1. Insertar `Tenant` (estado `PROVISIONING`) + dominio `slug.nova.com`.
 2. `CREATE DATABASE tenant_<slug>` en el Postgres de plataforma.
 3. `prisma migrate deploy` con `DATABASE_URL` de esa BD (registrar versión aplicada).
 4. Seeds obligatorios: `seed:roles` (sin `CUSTOMER` el registro falla — `auth.service.ts:58-64`), monedas, `StoreConfig` inicial, email templates, páginas legales.
@@ -197,7 +199,7 @@ Flujo de alta de un cliente (automatizable en un endpoint `POST /platform/tenant
 
 ### Fase 0 — Preparación (2–3 días)
 - Congelar el esquema actual como "schema de tenant v1"; documentar el flujo de provisioning.
-- Cifrado de secretos (util reutilizable) + decisión de dominio (`*.nova.app` con reverse proxy al API).
+- Cifrado de secretos (util reutilizable) + decisión de dominio (`*.nova.com` con reverse proxy al API).
 
 ### Fase 1 — Núcleo multi-tenant (1,5–2 semanas)
 - BD maestra con Prisma separado (`prisma/master.prisma` o proyecto aparte) + migraciones propias.
@@ -248,7 +250,7 @@ Flujo de alta de un cliente (automatizable en un endpoint `POST /platform/tenant
 ## 9. Decisiones que conviene tomar antes de arrancar
 
 1. **Modelo de API**: compartido (recomendado) o proceso por cliente para los primeros clientes.
-2. **Dominios**: subdominio de plataforma (`cliente.nova.app`) y/o dominios propios; reverse proxy del API en el mismo dominio.
+2. **Dominios**: subdominio de plataforma (`cliente.nova.com`) y/o dominios propios; reverse proxy del API en el mismo dominio.
 3. **Storage**: bucket compartido con prefijos (simple) o bucket por cliente (aislado).
 4. **Emails**: credenciales por cliente o un proveedor único de plataforma con subdominios.
 5. **Planes/facturación**: desde el inicio (aunque sea manual) para no rediseñar el modelo después.
@@ -295,12 +297,12 @@ Se implementó el **núcleo multi-tenant** con un solo backend para todos los cl
 ```bash
 cd apps/api
 doppler run -- npx ts-node --transpile-only src/database/scripts/create-tenant.ts \
-  --slug=acme --name="Acme Store" --domain=acme.nova.app \
+  --slug=acme --name="Acme Store" --domain=acme.nova.com \
   --admin-email=admin@acme.com --admin-password='...'
 ```
 
 - Crea la BD `tenant_acme` en el mismo Postgres de la maestra (o usar `--database-url` para una BD existente).
-- El storefront responde en `acme.nova.app` (o `acme.localhost` en dev) y el admin administra ese cliente enviando `X-Tenant: acme`.
+- El storefront responde en `acme.nova.com` (o `acme.localhost` en dev) y el admin administra ese cliente enviando `X-Tenant: acme`.
 - Para usar un bucket R2 propio: actualizar los campos `r2*` del tenant en la BD maestra (el bucket de la plataforma se sigue usando por defecto).
 
 También se puede hacer desde el admin: **Plataforma → Clientes → Nuevo cliente** (nombre, slug, dominio, email y contraseña del admin). El alta corre en segundo plano (~1 min: crea BD, migra y siembra); la tabla se refresca sola y muestra `PROVISIONING` → `ACTIVE` (o el error). El botón **Salud** verifica la conexión a la BD del cliente y muestra productos/órdenes/usuarios y la última migración aplicada.

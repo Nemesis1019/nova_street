@@ -17,6 +17,7 @@ import { ImportProductDto } from './dto/import-product.dto';
 import { ProductImageResponseDto } from './dto/product-image-response.dto';
 import { ReorderProductImagesDto } from './dto/reorder-product-images.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { UpdateProductImageDto } from './dto/update-product-image.dto';
 
 @ApiTags('admin-catalog')
 @ApiBearerAuth()
@@ -152,18 +153,29 @@ export class AdminProductController {
     return this.adminProductService.addImage(id, dto);
   }
 
-  @Delete(':id/images/:imageId')
-  @RequirePermission(Permission.PRODUCTS_WRITE)
-  @ApiOkResponse({ type: ProductImageResponseDto })
-  removeImage(@Param('id') id: string, @Param('imageId') imageId: string) {
-    return this.adminProductService.removeImage(id, imageId);
-  }
-
   @Patch(':id/images/reorder')
   @RequirePermission(Permission.PRODUCTS_WRITE)
   @ApiOkResponse({ type: AdminProductDetailDto })
   reorderImages(@Param('id') id: string, @Body() dto: ReorderProductImagesDto) {
     return this.adminProductService.reorderImages(id, dto);
+  }
+
+  @Patch(':id/images/:imageId')
+  @RequirePermission(Permission.PRODUCTS_WRITE)
+  @ApiOkResponse({ type: ProductImageResponseDto })
+  updateImage(
+    @Param('id') id: string,
+    @Param('imageId') imageId: string,
+    @Body() dto: UpdateProductImageDto,
+  ) {
+    return this.adminProductService.updateImage(id, imageId, dto);
+  }
+
+  @Delete(':id/images/:imageId')
+  @RequirePermission(Permission.PRODUCTS_WRITE)
+  @ApiOkResponse({ type: ProductImageResponseDto })
+  removeImage(@Param('id') id: string, @Param('imageId') imageId: string) {
+    return this.adminProductService.removeImage(id, imageId);
   }
 
   private extractUserId(req: Request): string {

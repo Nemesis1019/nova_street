@@ -12,17 +12,16 @@ Alcance: storefront de NÖVA, tarjetas de producto, ficha de producto y builder 
 - Storefront Builder: secciones de home, orden, visibilidad, contenido, medios, header/footer, presets, tokens de diseño, CSS personalizado, sandbox de scripts y preview por dispositivo.
 - Publicación: borrador, guardar, publicar, preview con token y presets reutilizables.
 - Catálogo: filtros, orden inicial, cantidad por página y estrategia de relacionados.
-- Tarjeta de producto: SKU, rating, badge de stock, favoritos, compra rápida, navegación del carrusel, swipe móvil y visibilidad de controles.
-- Ficha de producto: galería izquierda/derecha, buy box sticky, reseñas y relacionados.
+- Tarjeta de producto: SKU, rating, badge de stock, favoritos, compra rápida, navegación del carrusel, swipe móvil, visibilidad de controles, proporción/ajuste de imagen y efecto hover.
+- Ficha de producto: galería izquierda/derecha, miniaturas, swipe, medios por variante, buy box sticky, reseñas y relacionados.
 - Personalizador: prendas, colores, talles, zonas, precios, mockups, GLB, rotación, DPI, bleed y método de impresión.
 
 ### Brechas actuales
 
-- La tarjeta ya permite elegir proporción y ajuste de imagen; falta efecto hover configurable.
-- La ficha ya tiene galería con miniaturas y swipe; faltan zoom, lightbox, video y medios por variante.
-- El builder no tiene undo/redo ni historial de versiones.
+- La ficha ya permite medios por variante, zoom, lightbox y video externo; faltan biblioteca de video, múltiples videos y medios por tamaño.
+- La tarjeta ya permite proporción, ajuste, hover, swatches, alineación, densidad, badges y espaciado de grilla.
+- El builder ya tiene undo/redo y comparación de versiones; falta un diff visual más rico.
 - No hay visibilidad por breakpoint (móvil/tablet/desktop) para secciones.
-- No hay una configuración explícita de densidad de grilla, alineación de texto o posición de badges.
 - Faltan controles de accesibilidad y performance como validaciones del builder.
 
 ## 2. Señales externas consultadas
@@ -48,12 +47,23 @@ Decisiones tomadas para esta iteración:
 | Hecho | Tarjeta | Proporción de imagen: actual, cuadrada, vertical u horizontal | Alto | Medio |
 | Hecho | Tarjeta | Ajuste de imagen: cover o contain | Alto | Bajo |
 | Hecho | Ficha | Galería con miniaturas, flechas y swipe | Alto | Medio |
-| P1 | Ficha | Medios por variante de color | Alto | Medio |
-| P2 | Tarjeta | Efecto hover: zoom, lift o ninguno | Medio | Bajo |
-| P2 | Tarjeta | Alineación de texto, densidad y columnas | Medio | Bajo |
-| P2 | Tarjeta | Posición y estilo de badges | Medio | Bajo |
-| P2 | Ficha | Zoom, lightbox y video | Medio | Medio |
-| P3 | Builder | Undo/redo e historial de versiones | Alto | Medio |
+| Hecho | Ficha | Medios por variante, con asignación desde el admin | Alto | Medio |
+| Hecho | Tarjeta | Efecto hover: heredar, zoom, elevación, ambos o ninguno | Medio | Bajo |
+| Hecho | Tarjeta | Alineación de texto y densidad interna | Medio | Bajo |
+| Hecho | Tarjeta | Swatches de color con color HEX por variante | Alto | Medio |
+| Hecho | Tarjeta | Composición de grilla y posición/estilo de badges | Medio | Bajo |
+| Hecho | Ficha | Zoom y lightbox de la galería | Medio | Medio |
+| Hecho | Ficha | Swatches de color directos | Alto | Medio |
+| Hecho | UI | Notificaciones y tooltips con estilo de marca configurable | Medio | Bajo |
+| Hecho | UI | Configuraciones de notificaciones guardadas + preview | Medio | Medio |
+| Hecho | Ficha | Video externo (YouTube/Vimeo/MP4) en la galería | Medio | Medio |
+| Hecho | Ficha | Múltiples videos, subida propia, videos por variante y swatches de talle | Medio | Medio |
+| Hecho | Tarjeta | Swatches de talle y resumen visual de diff | Medio | Medio |
+| Hecho | Builder | Comparación de imágenes lado a lado en versiones | Medio | Bajo |
+| Hecho | UI | Biblioteca de videos filtrable y miniaturas en diff | Medio | Medio |
+| Hecho | UI | Biblioteca de medios unificada (imágenes + videos) | Medio | Medio |
+| Hecho | Builder | Undo/redo e historial local de cambios | Alto | Medio |
+| Hecho | Builder | Comparación de versiones contra el borrador | Alto | Medio |
 | P3 | Builder | Visibilidad por breakpoint | Alto | Medio |
 | P3 | Builder | Reset por sección y copiar/pegar bloques | Medio | Bajo |
 | P3 | Builder | Preview aislado por dispositivo con navegación real | Medio | Bajo |
@@ -65,27 +75,31 @@ Decisiones tomadas para esta iteración:
 
 ### Fase 0 — Completada
 
+- Video externo en la ficha con miniatura y reproductor.
+- Múltiples videos por producto y swatches de talle.
+- Comparación de versiones contra el borrador actual.
 - Swipe móvil accesible y con supresión de click.
 - Navegación configurable: flechas, puntos o ambos.
 - Visibilidad de controles: hover o siempre.
 - Configuración persistida en `storefrontConfig.productCard`.
 - Proporción de imagen de tarjeta: actual, cuadrada, vertical u horizontal.
 - Ajuste de imagen: recorte o completa.
+- Efecto hover por tarjeta con herencia del perfil de movimiento.
 - Galería de ficha con miniaturas, flechas, teclado y swipe móvil.
+- Medios por variante: asignación desde el admin y filtrado según la variante elegida.
 - Admin de la ficha: mostrar miniaturas y habilitar swipe.
-- Tests manuales de swipe, bloqueo de swipe, controles, galería y proporción.
+- Tests manuales de swipe, bloqueo de swipe, controles, galería, proporción y variantes.
 
 ### Fase 1 — Tarjeta y galería (siguiente)
 
-1. Efecto hover configurable: zoom, elevación o ninguno.
-2. Alineación de texto, densidad y columnas.
-3. Medios por variante.
-4. Zoom, lightbox y video en la ficha.
-5. Tests de regresión visual en desktop y mobile.
+1. Medios por variante con video en tarjetas.
+2. Comparación visual de imágenes lado a lado.
+3. Tests de regresión visual en desktop y mobile.
+4. Biblioteca de medios para imágenes y videos en una sola grilla.
 
 ### Fase 2 — Builder
 
-1. Undo/redo con historial local.
+1. Diff visual más rico del historial de versiones.
 2. Visibilidad por breakpoint.
 3. Reset de sección y duplicar sección.
 4. Preview con navegación real y breakpoints.
@@ -109,4 +123,4 @@ Decisiones tomadas para esta iteración:
 
 ## 6. Recomendación
 
-La siguiente iteración debería ser **efecto hover + medios por variante**, porque la tarjeta ya tiene proporción/ajuste y la ficha ya tiene galería; el siguiente salto de calidad es que la imagen cambie según el color y que el hover sea configurable.
+La siguiente iteración debería ser **biblioteca de medios filtrable + variantes de tamaño en tarjetas + diff visual más rico**, porque la ficha ya cubre múltiples videos, videos por variante, subida propia, imagen, color, swatches de talle y zoom, y el builder ya tiene undo/redo y comparación de versiones.

@@ -125,7 +125,7 @@ export default function LoginPage() {
                 />
 
                 <Text size="sm" ta="center">
-                  ¿No tenés cuenta?{' '}
+                  ¿No tienes cuenta?{' '}
                   <Link href="/register" style={{ color: '#0d0d0d', fontWeight: 600 }}>
                     Crear cuenta
                   </Link>

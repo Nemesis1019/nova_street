@@ -2,7 +2,7 @@ import { hostToTenantSlug } from '@ecommerce/shared';
 
 /**
  * Resuelve el slug del tenant para el request actual.
- * - En el navegador: a partir del hostname (`cliente.nova.app` → `cliente`).
+ * - En el navegador: a partir del hostname (`cliente.nova.com` → `cliente`).
  * - En el servidor (SSR): a partir del header `host` del request de Next.
  * Devuelve `undefined` para el dominio principal/localhost (el API usa el
  * tenant por defecto).

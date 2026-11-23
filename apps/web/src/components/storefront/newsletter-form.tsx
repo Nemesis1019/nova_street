@@ -13,7 +13,7 @@ export function StorefrontNewsletterForm({ buttonLabel = 'Suscribirme' }: { butt
   const subscribe = async () => {
     const value = email.trim();
     if (!value) {
-      notifyError({ title: 'Newsletter', message: 'Ingresá tu email.' });
+      notifyError({ title: 'Newsletter', message: 'Ingresa tu email.' });
       return;
     }
     setLoading(true);

@@ -63,7 +63,7 @@ export default async function CustomizePage() {
                 CREA TU PROPIO DISEÑO.
               </Title>
               <Text size="lg" c="dimmed" maw={600}>
-                Elegí una prenda base, subí tu imagen y posicionala exactamente donde querés.
+                Elige una prenda base, sube tu imagen y posiciónala exactamente donde quieres.
               </Text>
             </Stack>
           </Container>

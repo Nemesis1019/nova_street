@@ -1,6 +1,6 @@
 import { getAuthToken, setAuthToken, setPlatformRefreshHandler } from './api';
 import { clearTokens, setAccessToken } from './auth';
-import { getAdminTenantSlug } from './tenant';
+import { getAdminTenantSlug, setPlatformSession } from './tenant';
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
@@ -27,6 +27,7 @@ export function getPlatformToken(): string | undefined {
  */
 function applyPlatformToken(token?: string): void {
   platformToken = token;
+  setPlatformSession(Boolean(token));
   if (token) {
     setAuthToken(token);
     setAccessToken(token);
@@ -176,6 +177,7 @@ export async function logoutPlatform(): Promise<void> {
     platformToken = undefined;
     stepUpToken = undefined;
     setAuthToken(undefined);
+    setPlatformSession(false);
     clearTokens();
   }
 }

@@ -55,11 +55,11 @@ export default function ForgotPasswordPage() {
               {sent ? (
                 <Text size="sm" c="dimmed">
                   Si el email <strong>{form.values.email}</strong> está registrado, te enviamos un enlace para
-                  restablecer tu contraseña. Revisá tu bandeja de entrada y spam.
+                  restablecer tu contraseña. Revisa tu bandeja de entrada y spam.
                 </Text>
               ) : (
                 <Text size="sm" c="dimmed">
-                  Ingresá el email de tu cuenta y te enviaremos un enlace para restablecer tu contraseña.
+                  Ingresa el email de tu cuenta y te enviaremos un enlace para restablecer tu contraseña.
                 </Text>
               )}
             </Stack>

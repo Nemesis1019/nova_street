@@ -114,12 +114,12 @@ function ConfirmationContent() {
             </Text>
             {paid ? (
               <Text c="dimmed">
-                Recibimos tu pago correctamente. Te enviamos la confirmación por email y ya podés seguir el estado de
+                Recibimos tu pago correctamente. Te enviamos la confirmación por email y ya puedes seguir el estado de
                 tu pedido.
               </Text>
             ) : rejected ? (
               <Text c="dimmed">
-                El pago no se completó. Podés intentarlo nuevamente con otro medio de pago.
+                El pago no se completó. Puedes intentarlo nuevamente con otro medio de pago.
               </Text>
             ) : (
               <Text c="dimmed">

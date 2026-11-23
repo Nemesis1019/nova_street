@@ -15,6 +15,12 @@ import { CatalogFilters } from './catalog-filters';
 import { CatalogFiltersProvider } from './catalog-filters-context';
 import { CatalogPagination } from './catalog-pagination';
 
+const CATALOG_GRID_GAPS = {
+  compact: '14px',
+  comfortable: '28px',
+  roomy: '40px',
+} as const;
+
 export async function generateMetadata({
   searchParams,
 }: {
@@ -243,9 +249,12 @@ export default async function CatalogPage({
                   <div
                     className="catalog-products"
                     style={
-                      docCatalog
-                        ? ({ '--sf-cat-cols': String(docCatalog.columns) } as CSSProperties)
-                        : undefined
+                      {
+                        '--sf-cat-gap': CATALOG_GRID_GAPS[catalogConfig.gridGap],
+                        ...(docCatalog
+                          ? { '--sf-cat-cols': String(docCatalog.columns) }
+                          : {}),
+                      } as CSSProperties
                     }
                   >
                     {products.map((product) => (

@@ -137,6 +137,12 @@ export class AdminStorefrontController {
     return this.storefrontService.getVersions();
   }
 
+  @Get('versions/:id')
+  @RequirePermission(Permission.STORE_CONFIG_READ)
+  version(@Param('id') id: string) {
+    return this.storefrontService.getVersion(id);
+  }
+
   @Post('versions/:id/restore')
   @HttpCode(HttpStatus.OK)
   @RequirePermission(Permission.STORE_CONFIG_WRITE)

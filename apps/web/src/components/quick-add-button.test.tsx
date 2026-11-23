@@ -29,7 +29,7 @@ describe('QuickAddButton', () => {
     render(<QuickAddButton product={PRODUCT} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Agregar al carrito' }));
-    expect(await screen.findByText('Elegí una opción')).toBeInTheDocument();
+    expect(await screen.findByText('Elige una opción')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('S · Negro'));
 

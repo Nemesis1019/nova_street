@@ -47,7 +47,7 @@ export default function GuestOrderPage() {
               <Text>Estado: {order?.status}</Text>
               <Text>Total: ${order?.totalAmount?.toLocaleString()}</Text>
               <Text size="sm" c="dimmed">
-                Guardá este enlace para consultar tu pedido más tarde.
+                Guarda este enlace para consultar tu pedido más tarde.
               </Text>
             </Stack>
           )}

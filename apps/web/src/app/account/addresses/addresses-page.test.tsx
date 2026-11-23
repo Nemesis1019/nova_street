@@ -105,9 +105,9 @@ describe('AddressesPage — modal de direcciones', () => {
 
     fireEvent.click(within(dialog).getByRole('button', { name: 'Guardar dirección' }));
 
-    expect(await within(dialog).findByText('Ingresá un nombre (Casa, Oficina...)')).toBeInTheDocument();
-    expect(within(dialog).getByText('Ingresá la dirección')).toBeInTheDocument();
-    expect(within(dialog).getByText('Elegí el país')).toBeInTheDocument();
-    expect(within(dialog).getByText('Ingresá el código postal')).toBeInTheDocument();
+    expect(await within(dialog).findByText('Ingresa un nombre (Casa, Oficina...)')).toBeInTheDocument();
+    expect(within(dialog).getByText('Ingresa la dirección')).toBeInTheDocument();
+    expect(within(dialog).getByText('Elige el país')).toBeInTheDocument();
+    expect(within(dialog).getByText('Ingresa el código postal')).toBeInTheDocument();
   });
 });

@@ -12,6 +12,7 @@ import { type MouseEvent, type TouchEvent, useEffect, useRef, useState } from 'r
 
 import { useWishlistVariantIds } from '../hooks/use-wishlist';
 import { imageCropStyle } from '../lib/image-crop';
+import { uniqueProductColors } from '../lib/product-colors';
 import { parseStorefrontConfig } from '../lib/storefront-config';
 import { useStoreConfig } from '../providers/config-provider';
 import { useCurrency } from '../providers/currency-provider';
@@ -32,6 +33,7 @@ interface ProductCardProps {
       url?: string;
       smallUrl?: string;
       thumbnailUrl?: string;
+      productVariantId?: string | null;
       focalPointX?: number;
       focalPointY?: number;
       cropZoom?: number;
@@ -41,6 +43,7 @@ interface ProductCardProps {
       sku?: string;
       size?: string | null;
       color?: string | null;
+      colorHex?: string | null;
       stockMode?: string;
       inStock?: boolean;
       availableQuantity?: number;
@@ -66,6 +69,106 @@ const IMAGE_RATIOS: Record<Exclude<ProductImageRatio, 'standard'>, string> = {
   landscape: '4 / 3',
 };
 
+const CARD_DENSITIES = {
+  compact: {
+    padding: 'xs' as const,
+    titleSize: 18,
+    titleMinHeight: 40,
+    stackGap: 'xs' as const,
+    stackMarginTop: 'sm' as const,
+    editorialPaddingTop: 10,
+    editorialGap: 6,
+    minimalPadding: 12,
+  },
+  comfortable: {
+    padding: 'md' as const,
+    titleSize: 20,
+    titleMinHeight: 48,
+    stackGap: 'xs' as const,
+    stackMarginTop: 'md' as const,
+    editorialPaddingTop: 14,
+    editorialGap: 8,
+    minimalPadding: 16,
+  },
+  roomy: {
+    padding: 'lg' as const,
+    titleSize: 22,
+    titleMinHeight: 56,
+    stackGap: 'sm' as const,
+    stackMarginTop: 'lg' as const,
+    editorialPaddingTop: 18,
+    editorialGap: 10,
+    minimalPadding: 20,
+  },
+};
+
+function ColorSwatches({
+  colors,
+  activeColor,
+  textAlign,
+  onSelect,
+}: {
+  colors: ReturnType<typeof uniqueProductColors>;
+  activeColor: string | null;
+  textAlign: 'left' | 'center';
+  onSelect: (color: string) => void;
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: textAlign === 'center' ? 'center' : 'flex-start',
+        flexWrap: 'wrap',
+        gap: 2,
+        marginTop: 4,
+      }}
+    >
+      {colors.map((option) => {
+        const active = option.color.toLowerCase() === activeColor?.toLowerCase();
+        return (
+          <button
+            key={option.color}
+            type="button"
+            aria-label={`Color ${option.color}`}
+            aria-pressed={active}
+            title={option.color}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onSelect(option.color);
+            }}
+            style={{
+              width: 24,
+              height: 24,
+              padding: 0,
+              border: 0,
+              background: 'transparent',
+              display: 'grid',
+              placeItems: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <span
+              style={{
+                display: 'block',
+                width: 16,
+                height: 16,
+                borderRadius: '50%',
+                backgroundColor: option.hex,
+                border: active
+                  ? '2px solid var(--sf-color-text, #0d0d0d)'
+                  : '1px solid rgba(13, 13, 13, 0.28)',
+                boxShadow: active ? '0 0 0 2px var(--sf-color-surface, #fcf9f8)' : undefined,
+              }}
+            />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 interface ProductCardImageCarouselProps {
   images: ProductCardImage[];
   alt: string;
@@ -74,6 +177,62 @@ interface ProductCardImageCarouselProps {
   navigationStyle?: CarouselNavigationStyle;
   swipeEnabled?: boolean;
   fit?: 'cover' | 'contain';
+}
+
+function SizeSwatches({
+  sizes,
+  activeSize,
+  textAlign,
+  onSelect,
+}: {
+  sizes: string[];
+  activeSize: string | null;
+  textAlign: 'left' | 'center';
+  onSelect: (size: string) => void;
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: textAlign === 'center' ? 'center' : 'flex-start',
+        flexWrap: 'wrap',
+        gap: 4,
+        marginTop: 4,
+      }}
+    >
+      {sizes.map((size) => {
+        const active = size === activeSize;
+        return (
+          <button
+            key={size}
+            type="button"
+            aria-label={`Talle ${size}`}
+            aria-pressed={active}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onSelect(size);
+            }}
+            style={{
+              minWidth: 26,
+              height: 22,
+              padding: '0 5px',
+              border: '1px solid var(--sf-color-text, #0d0d0d)',
+              backgroundColor: active ? 'var(--sf-color-text, #0d0d0d)' : 'transparent',
+              color: active ? 'var(--sf-color-surface, #fcf9f8)' : 'var(--sf-color-text, #0d0d0d)',
+              fontFamily: 'var(--font-jetbrains-mono), JetBrains Mono, monospace',
+              fontSize: 9,
+              letterSpacing: '0.03em',
+              cursor: 'pointer',
+            }}
+          >
+            {size}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 function ProductCardImageCarousel({
@@ -303,8 +462,6 @@ function ProductCardImageCarousel({
 }
 
 const IMAGE_HEIGHT = 280;
-/** Alto reservado para el título (2 líneas) para que todas las cards midan igual. */
-const TITLE_MIN_HEIGHT = 48;
 
 function isOutOfStock(variants?: ProductCardProps['product']['variants']) {
   if (!variants || variants.length === 0) return false;
@@ -335,9 +492,31 @@ function isOnSale(product: ProductCardProps['product']) {
   return typeof product.displayPrice === 'number' && product.displayPrice < product.basePrice;
 }
 
-function cornerBadge(label: string, color: string) {
+const BADGE_TONES: Record<string, string> = {
+  green: '#2f9e44',
+  orange: '#f76707',
+  yellow: '#f0b429',
+};
+
+function cornerBadge(
+  label: string,
+  tone: string,
+  shape: 'square' | 'pill',
+  style: 'outline' | 'solid',
+) {
+  const solid = style === 'solid';
   return (
-    <Badge key={label} color={color} variant="filled" radius={0} style={{ backgroundColor: 'var(--sf-color-surface, #fcf9f8)', color: 'var(--sf-color-text, #0d0d0d)', border: '1px solid var(--sf-color-text, #0d0d0d)' }}>
+    <Badge
+      key={label}
+      color={tone}
+      variant="filled"
+      radius={shape === 'pill' ? 999 : 0}
+      style={{
+        backgroundColor: solid ? BADGE_TONES[tone] ?? '#0d0d0d' : 'var(--sf-color-surface, #fcf9f8)',
+        color: solid ? (tone === 'yellow' ? '#0d0d0d' : '#ffffff') : 'var(--sf-color-text, #0d0d0d)',
+        border: solid ? '1px solid transparent' : '1px solid var(--sf-color-text, #0d0d0d)',
+      }}
+    >
       {label}
     </Badge>
   );
@@ -351,20 +530,78 @@ export function ProductCard({ product, isInWishlist, isUnavailable = false, vari
   const storefront = parseStorefrontConfig(config.storefrontConfig);
   const { productCard, productBadges, featureFlags } = storefront;
   const controlsAlways = productCard.controlsVisibility === 'always';
+  const hoverClass =
+    productCard.hoverEffect === 'inherit' ? '' : ` nova-card-hover-${productCard.hoverEffect}`;
   const imageRatio =
     productCard.imageRatio === 'standard' ? null : IMAGE_RATIOS[productCard.imageRatio];
+  const badgesOnRight = productCard.badgePosition === 'top-right';
   const price = product.displayPrice ?? product.basePrice;
-  const images = (product.images ?? []).filter(
+  const density = CARD_DENSITIES[productCard.density];
+  const allImages = (product.images ?? []).filter(
     (image) => image.smallUrl || image.thumbnailUrl || image.url,
   );
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSelectedColor(null);
+    setSelectedSize(null);
+  }, [product.id]);
+
+  const colorVariants = (product.variants ?? []).filter(
+    (variant): variant is typeof variant & { id: string } => typeof variant.id === 'string',
+  );
+  const colorOptions = uniqueProductColors(colorVariants);
+  const activeColor = selectedColor ?? colorOptions[0]?.color ?? null;
+  const activeColorKey = activeColor?.trim().toLowerCase();
+  const colorVariantIds = new Set(
+    (product.variants ?? [])
+      .filter(
+        (variant) =>
+          !activeColorKey || variant.color?.trim().toLowerCase() === activeColorKey,
+      )
+      .map((variant) => variant.id),
+  );
+  const variantsForColor = colorVariants.filter((variant) =>
+    activeColorKey ? variant.color?.trim().toLowerCase() === activeColorKey : true,
+  );
+  const sizeOptions = Array.from(
+    new Set(
+      variantsForColor
+        .map((variant) => variant.size?.trim())
+        .filter((size): size is string => Boolean(size)),
+    ),
+  );
+  const activeSize =
+    selectedSize ?? variantsForColor[0]?.size?.trim() ?? sizeOptions[0] ?? null;
+  const activeVariant =
+    variantsForColor.find((variant) => variant.size?.trim() === activeSize) ??
+    (product.variants ?? []).find(
+      (variant) => variant.id && colorVariantIds.has(variant.id),
+    );
+  const preferredVariantIds = activeVariant?.id
+    ? new Set([activeVariant.id])
+    : colorVariantIds;
+  const preferredImages = allImages.filter(
+    (image) => !image.productVariantId || preferredVariantIds.has(image.productVariantId),
+  );
+  const colorImages = allImages.filter(
+    (image) => !image.productVariantId || colorVariantIds.has(image.productVariantId),
+  );
+  const images =
+    preferredImages.length > 0
+      ? preferredImages
+      : colorImages.length > 0
+        ? colorImages
+        : allImages;
   const firstImage = images[0];
   const imageUrl = firstImage?.smallUrl ?? firstImage?.thumbnailUrl ?? firstImage?.url;
   const outOfStock = isOutOfStock(product.variants);
   const lowStock = isLowStock(product.variants, productBadges.lowStockThreshold);
   const isProductNew = productBadges.showNew && isNew(product.createdAt, productBadges.newDaysThreshold);
   const onSale = productBadges.showSale && isOnSale(product);
-  const firstVariantId = product.variants?.[0]?.id;
-  const firstSku = product.variants?.[0]?.sku;
+  const firstVariantId = activeVariant?.id;
+  const firstSku = activeVariant?.sku;
   const hasReviews = typeof product.reviewCount === 'number' && product.reviewCount > 0;
   const unavailable = isUnavailable || outOfStock;
   const inWishlist = isInWishlist ?? (firstVariantId ? variantIds.has(firstVariantId) : false);
@@ -381,11 +618,41 @@ export function ProductCard({ product, isInWishlist, isUnavailable = false, vari
       priceAdjustment: variant.priceAdjustment,
     }));
 
+  const selectCardColor = (color: string) => {
+    setSelectedColor(color);
+    const normalized = color.trim().toLowerCase();
+    const availableSizes = (product.variants ?? [])
+      .filter((variant) => variant.color?.trim().toLowerCase() === normalized)
+      .map((variant) => variant.size?.trim());
+    setSelectedSize((current) =>
+      current && availableSizes.includes(current) ? current : null,
+    );
+  };
+
+  const swatches =
+    productCard.showColorSwatches && colorOptions.length > 1 ? (
+      <ColorSwatches
+        colors={colorOptions}
+        activeColor={activeColor}
+        textAlign={productCard.textAlign}
+        onSelect={selectCardColor}
+      />
+    ) : null;
+  const sizeSwatches =
+    productCard.showSizeSwatches && sizeOptions.length > 1 ? (
+      <SizeSwatches
+        sizes={sizeOptions}
+        activeSize={activeSize}
+        textAlign={productCard.textAlign}
+        onSelect={setSelectedSize}
+      />
+    ) : null;
+
   if (variant === 'editorial') {
     return (
       <Link
         href={`/producto/${product.slug}`}
-        className={`sf-editorial-card${controlsAlways ? ' nova-card-controls-always' : ''}`}
+        className={`sf-editorial-card${controlsAlways ? ' nova-card-controls-always' : ''}${hoverClass}`}
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -415,32 +682,33 @@ export function ProductCard({ product, isInWishlist, isUnavailable = false, vari
             fit={productCard.imageFit}
           />
           {onSale ? (
-            <span
+            <div
               style={{
                 position: 'absolute',
                 top: 12,
-                left: 12,
+                ...(badgesOnRight ? { right: 12 } : { left: 12 }),
                 zIndex: 7,
-                padding: '4px 8px',
-                backgroundColor: 'var(--sf-color-brand, #1f1b16)',
-                color: 'var(--sf-color-inverse, #fff)',
-                fontFamily: 'var(--sf-font-mono, monospace)',
-                fontSize: 10,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
               }}
             >
-              Oferta
-            </span>
+              {cornerBadge(
+                'Oferta',
+                'orange',
+                productCard.badgeShape,
+                productCard.badgeStyle,
+              )}
+            </div>
           ) : null}
         </div>
         <div
           style={{
             display: 'flex',
             alignItems: 'baseline',
-            justifyContent: 'space-between',
-            gap: 12,
-            paddingTop: 14,
+            flexWrap: 'wrap',
+            justifyContent:
+              productCard.textAlign === 'center' ? 'center' : 'space-between',
+            gap: density.editorialGap,
+            paddingTop: density.editorialPaddingTop,
+            textAlign: productCard.textAlign,
           }}
         >
           <span
@@ -465,6 +733,8 @@ export function ProductCard({ product, isInWishlist, isUnavailable = false, vari
             {format(price)}
           </span>
         </div>
+        {swatches}
+        {sizeSwatches}
         {productCard.showRating && hasReviews ? (
           <span
             style={{
@@ -494,12 +764,12 @@ export function ProductCard({ product, isInWishlist, isUnavailable = false, vari
         styles={{
           root: {
             display: 'block',
-            padding: '16px',
+            padding: density.minimalPadding,
             border: '1px solid var(--sf-color-text, #0d0d0d)',
             borderRadius: 0,
             backgroundColor: 'transparent',
             color: 'var(--sf-color-text, #0d0d0d)',
-            textAlign: 'left',
+            textAlign: productCard.textAlign,
           },
           label: { display: 'block' },
         }}
@@ -508,7 +778,7 @@ export function ProductCard({ product, isInWishlist, isUnavailable = false, vari
           lineClamp={1}
           style={{
             fontFamily: 'var(--font-bebas-neue), Bebas Neue, Impact, sans-serif',
-            fontSize: '18px',
+            fontSize: density.titleSize - 2,
             letterSpacing: '0.02em',
             textTransform: 'uppercase',
           }}
@@ -535,11 +805,11 @@ export function ProductCard({ product, isInWishlist, isUnavailable = false, vari
 
   const cardBody = (
     <Card
-      padding="md"
+      padding={density.padding}
       radius={0}
       withBorder
       h="100%"
-      className={`nova-product-card${unavailable ? ' is-unavailable' : ''}${controlsAlways ? ' nova-card-controls-always' : ''}`}
+      className={`nova-product-card${unavailable ? ' is-unavailable' : ''}${controlsAlways ? ' nova-card-controls-always' : ''}${hoverClass}`}
       style={{
         border: '1px solid var(--sf-color-text, #0d0d0d)',
         boxShadow: 'none',
@@ -572,16 +842,15 @@ export function ProductCard({ product, isInWishlist, isUnavailable = false, vari
             style={{
               position: 'absolute',
               top: 10,
-              left: 10,
+              ...(badgesOnRight ? { right: 10, alignItems: 'flex-end' } : { left: 10, alignItems: 'flex-start' }),
               display: 'flex',
               flexDirection: 'column',
-              alignItems: 'flex-start',
               gap: 6,
             }}
           >
-            {isProductNew && cornerBadge('Nuevo', 'green')}
-            {onSale && cornerBadge('Oferta', 'orange')}
-            {lowStock && cornerBadge('Pocas unidades', 'yellow')}
+            {isProductNew && cornerBadge('Nuevo', 'green', productCard.badgeShape, productCard.badgeStyle)}
+            {onSale && cornerBadge('Oferta', 'orange', productCard.badgeShape, productCard.badgeStyle)}
+            {lowStock && cornerBadge('Pocas unidades', 'yellow', productCard.badgeShape, productCard.badgeStyle)}
           </div>
         )}
 
@@ -591,7 +860,7 @@ export function ProductCard({ product, isInWishlist, isUnavailable = false, vari
             style={{
               position: 'absolute',
               top: 10,
-              right: 10,
+              ...(badgesOnRight ? { left: 10 } : { right: 10 }),
               display: 'inline-flex',
               alignItems: 'center',
               gap: 4,
@@ -670,21 +939,24 @@ export function ProductCard({ product, isInWishlist, isUnavailable = false, vari
         )}
       </Card.Section>
 
-      <Stack gap="xs" mt="md" style={{ flex: 1 }}>
+      <Stack gap={density.stackGap} mt={density.stackMarginTop} style={{ flex: 1 }}>
         <Text
           lineClamp={2}
           style={{
             fontFamily: 'var(--font-bebas-neue), Bebas Neue, Impact, sans-serif',
-            fontSize: '20px',
+            fontSize: density.titleSize,
             letterSpacing: '0.02em',
             textTransform: 'uppercase',
-            minHeight: TITLE_MIN_HEIGHT,
+            minHeight: density.titleMinHeight,
+            textAlign: productCard.textAlign,
           }}
         >
           {product.name}
         </Text>
+        {swatches}
+        {sizeSwatches}
         {productCard.showSku && (
-          <Text size="xs" c="dimmed" style={{ minHeight: 16 }}>
+          <Text size="xs" c="dimmed" style={{ minHeight: 16, textAlign: productCard.textAlign }}>
             SKU: {firstSku ?? '—'}
           </Text>
         )}
@@ -694,6 +966,7 @@ export function ProductCard({ product, isInWishlist, isUnavailable = false, vari
             marginTop: 'auto',
             fontFamily: 'var(--font-jetbrains-mono), JetBrains Mono, monospace',
             color: unavailable ? '#8f8d8c' : 'var(--sf-color-text-muted, #5f5f58)',
+            textAlign: productCard.textAlign,
           }}
         >
           {format(price)}

@@ -106,7 +106,7 @@ export function QuickAddButton({ product }: QuickAddButtonProps) {
         if (variants.length === 1) {
           void add(variants[0]);
         } else {
-          // Popover controlado: Mantine no maneja el toggle solo, lo hacemos acá.
+          // Popover controlado: Mantine no maneja el toggle solo, lo hacemos aquí.
           setOpened((current) => !current);
         }
       }}
@@ -150,7 +150,7 @@ export function QuickAddButton({ product }: QuickAddButtonProps) {
                 letterSpacing: '0.05em',
               }}
             >
-              Elegí una opción
+              Elige una opción
             </Text>
             {variants.map((variant) => (
               <UnstyledButton

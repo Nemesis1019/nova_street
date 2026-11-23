@@ -5,8 +5,10 @@ import { useDisclosure } from '@mantine/hooks';
 import { IconArrowRight, IconHeart, IconShoppingCart, IconUser } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 
+import { activeLinkClass, isPathActive } from '../lib/active-link';
 import { apiClient, logoutSession } from '../lib/api';
 import { bebasNeue, jetbrainsMono } from '../lib/fonts';
 import { parseStorefrontConfig } from '../lib/storefront-config';
@@ -20,6 +22,7 @@ import { LinkAnchor } from './link-anchor';
 import { SearchAutocomplete } from './search-autocomplete';
 
 export function StoreHeader() {
+  const pathname = usePathname();
   const config = useStoreConfig();
   const storefrontConfig = parseStorefrontConfig(config.storefrontConfig);
   const headerVariant = config.templateConfig?.headerVariant ?? 'default';
@@ -104,6 +107,9 @@ export function StoreHeader() {
       }));
   }, [headerCategories]);
 
+  const isNavActive = (href: string) => isPathActive(pathname, href);
+  const navLinkClass = activeLinkClass(storefrontConfig.activeLink);
+
   const linkStyle = {
     fontSize: '15px',
     letterSpacing: '0.08em',
@@ -159,6 +165,8 @@ export function StoreHeader() {
                   sections={catalogSections}
                   linkStyle={linkStyle}
                   promo={storefrontConfig.promoBanner}
+                  active={isNavActive(link.href)}
+                  linkClassName={navLinkClass}
                 />
               ) : (
                 <LinkAnchor
@@ -167,6 +175,9 @@ export function StoreHeader() {
                   target={link.newTab ? '_blank' : undefined}
                   rel={link.newTab ? 'noopener noreferrer' : undefined}
                   underline="never"
+                  className={navLinkClass}
+                  data-active={isNavActive(link.href) ? 'true' : undefined}
+                  aria-current={isNavActive(link.href) ? 'page' : undefined}
                   style={linkStyle}
                 >
                   {link.label}
@@ -273,6 +284,9 @@ export function StoreHeader() {
               rel={link.newTab ? 'noopener noreferrer' : undefined}
               underline="never"
               onClick={link.newTab ? undefined : close}
+              className={`${navLinkClass} sf-drawer-nav-link`}
+              data-active={isNavActive(link.href) ? 'true' : undefined}
+              aria-current={isNavActive(link.href) ? 'page' : undefined}
               style={drawerItemStyle}
             >
               {link.label}
@@ -433,11 +447,15 @@ function CatalogMegaMenu({
   sections,
   linkStyle,
   promo,
+  active,
+  linkClassName,
 }: {
   label: string;
   sections: HeaderCategorySection[];
   linkStyle: CSSProperties;
   promo: HeaderPromo;
+  active: boolean;
+  linkClassName: string;
 }) {
   const [open, setOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -470,7 +488,14 @@ function CatalogMegaMenu({
 
   if (sections.length === 0) {
     return (
-      <LinkAnchor href="/catalogo" underline="never" style={linkStyle}>
+      <LinkAnchor
+        href="/catalogo"
+        underline="never"
+        className={linkClassName}
+        data-active={active ? 'true' : undefined}
+        aria-current={active ? 'page' : undefined}
+        style={linkStyle}
+      >
         {label}
       </LinkAnchor>
     );
@@ -481,6 +506,9 @@ function CatalogMegaMenu({
       <LinkAnchor
         href="/catalogo"
         underline="never"
+        className={linkClassName}
+        data-active={active ? 'true' : undefined}
+        aria-current={active ? 'page' : undefined}
         style={linkStyle}
         aria-haspopup="true"
         aria-expanded={open}

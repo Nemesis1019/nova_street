@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { apiClient, setAuthToken } from '../../lib/api';
 import { setAccessToken } from '../../lib/auth';
 import { getApiErrorMessage, notifyError } from '../../lib/notifications';
-import { setPlatformMode } from '../../lib/tenant';
+import { setPlatformMode, setPlatformSession } from '../../lib/tenant';
 import { useTranslation } from '../../providers/i18n-provider';
 import { fadeInUp, MOTION_DURATION, MOTION_EASE, popIn } from '../ui/motion';
 import { AuthLayout } from './auth-layout';
@@ -54,6 +54,7 @@ export function AuthFlow() {
     setAccessToken(accessToken);
     setAuthToken(accessToken);
     setPlatformMode(false);
+    setPlatformSession(false);
     window.dispatchEvent(new Event('admin-auth-change'));
     router.push('/');
   };

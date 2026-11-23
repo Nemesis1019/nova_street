@@ -404,6 +404,20 @@ export class StorefrontService {
     });
   }
 
+  async getVersion(id: string) {
+    const revision = await this.prisma.storefrontRevision.findUnique({ where: { id } });
+    if (!revision) throw new NotFoundException('Versión no encontrada');
+    const parsed = StorefrontDocumentSchema.safeParse(revision.snapshot);
+    if (!parsed.success) throw new BadRequestException('La versión guardada no es válida');
+    return {
+      id: revision.id,
+      version: revision.version,
+      createdAt: revision.createdAt,
+      createdById: revision.createdById,
+      doc: parsed.data,
+    };
+  }
+
   async restoreVersion(
     id: string,
     userId?: string,

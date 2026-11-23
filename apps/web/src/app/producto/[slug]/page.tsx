@@ -9,6 +9,7 @@ import { PriceText } from '../../../components/price-text';
 import { ProductCard } from '../../../components/product-card';
 import { ProductGallery } from '../../../components/product-gallery';
 import { ProductRating } from '../../../components/product-rating';
+import { ProductVariantProvider } from '../../../components/product-variant-context';
 import { StoreFooter } from '../../../components/store-footer';
 import { StoreHeader } from '../../../components/store-header';
 import { WishlistButton } from '../../../components/wishlist-button';
@@ -98,7 +99,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <StoreHeader />
       <main style={{ backgroundColor: 'var(--sf-color-canvas, var(--sf-color-surface, #fcf9f8))', padding: '64px 16px 128px' }}>
         <Container size="xl" px={0}>
-          <Grid gap="xl" align="flex-start">
+          <ProductVariantProvider initialVariantId={variants[0]?.id ?? ''}>
+            <Grid gap="xl" align="flex-start">
             <GridCol
               span={{ base: 12, md: 7 }}
               style={{ order: docProduct?.galleryLayout === 'right' ? 2 : 1 }}
@@ -108,6 +110,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 alt={product.name}
                 showThumbnails={docProduct?.showGalleryThumbnails ?? true}
                 swipeEnabled={docProduct?.gallerySwipeEnabled ?? true}
+                zoomEnabled={docProduct?.galleryZoomEnabled ?? true}
+                videoUrl={product.videoUrl}
+                videoUrls={product.videoUrls}
+                variantVideos={
+                  product.variantVideos as
+                    | Array<{ url: string; productVariantId?: string | null }>
+                    | null
+                    | undefined
+                }
               />
             </GridCol>
             <GridCol
@@ -192,6 +203,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
                       variants,
                     }}
                     imageUrl={product.images?.[0]?.mediumUrl ?? product.images?.[0]?.url}
+                    showColorSwatches={docProduct?.showColorSwatches ?? true}
+                    showSizeSwatches={docProduct?.showSizeSwatches ?? true}
                   />
                   {storefront.featureFlags.enableCompare && (
                     <div style={{ marginTop: 12 }}>
@@ -212,7 +225,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 </Stack>
               </Stack>
             </GridCol>
-          </Grid>
+            </Grid>
+          </ProductVariantProvider>
 
           {relatedProducts.length > 0 && docProduct?.showRelated !== false && (
             <div style={{ marginTop: 80 }}>

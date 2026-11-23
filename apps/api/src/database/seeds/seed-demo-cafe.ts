@@ -276,12 +276,12 @@ const pages: SeedPage[] = [
       <p>No hay una única forma de preparar café. Estas son las que más disfrutamos en la cafetería, con recetas simples para empezar en casa.</p>
       <img src="${METHODS_IMAGE}" alt="Chemex y café en la cafetería" style="width:100%;height:auto;display:block;margin:32px 0" />
       <h2>V60 · filtrado</h2>
-      <p>15 g de café molido medio, 250 ml de agua a 93 °C. Enjuagá el filtro, agregá el café y verté en círculos lentos durante 2:30. Buscá una taza limpia, luminosa y aromática.</p>
+      <p>15 g de café molido medio, 250 ml de agua a 93 °C. Enjuaga el filtro, agrega el café y vierte en círculos lentos durante 2:30. Buscá una taza limpia, luminosa y aromática.</p>
       <h2>Chemex · filtrado</h2>
       <p>30 g de café molido medio-grueso, 500 ml de agua a 93 °C. Preinfusioná 40 segundos y continuá en tres vertidos. Ideal para compartir y para cafés dulces.</p>
       <h2>Prensa francesa · inmersión</h2>
-      <p>30 g de café molido grueso, 500 ml de agua a 94 °C. Esperá 4 minutos, quebrá la costra, dejá reposar un minuto más y filtrá. Cuerpo y textura sin prisa.</p>
-      <p>¿Buscás herramientas? Mirá nuestra colección de <a href="/catalogo?category=metodos">métodos</a>.</p>
+      <p>30 g de café molido grueso, 500 ml de agua a 94 °C. Espera 4 minutos, quiebra la costra, deja reposar un minuto más y filtrá. Cuerpo y textura sin prisa.</p>
+      <p>¿Buscás herramientas? Mira nuestra colección de <a href="/catalogo?category=metodos">métodos</a>.</p>
     `,
     metaTitle: 'Métodos de preparación — Grano',
     metaDescription: 'Recetas de V60, Chemex y prensa francesa para preparar café en casa.',
@@ -293,7 +293,7 @@ const pages: SeedPage[] = [
     content: `
       <h2>Envíos</h2>
       <p>Tostamos los martes y jueves. Los pedidos se despachan en un plazo de 2 a 4 días hábiles y llegan a todo el país con nuestra transportadora aliada.</p>
-      <p>El envío nacional tiene un costo de <strong>$12.000</strong> y es <strong>gratis en compras desde $90.000</strong>. También podés retirar en la cafetería sin costo, coordinando el horario por email.</p>
+      <p>El envío nacional tiene un costo de <strong>$12.000</strong> y es <strong>gratis en compras desde $90.000</strong>. También puedes retirar en la cafetería sin costo, coordinando el horario por email.</p>
       <h2>Devoluciones</h2>
       <p>Si tu pedido llegó dañado o no es lo que esperabas, escribinos dentro de los 5 días siguientes a la entrega a <a href="mailto:hola@grano.cafe">hola@grano.cafe</a>. Los productos abiertos no tienen cambio, salvo que presenten un problema de calidad.</p>
       <h2>Suscripciones</h2>
@@ -307,7 +307,7 @@ const pages: SeedPage[] = [
     slug: 'suscripcion',
     title: 'Suscripción de café',
     content: `
-      <p>Una forma simple de tomar café fresco: elegimos dos bolsas de 250 g cada mes, las tostamos para vos y las enviamos a tu puerta. Sin contratos ni sorpresas.</p>
+      <p>Una forma simple de tomar café fresco: elegimos dos bolsas de 250 g cada mes, las tostamos para tú y las enviamos a tu puerta. Sin contratos ni sorpresas.</p>
       <img src="${SUBSCRIPTION_IMAGE}" alt="Café con leche recién preparado" style="width:100%;height:auto;display:block;margin:32px 0" />
       <h2>Qué incluye</h2>
       <ul>
@@ -316,7 +316,7 @@ const pages: SeedPage[] = [
         <li>Notas de cata y una receta para preparar cada lote.</li>
         <li>La comprás cuando quieras, sin débito automático.</li>
       </ul>
-      <p>El valor es de <strong>$98.000</strong> al mes. Podés suscribirte desde la ficha de <a href="/producto/suscripcion-origen">Suscripción Origen</a>.</p>
+      <p>El valor es de <strong>$98.000</strong> al mes. Puedes suscribirte desde la ficha de <a href="/producto/suscripcion-origen">Suscripción Origen</a>.</p>
     `,
     metaTitle: 'Suscripción de café — Grano',
     metaDescription: 'Dos bolsas de café de especialidad por mes, tostadas a pedido y con envío incluido.',
@@ -337,7 +337,7 @@ const pages: SeedPage[] = [
       <h2>5. Devoluciones</h2>
       <p>Aceptamos cambios y devoluciones dentro de los 5 días posteriores a la entrega, siempre que el producto esté sin abrir. Los productos abiertos solo se cambian por problemas de calidad.</p>
       <h2>6. Datos personales</h2>
-      <p>Usamos tus datos para procesar el pedido, enviar confirmaciones y brindar soporte. No vendemos información a terceros. Podés solicitar la eliminación de tus datos escribiendo a <a href="mailto:hola@grano.cafe">hola@grano.cafe</a>.</p>
+      <p>Usamos tus datos para procesar el pedido, enviar confirmaciones y brindar soporte. No vendemos información a terceros. Puedes solicitar la eliminación de tus datos escribiendo a <a href="mailto:hola@grano.cafe">hola@grano.cafe</a>.</p>
       <h2>7. Contacto</h2>
       <p>Para cualquier consulta, escribinos a <a href="mailto:hola@grano.cafe">hola@grano.cafe</a> o visitanos en Calle 85 # 12-34, Bogotá.</p>
     `,
@@ -479,7 +479,7 @@ const storefrontConfig = StorefrontConfigSchema.parse({
   },
   notFound: {
     title: 'Esta página se enfrió',
-    message: 'No encontramos lo que buscabas. Volvé al catálogo para seguir explorando.',
+    message: 'No encontramos lo que buscabas. Vuelve al catálogo para seguir explorando.',
   },
   fonts: {
     heading: 'Fraunces',

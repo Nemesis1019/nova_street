@@ -15,6 +15,7 @@ const UPLOAD_DIR = join(process.cwd(), 'uploads');
 const PURPOSE_FOLDERS: Record<AssetPurpose, string> = {
   CATALOG_IMAGE: 'catalog',
   CUSTOM_DESIGN_ASSET: 'custom-designs',
+  PRODUCT_VIDEO: 'product-videos',
   PRINT_FILE: 'print-files',
   REVIEW_IMAGE: 'reviews',
 };
@@ -31,6 +32,7 @@ const ALLOWED_MIME_TYPES: Record<AssetPurpose, string[]> = {
     'model/gltf-binary',
     'model/gltf+json',
   ],
+  PRODUCT_VIDEO: ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'],
   REVIEW_IMAGE: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'],
   PRINT_FILE: ['application/pdf', 'image/png', 'image/jpeg', 'image/tiff'],
 };
@@ -46,6 +48,7 @@ export interface UploadedFile {
 export class AssetsService {
   private readonly logger = new Logger(AssetsService.name);
   private readonly maxFileSize: number;
+  private readonly maxVideoFileSize: number;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -54,6 +57,9 @@ export class AssetsService {
   ) {
     mkdirSync(UPLOAD_DIR, { recursive: true });
     this.maxFileSize = Number(this.configService.get<string>('PRESIGN_MAX_FILE_SIZE_BYTES') ?? String(10 * 1024 * 1024));
+    this.maxVideoFileSize = Number(
+      this.configService.get<string>('VIDEO_MAX_FILE_SIZE_BYTES') ?? String(100 * 1024 * 1024),
+    );
   }
 
   async list(purpose?: string, limit = 60) {
@@ -207,8 +213,9 @@ export class AssetsService {
       throw new BadRequestException('Invalid file size');
     }
 
-    if (size > this.maxFileSize) {
-      throw new BadRequestException(`File exceeds maximum allowed size of ${this.maxFileSize} bytes`);
+    const limit = purpose === 'PRODUCT_VIDEO' ? this.maxVideoFileSize : this.maxFileSize;
+    if (size > limit) {
+      throw new BadRequestException(`File exceeds maximum allowed size of ${limit} bytes`);
     }
 
     const allowed = ALLOWED_MIME_TYPES[purpose] ?? [];

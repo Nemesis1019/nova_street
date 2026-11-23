@@ -57,6 +57,31 @@ const NavigationItemSchema = z.object({
   newTab: z.boolean().default(false),
 });
 
+const NotificationAppearanceSchema = z.object({
+  style: z.enum(['editorial', 'minimal', 'solid']).default('editorial'),
+  position: z
+    .enum([
+      'top-left',
+      'top-right',
+      'top-center',
+      'bottom-left',
+      'bottom-right',
+      'bottom-center',
+    ])
+    .default('top-right'),
+  backgroundColor: z.string().optional(),
+  textColor: z.string().optional(),
+  borderColor: z.string().optional(),
+  accentColor: z.string().optional(),
+  borderWidth: z.number().int().min(0).max(8).optional(),
+  borderRadius: z.number().int().min(0).max(32).optional(),
+  shadow: z.enum(['none', 'soft', 'hard']).optional(),
+  titleFont: z.enum(['display', 'mono', 'sans']).optional(),
+  titleSize: z.number().int().min(12).max(48).optional(),
+  messageSize: z.number().int().min(9).max(20).optional(),
+  uppercaseTitle: z.boolean().optional(),
+});
+
 export const StorefrontConfigSchema = z.object({
   announcementBar: z
     .object({
@@ -194,6 +219,22 @@ export const StorefrontConfigSchema = z.object({
       imageRatio: z.enum(['standard', 'square', 'portrait', 'landscape']).default('standard'),
       /// Recorte o ajuste completo de la imagen dentro del área.
       imageFit: z.enum(['cover', 'contain']).default('cover'),
+      /// Override de la animación hover para las tarjetas.
+      hoverEffect: z.enum(['inherit', 'both', 'zoom', 'lift', 'none']).default('inherit'),
+      /// Muestra los colores disponibles de la variante en la tarjeta.
+      showColorSwatches: z.boolean().default(true),
+      /// Muestra los talles disponibles en la tarjeta.
+      showSizeSwatches: z.boolean().default(true),
+      /// Alineación de los textos de la tarjeta.
+      textAlign: z.enum(['left', 'center']).default('left'),
+      /// Densidad interna de la tarjeta.
+      density: z.enum(['compact', 'comfortable', 'roomy']).default('comfortable'),
+      /// Posición de los badges de estado.
+      badgePosition: z.enum(['top-left', 'top-right']).default('top-left'),
+      /// Forma de los badges.
+      badgeShape: z.enum(['square', 'pill']).default('square'),
+      /// Estilo visual de los badges.
+      badgeStyle: z.enum(['outline', 'solid']).default('outline'),
     })
     .default({}),
   productBadges: z
@@ -210,6 +251,7 @@ export const StorefrontConfigSchema = z.object({
       defaultSort: z.enum(['newest', 'priceAsc', 'priceDesc', 'nameAsc', 'bestSelling']).default('newest'),
       defaultPageSize: z.number().int().min(1).max(96).default(24),
       showFilters: z.boolean().default(true),
+      gridGap: z.enum(['compact', 'comfortable', 'roomy']).default('comfortable'),
     })
     .default({}),
   relatedProducts: z
@@ -251,6 +293,16 @@ export const StorefrontConfigSchema = z.object({
       limit: z.number().int().min(0).max(12).default(4),
     })
     .default({}),
+  activeLink: z
+    .object({
+      effect: z.enum(['underline', 'pill', 'none']).default('underline'),
+      animate: z.boolean().default(true),
+    })
+    .default({}),
+  notifications: NotificationAppearanceSchema.default({}),
+  notificationPresets: z
+    .array(NotificationAppearanceSchema.extend({ id: z.string().min(1), name: z.string().min(1) }))
+    .default([]),
   branding: z
     .object({
       logoUrl: z.string().optional(),

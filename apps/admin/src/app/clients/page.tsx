@@ -164,6 +164,7 @@ export default function ClientsPage() {
     useDisclosure(false);
   const [platformForm, setPlatformForm] = useState({ email: '', password: '', code: '' });
   const [platformChallenge, setPlatformChallenge] = useState<string | null>(null);
+  const [showPlatformPassword, setShowPlatformPassword] = useState(false);
   const [platformLoginError, setPlatformLoginError] = useState<string | null>(null);
   const [platformLoginPending, setPlatformLoginPending] = useState(false);
   const [pendingClient, setPendingClient] = useState<TenantSummary | null>(null);
@@ -912,18 +913,40 @@ export default function ClientsPage() {
                 <label htmlFor="platform-password" className="font-label-md text-label-md text-on-surface">
                   {t('pages.clients.platformPassword')}
                 </label>
-                <input
-                  id="platform-password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={platformForm.password}
-                  onChange={(event) => {
-                    const value = event.currentTarget.value;
-                    setPlatformForm((prev) => ({ ...prev, password: value }));
-                  }}
-                  placeholder="••••••••"
-                  className="w-full rounded-lg bg-surface-container-low px-3.5 py-2.5 font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant focus:bg-surface-container focus:outline-none"
-                />
+                <div className="relative flex w-full items-center">
+                  <input
+                    id="platform-password"
+                    type={showPlatformPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    value={platformForm.password}
+                    onChange={(event) => {
+                      const value = event.currentTarget.value;
+                      setPlatformForm((prev) => ({ ...prev, password: value }));
+                    }}
+                    placeholder="••••••••"
+                    className="w-full rounded-lg bg-surface-container-low px-3.5 py-2.5 pr-11 font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant focus:bg-surface-container focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    aria-label={
+                      showPlatformPassword
+                        ? t('pages.auth.hidePassword')
+                        : t('pages.auth.showPassword')
+                    }
+                    title={
+                      showPlatformPassword
+                        ? t('pages.auth.hidePassword')
+                        : t('pages.auth.showPassword')
+                    }
+                    onClick={() => setShowPlatformPassword((current) => !current)}
+                    className="absolute right-2 flex items-center justify-center rounded-lg p-1.5 text-on-surface-variant transition-colors hover:text-on-surface"
+                  >
+                    <Icon
+                      name={showPlatformPassword ? 'visibility_off' : 'visibility'}
+                      className="text-[18px]"
+                    />
+                  </button>
+                </div>
               </div>
               <p className="font-label-sm text-label-sm text-on-surface-variant">
                 {t('pages.clients.platformLoginHint')}

@@ -364,7 +364,7 @@ export function buildStorefrontPreset(
         type: 'newsletter',
         variant: 'inline',
         settings: {
-          title: 'Entrá primero',
+          title: 'Entra primero',
           description: 'Lanzamientos, restocks y contenido antes que nadie.',
           buttonLabel: 'Suscribirme',
         },

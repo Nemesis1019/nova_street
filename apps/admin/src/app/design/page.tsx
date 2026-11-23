@@ -12,7 +12,7 @@ import {
 } from '@ecommerce/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { AppModal } from '../../components/ui/app-modal';
 import { Button } from '../../components/ui/button';
@@ -109,6 +109,77 @@ interface VersionRow {
   version: number;
   createdAt: string;
   createdById: string | null;
+}
+
+interface VersionDetail extends VersionRow {
+  doc: StorefrontDocument;
+}
+
+interface DiffEntry {
+  path: string;
+  before: unknown;
+  after: unknown;
+}
+
+function flattenDoc(value: unknown, path: string, output: Map<string, unknown>) {
+  if (value === null || typeof value !== 'object') {
+    output.set(path || '(raíz)', value);
+    return;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => flattenDoc(item, `${path}[${index}]`, output));
+    return;
+  }
+  for (const [key, item] of Object.entries(value)) {
+    flattenDoc(item, path ? `${path}.${key}` : key, output);
+  }
+}
+
+function compareDocs(beforeDoc: StorefrontDocument, afterDoc: StorefrontDocument): DiffEntry[] {
+  const before = new Map<string, unknown>();
+  const after = new Map<string, unknown>();
+  flattenDoc(beforeDoc, '', before);
+  flattenDoc(afterDoc, '', after);
+  const paths = new Set([...before.keys(), ...after.keys()]);
+  const entries: DiffEntry[] = [];
+  for (const path of paths) {
+    if (JSON.stringify(before.get(path)) === JSON.stringify(after.get(path))) continue;
+    entries.push({ path, before: before.get(path), after: after.get(path) });
+  }
+  return entries.sort((a, b) => a.path.localeCompare(b.path));
+}
+
+function isImageUrl(value: unknown): value is string {
+  return (
+    typeof value === 'string' &&
+    /^https?:\/\//i.test(value) &&
+    /\.(png|jpe?g|webp|gif|avif)(\?|#|$)/i.test(value)
+  );
+}
+
+function DiffValue({ value }: { value: unknown }) {
+  if (isImageUrl(value)) {
+    return (
+      <img
+        src={value}
+        alt=""
+        className="h-14 w-14 rounded border border-outline-variant/50 object-cover"
+      />
+    );
+  }
+  return <>{formatDiffValue(value)}</>;
+}
+
+function formatDiffValue(value: unknown) {
+  if (value === undefined) return '—';
+  if (value === null) return 'null';
+  if (typeof value === 'string') return value.length > 90 ? `${value.slice(0, 90)}…` : value;
+  try {
+    const serialized = JSON.stringify(value);
+    return serialized.length > 90 ? `${serialized.slice(0, 90)}…` : serialized;
+  } catch {
+    return String(value);
+  }
 }
 
 interface ExperimentResults {
@@ -285,7 +356,7 @@ function sectionDefaults(type: StorefrontSectionType, index: number): Storefront
             {
               eyebrow: 'Paso 02',
               title: 'Cada scroll suma contexto',
-              text: 'Usá pocos pasos, textos breves y una imagen que sostenga el relato.',
+              text: 'Usa pocos pasos, textos breves y una imagen que sostenga el relato.',
             },
           ],
         },
@@ -366,7 +437,7 @@ function sectionDefaults(type: StorefrontSectionType, index: number): Storefront
         variant: 'accordion',
         settings: {
           title: 'Preguntas frecuentes',
-          items: [{ question: '¿Cómo comprar?', answer: 'Elegí tus productos y completá el checkout.' }],
+          items: [{ question: '¿Cómo comprar?', answer: 'Elige tus productos y completa el checkout.' }],
         },
       };
   }
@@ -446,7 +517,7 @@ function ImageSettingField({
   };
 
   return (
-    <Field label={label} hint={tr('Podés pegar una URL o subir una imagen a R2.')}>
+    <Field label={label} hint={tr('Puedes pegar una URL o subir una imagen a R2.')}>
       <div className="flex items-center gap-2">
         <Input
           value={value}
@@ -550,7 +621,7 @@ function MediaPickerModal({
         onClose();
       }}
       title={tr('Biblioteca de medios')}
-      subtitle={tr('Imágenes disponibles en este cliente. Podés subir una nueva o elegir una existente.')}
+      subtitle={tr('Imágenes disponibles en este cliente. Puedes subir una nueva o elegir una existente.')}
       size="xl"
       footer={
         <>
@@ -786,6 +857,8 @@ export default function StorefrontDesignPage() {
 
   const [doc, setDoc] = useState<StorefrontDocument | null>(null);
   const [baseline, setBaseline] = useState('');
+  const undoStack = useRef<StorefrontDocument[]>([]);
+  const redoStack = useRef<StorefrontDocument[]>([]);
   const [page, setPage] = useState<PageKey>('home');
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [newSectionType, setNewSectionType] = useState<StorefrontSectionType>('hero');
@@ -799,6 +872,9 @@ export default function StorefrontDesignPage() {
   const [versionsOpen, setVersionsOpen] = useState(false);
   const [versions, setVersions] = useState<VersionRow[]>([]);
   const [versionsLoading, setVersionsLoading] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [compareLoading, setCompareLoading] = useState(false);
+  const [compareVersion, setCompareVersion] = useState<VersionDetail | null>(null);
   const [pagesList, setPagesList] = useState<StaticPageRow[]>([]);
   const [pagesLoading, setPagesLoading] = useState(false);
   const [selectedStaticSlug, setSelectedStaticSlug] = useState<string | null>(null);
@@ -865,10 +941,19 @@ export default function StorefrontDesignPage() {
   );
 
   const applyState = (state: StorefrontState) => {
+    undoStack.current = [];
+    redoStack.current = [];
     setDoc(state.draft);
     setBaseline(JSON.stringify(state.draft));
     queryClient.setQueryData(['admin-storefront'], state);
     setPreviewUrl(null);
+  };
+
+  const pushHistory = (current: StorefrontDocument) => {
+    // El updater puede ejecutarse dos veces en StrictMode; no duplicar el snapshot.
+    if (undoStack.current[undoStack.current.length - 1] === current) return;
+    undoStack.current = [...undoStack.current.slice(-49), current];
+    redoStack.current = [];
   };
 
   const patchDoc = (updater: (next: StorefrontDocument) => void) => {
@@ -876,6 +961,8 @@ export default function StorefrontDesignPage() {
       if (!current) return current;
       const next = cloneDoc(current);
       updater(next);
+      if (JSON.stringify(next) === JSON.stringify(current)) return current;
+      pushHistory(current);
       return next;
     });
   };
@@ -890,13 +977,49 @@ export default function StorefrontDesignPage() {
         next.pages.staticPages ??= {};
         next.pages.staticPages[selectedStaticSlug] ??= { sections: [] };
         updater(next.pages.staticPages[selectedStaticSlug].sections);
-        return next;
+      } else {
+        updater(next.pages.home.sections);
       }
-
-      updater(next.pages.home.sections);
+      if (JSON.stringify(next) === JSON.stringify(current)) return current;
+      pushHistory(current);
       return next;
     });
   };
+
+  const undo = useCallback(() => {
+    if (!doc) return;
+    const previous = undoStack.current.pop();
+    if (!previous) return;
+    redoStack.current = [...redoStack.current.slice(-49), doc];
+    setDoc(previous);
+  }, [doc]);
+
+  const redo = useCallback(() => {
+    if (!doc) return;
+    const next = redoStack.current.pop();
+    if (!next) return;
+    undoStack.current = [...undoStack.current.slice(-49), doc];
+    setDoc(next);
+  }, [doc]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey)) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
+      if (event.key.toLowerCase() === 'z') {
+        event.preventDefault();
+        if (event.shiftKey) redo();
+        else undo();
+      } else if (event.key.toLowerCase() === 'y') {
+        event.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [undo, redo]);
+
 
   const patchSection = (id: string, updater: (section: StorefrontSection) => void) => {
     patchSections((sections) => {
@@ -941,7 +1064,7 @@ export default function StorefrontDesignPage() {
           title: tr('Publicación pendiente de aprobación'),
           message:
             approval.status === 'APPROVED' && hasDirtyChanges
-              ? tr('Hay cambios sin guardar. Guardá y enviá una nueva revisión.')
+              ? tr('Hay cambios sin guardar. Guarda y enviá una nueva revisión.')
               : approval.hashMatches === false
                 ? tr('El borrador cambió después de la revisión. Enviá una nueva revisión.')
                 : tr('Enviá el borrador a revisión y esperá la aprobación de plataforma.'),
@@ -1005,7 +1128,7 @@ export default function StorefrontDesignPage() {
       applyState(state);
       setPage('home');
       setSelectedSectionId(state.draft.pages.home.sections[0]?.id ?? null);
-      notifySuccess({ title: tr('Preset aplicado al borrador'), message: tr('Revisá el preview antes de publicar.') });
+      notifySuccess({ title: tr('Preset aplicado al borrador'), message: tr('Revisa el preview antes de publicar.') });
     } catch (error) {
       notifyError({ title: tr('No se pudo aplicar el preset'), message: getApiErrorMessage(error) });
     } finally {
@@ -1035,7 +1158,7 @@ export default function StorefrontDesignPage() {
       setPresetModalOpen(false);
       setPresetName('');
       setPresetDescription('');
-      notifySuccess({ title: tr('Preset guardado'), message: tr('Ya podés aplicarlo desde la lista.') });
+      notifySuccess({ title: tr('Preset guardado'), message: tr('Ya puedes aplicarlo desde la lista.') });
     } catch (error) {
       notifyError({ title: tr('No se pudo guardar el preset'), message: getApiErrorMessage(error) });
     } finally {
@@ -1202,13 +1325,15 @@ export default function StorefrontDesignPage() {
         sourceDoc = source.published ?? source.draft ?? undefined;
       }
       if (!sourceDoc) throw new Error(tr('El cliente de origen no tiene un tema publicado'));
+      undoStack.current = [];
+      redoStack.current = [];
       setDoc(structuredClone(sourceDoc));
       setPage('home');
       setSelectedSectionId(sourceDoc.pages.home.sections[0]?.id ?? null);
       setImportOpen(false);
       notifySuccess({
         title: tr('Tema importado al borrador'),
-        message: tr('Revisá imágenes, categorías y publicá cuando esté listo.'),
+        message: tr('Revisa imágenes, categorías y publicá cuando esté listo.'),
       });
     } catch (error) {
       notifyError({ title: tr('No se pudo importar el tema'), message: getApiErrorMessage(error) });
@@ -1226,6 +1351,20 @@ export default function StorefrontDesignPage() {
       notifyError({ title: tr('No se pudieron cargar las versiones'), message: getApiErrorMessage(error) });
     } finally {
       setVersionsLoading(false);
+    }
+  };
+
+  const openCompare = async (id: string) => {
+    setCompareOpen(true);
+    setCompareLoading(true);
+    setCompareVersion(null);
+    try {
+      setCompareVersion(await apiRequest<VersionDetail>(`/admin/storefront/versions/${id}`));
+    } catch (error) {
+      notifyError({ title: tr('No se pudo comparar'), message: getApiErrorMessage(error) });
+      setCompareOpen(false);
+    } finally {
+      setCompareLoading(false);
     }
   };
 
@@ -1295,6 +1434,17 @@ export default function StorefrontDesignPage() {
   }
 
   const state = stateQuery.data;
+  const versionChanges = compareVersion && doc ? compareDocs(compareVersion.doc, doc) : [];
+  const imageDiffChanges = versionChanges
+    .filter((change) => isImageUrl(change.before) || isImageUrl(change.after))
+    .slice(0, 8);
+  const versionGroups = Object.entries(
+    versionChanges.reduce<Record<string, number>>((groups, change) => {
+      const key = change.path.split(/[.[]]/)[0] || 'raíz';
+      groups[key] = (groups[key] ?? 0) + 1;
+      return groups;
+    }, {}),
+  ).sort((a, b) => b[1] - a[1]);
   const versionLabel = dirty
     ? tr('Cambios sin guardar')
     : hasUnpublishedChanges
@@ -1314,7 +1464,7 @@ export default function StorefrontDesignPage() {
       <PageHeader
         breadcrumb={[{ label: tr('Storefront & Contenido') }, { label: tr('Diseño de tienda') }]}
         title={tr('Diseño de tienda')}
-        subtitle={tr('Componé la identidad y el layout de tu storefront sin tocar código.')}
+        subtitle={tr('Compón la identidad y el layout de tu storefront sin tocar código.')}
         actions={
           <>
             <span className={`rounded-full px-3 py-1.5 font-label-sm text-label-sm ${dirty ? 'bg-amber-50 text-amber-700' : 'bg-surface-container text-on-surface-variant'}`}>
@@ -1351,6 +1501,22 @@ export default function StorefrontDesignPage() {
             </Button>
             <Button variant="secondary" icon="history" onClick={() => void openVersions()}>
               {tr('Versiones')}
+            </Button>
+            <Button
+              variant="secondary"
+              icon="undo"
+              onClick={undo}
+              disabled={Boolean(busy) || undoStack.current.length === 0}
+            >
+              {tr('Deshacer')}
+            </Button>
+            <Button
+              variant="secondary"
+              icon="redo"
+              onClick={redo}
+              disabled={Boolean(busy) || redoStack.current.length === 0}
+            >
+              {tr('Rehacer')}
             </Button>
             <Button variant="secondary" icon="save" onClick={() => void handleSave()} disabled={Boolean(busy)}>
               {busy === 'save' ? tr('Guardando...') : tr('Guardar borrador')}
@@ -1473,7 +1639,7 @@ export default function StorefrontDesignPage() {
                     <span className="font-body-sm text-body-sm text-on-surface-variant">{tr('Cargando páginas...')}</span>
                   ) : pagesList.length === 0 ? (
                     <span className="font-body-sm text-[12px] leading-snug text-on-surface-variant">
-                      {tr('No hay páginas visibles. Creá una desde Páginas estáticas.')}
+                      {tr('No hay páginas visibles. Crea una desde Páginas estáticas.')}
                     </span>
                   ) : (
                     <Select
@@ -1688,7 +1854,7 @@ export default function StorefrontDesignPage() {
               />
             ) : (
               <Card className="p-5">
-                <p className="font-body-sm text-body-sm text-on-surface-variant">{tr('Seleccioná una sección para editarla.')}</p>
+                <p className="font-body-sm text-body-sm text-on-surface-variant">{tr('Selecciona una sección para editarla.')}</p>
               </Card>
             )
           ) : null}
@@ -1764,9 +1930,24 @@ export default function StorefrontDesignPage() {
                   onChange={(checked) => patchDoc((next) => { next.pages.product.showGalleryThumbnails = checked; })}
                 />
                 <SettingToggle
-                  label={tr('Deslizar galería en móvil')}
+                  label={tr('Deslizar galería en celular')}
                   checked={doc.pages.product.gallerySwipeEnabled ?? true}
                   onChange={(checked) => patchDoc((next) => { next.pages.product.gallerySwipeEnabled = checked; })}
+                />
+                <SettingToggle
+                  label={tr('Permitir zoom de la imagen')}
+                  checked={doc.pages.product.galleryZoomEnabled ?? true}
+                  onChange={(checked) => patchDoc((next) => { next.pages.product.galleryZoomEnabled = checked; })}
+                />
+                <SettingToggle
+                  label={tr('Mostrar swatches de color')}
+                  checked={doc.pages.product.showColorSwatches ?? true}
+                  onChange={(checked) => patchDoc((next) => { next.pages.product.showColorSwatches = checked; })}
+                />
+                <SettingToggle
+                  label={tr('Mostrar swatches de talle')}
+                  checked={doc.pages.product.showSizeSwatches ?? true}
+                  onChange={(checked) => patchDoc((next) => { next.pages.product.showSizeSwatches = checked; })}
                 />
                 <SettingToggle
                   label={tr('Buy box sticky')}
@@ -1894,7 +2075,7 @@ export default function StorefrontDesignPage() {
               ) : null}
               {!state.canApprove && state.approval.status === 'APPROVED' ? (
                 <p className="rounded-lg bg-emerald-50 px-3 py-2 font-body-sm text-body-sm text-emerald-800">
-                  {tr('Aprobado. Ya podés publicar esta versión.')}
+                  {tr('Aprobado. Ya puedes publicar esta versión.')}
                 </p>
               ) : null}
             </>
@@ -2007,7 +2188,7 @@ export default function StorefrontDesignPage() {
             </div>
           )}
           <p className="rounded-lg bg-surface-container-low px-3 py-2 font-body-sm text-body-sm text-on-surface-variant">
-            {tr('Revisá imágenes y categorías antes de publicar: el catálogo y la configuración comercial del cliente destino no se modifican.')}
+            {tr('Revisa imágenes y categorías antes de publicar: el catálogo y la configuración comercial del cliente destino no se modifican.')}
           </p>
         </div>
       </AppModal>
@@ -2016,7 +2197,7 @@ export default function StorefrontDesignPage() {
         opened={presetModalOpen}
         onClose={() => setPresetModalOpen(false)}
         title={tr('Guardar como preset')}
-        subtitle={tr('Guardá el borrador actual como una plantilla reutilizable para este cliente.')}
+        subtitle={tr('Guarda el borrador actual como una plantilla reutilizable para este cliente.')}
         size="sm"
         footer={
           <>
@@ -2064,16 +2245,142 @@ export default function StorefrontDesignPage() {
                     {new Date(version.createdAt).toLocaleString(locale)}
                   </div>
                 </div>
-                <Button
-                  variant="secondary"
-
-                  onClick={() => void restoreVersion(version.id)}
-                  disabled={busy === 'restore'}
-                >
-                  {tr('Restaurar')}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="secondary"
+                    onClick={() => void openCompare(version.id)}
+                  >
+                    {tr('Comparar')}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => void restoreVersion(version.id)}
+                    disabled={busy === 'restore'}
+                  >
+                    {tr('Restaurar')}
+                  </Button>
+                </div>
               </div>
             ))}
+          </div>
+        )}
+      </AppModal>
+
+      <AppModal
+        opened={compareOpen}
+        onClose={() => setCompareOpen(false)}
+        title={tr('Comparar versión')}
+        subtitle={
+          compareVersion
+            ? tr('Versión {{version}} contra el borrador actual', {
+                version: compareVersion.version,
+              })
+            : tr('Comparando cambios...')
+        }
+        size="xl"
+        footer={<Button variant="secondary" onClick={() => setCompareOpen(false)}>{tr('Cerrar')}</Button>}
+      >
+        {compareLoading ? (
+          <div className="flex items-center justify-center gap-2 py-8 font-body-sm text-body-sm text-on-surface-variant">
+            <Icon name="progress_activity" className="animate-spin text-[20px]" />
+            {tr('Cargando versión...')}
+          </div>
+        ) : !compareVersion ? (
+          <p className="font-body-sm text-body-sm text-on-surface-variant">
+            {tr('No se pudo cargar la versión.')}
+          </p>
+        ) : versionChanges.length === 0 ? (
+          <p className="rounded-lg bg-surface-container-low px-4 py-3 font-body-sm text-body-sm text-on-surface-variant">
+            {tr('No hay diferencias con el borrador actual.')}
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-label-sm text-label-sm text-on-surface-variant">
+                {tr('{{count}} cambios encontrados', { count: versionChanges.length })}
+              </p>
+              {versionGroups.map(([group, count]) => (
+                <span
+                  key={group}
+                  className="rounded-full bg-surface-container-high px-2.5 py-0.5 font-mono text-[10px] text-on-surface-variant"
+                >
+                  {group}: {count}
+                </span>
+              ))}
+            </div>
+            {imageDiffChanges.length > 0 && (
+              <div className="flex flex-col gap-2">
+                <p className="font-label-uppercase text-label-uppercase uppercase tracking-wider text-on-surface-variant">
+                  {tr('Comparación de imágenes')}
+                </p>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {imageDiffChanges.map((change) => (
+                    <div
+                      key={change.path}
+                      className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-2"
+                    >
+                      <p className="mb-2 truncate font-mono text-[10px] text-on-surface-variant">
+                        {change.path}
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { label: tr('Versión {{version}}', { version: compareVersion.version }), value: change.before },
+                          { label: tr('Borrador actual'), value: change.after },
+                        ].map((side) => (
+                          <figure key={side.label} className="m-0">
+                            {isImageUrl(side.value) ? (
+                              <img
+                                src={side.value}
+                                alt=""
+                                className="h-28 w-full rounded border border-outline-variant/40 object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-28 items-center justify-center rounded border border-dashed border-outline-variant/40 text-[10px] text-on-surface-variant">
+                                {tr('Sin imagen')}
+                              </div>
+                            )}
+                            <figcaption className="mt-1 text-center font-label-sm text-[10px] text-on-surface-variant">
+                              {side.label}
+                            </figcaption>
+                          </figure>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="max-h-[58vh] overflow-auto rounded-lg border border-outline-variant/30">
+              <table className="w-full text-left">
+                <thead className="sticky top-0 bg-surface-container-low font-label-uppercase text-[10px] uppercase tracking-wider text-on-surface-variant">
+                  <tr>
+                    <th className="px-3 py-2">{tr('Ruta')}</th>
+                    <th className="px-3 py-2">{tr('Versión {{version}}', { version: compareVersion.version })}</th>
+                    <th className="px-3 py-2">{tr('Borrador actual')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {versionChanges.slice(0, 250).map((change) => (
+                    <tr key={change.path} className="border-t border-outline-variant/20 align-top">
+                      <td className="max-w-[260px] break-all px-3 py-2 font-mono text-[11px] text-on-surface">
+                        {change.path}
+                      </td>
+                      <td className="max-w-[260px] break-all bg-red-50 px-3 py-2 font-mono text-[11px] text-red-700">
+                        <DiffValue value={change.before} />
+                      </td>
+                      <td className="max-w-[260px] break-all bg-emerald-50 px-3 py-2 font-mono text-[11px] text-emerald-800">
+                        <DiffValue value={change.after} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {versionChanges.length > 250 && (
+              <p className="font-label-sm text-label-sm text-on-surface-variant">
+                {tr('Mostrando los primeros 250 cambios.')}
+              </p>
+            )}
           </div>
         )}
       </AppModal>
@@ -2733,7 +3040,7 @@ function ExperimentInspector({
       {!experiment ? (
         <div className="flex flex-col gap-3">
           <p className="font-body-sm text-body-sm text-on-surface-variant">
-            {tr('Probá dos títulos del hero o dos personalidades de movimiento y medí cuál genera más clics. La asignación es estable por visitante.')}
+            {tr('Prueba dos títulos del hero o dos personalidades de movimiento y medí cuál genera más clics. La asignación es estable por visitante.')}
           </p>
           <Button variant="secondary" icon="add" onClick={createExperiment}>
             {tr('Crear experimento')}
@@ -2859,7 +3166,7 @@ function ExperimentInspector({
           </div>
           {experiment.enabled && !experiment.variantB.trim() ? (
             <p className="rounded-lg bg-amber-50 px-3 py-2 font-body-sm text-body-sm text-amber-800">
-              {tr('Cargá una variante B para que el experimento entre en juego.')}
+              {tr('Carga una variante B para que el experimento entre en juego.')}
             </p>
           ) : null}
 
@@ -3110,7 +3417,7 @@ function MotionInspector({
             {tr('Preview')}
           </p>
           <p className="mt-1 font-body-sm text-[11px] leading-snug text-on-surface-variant">
-            {tr('Usá “Actualizar preview” para ver el borrador. El perfil se aplica al guardar y publicar.')}
+            {tr('Usa “Actualizar preview” para ver el borrador. El perfil se aplica al guardar y publicar.')}
           </p>
         </div>
       </div>

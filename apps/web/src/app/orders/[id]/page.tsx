@@ -142,7 +142,7 @@ export default function OrderDetailPage() {
           <Container size="xl" px={0}>
             <ErrorState
               title="No se pudo cargar el pedido"
-              description="El pedido no existe o no tenés permiso para verlo."
+              description="El pedido no existe o no tienes permiso para verlo."
               reset={refetch}
             />
           </Container>

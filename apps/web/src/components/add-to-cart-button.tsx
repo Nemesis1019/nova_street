@@ -8,14 +8,17 @@ import { useMemo, useRef, useState } from 'react';
 import { apiClient } from '../lib/api';
 import { flyToCart } from '../lib/fly-to-cart';
 import { getApiErrorMessage, notifyError } from '../lib/notifications';
+import { uniqueProductColors } from '../lib/product-colors';
 import { useCurrency } from '../providers/currency-provider';
 import { useAuthStore } from '../store/auth-store';
 import { useCartStore } from '../store/cart-store';
+import { useProductVariantContext } from './product-variant-context';
 
 interface ProductVariant {
   id: string;
   size?: string | null;
   color?: string | null;
+  colorHex?: string | null;
   sku: string;
   stockMode?: string;
   availableQuantity?: number;
@@ -33,11 +36,21 @@ interface AddToCartButtonProps {
   };
   /** Imagen principal para el carrito local (invitados). */
   imageUrl?: string;
+  showColorSwatches?: boolean;
+  showSizeSwatches?: boolean;
 }
 
-export function AddToCartButton({ product, imageUrl }: AddToCartButtonProps) {
+export function AddToCartButton({
+  product,
+  imageUrl,
+  showColorSwatches = true,
+  showSizeSwatches = true,
+}: AddToCartButtonProps) {
+  const variantContext = useProductVariantContext();
   const [quantity, setQuantity] = useState(1);
-  const [selectedVariantId, setSelectedVariantId] = useState(product.variants[0]?.id ?? '');
+  const [localVariantId, setLocalVariantId] = useState(product.variants[0]?.id ?? '');
+  const selectedVariantId = variantContext?.selectedVariantId ?? localVariantId;
+  const setSelectedVariantId = variantContext?.setSelectedVariantId ?? setLocalVariantId;
   const [isAdding, setIsAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -58,6 +71,41 @@ export function AddToCartButton({ product, imageUrl }: AddToCartButtonProps) {
     : 10;
   const variantPrice = (variant: ProductVariant) =>
     product.basePrice + (variant.priceAdjustment ?? 0);
+  const colorOptions = uniqueProductColors(product.variants);
+  const activeColor = selectedVariant?.color ?? colorOptions[0]?.color ?? null;
+
+  const selectColor = (color: string) => {
+    const normalized = color.trim().toLowerCase();
+    const sameSize = product.variants.find(
+      (variant) =>
+        variant.color?.trim().toLowerCase() === normalized &&
+        variant.size === selectedVariant?.size,
+    );
+    const next =
+      sameSize ??
+      product.variants.find((variant) => variant.color?.trim().toLowerCase() === normalized);
+    if (next) setSelectedVariantId(next.id);
+  };
+
+  const variantsForActiveColor = activeColor
+    ? product.variants.filter(
+        (variant) => variant.color?.trim().toLowerCase() === activeColor.trim().toLowerCase(),
+      )
+    : product.variants;
+  const sizeOptions = Array.from(
+    new Set(
+      variantsForActiveColor
+        .map((variant) => variant.size?.trim())
+        .filter((size): size is string => Boolean(size)),
+    ),
+  );
+
+  const selectSize = (size: string) => {
+    const next =
+      variantsForActiveColor.find((variant) => variant.size?.trim() === size) ??
+      product.variants.find((variant) => variant.size?.trim() === size);
+    if (next) setSelectedVariantId(next.id);
+  };
 
   const handleAdd = async () => {
     if (!selectedVariantId || !canAdd) return;
@@ -105,6 +153,111 @@ export function AddToCartButton({ product, imageUrl }: AddToCartButtonProps) {
 
   return (
     <Stack gap="md">
+      {showColorSwatches && colorOptions.length > 1 && (
+        <div>
+          <Text
+            size="xs"
+            style={{
+              fontFamily: 'var(--font-jetbrains-mono), JetBrains Mono, monospace',
+              textTransform: 'uppercase',
+              fontSize: 12,
+              letterSpacing: '0.05em',
+              marginBottom: 6,
+            }}
+          >
+            Color
+          </Text>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+            {colorOptions.map((option) => {
+              const active = option.color.toLowerCase() === activeColor?.toLowerCase();
+              return (
+                <button
+                  key={option.color}
+                  type="button"
+                  aria-label={`Color ${option.color}`}
+                  aria-pressed={active}
+                  title={option.color}
+                  onClick={() => selectColor(option.color)}
+                  style={{
+                    width: 30,
+                    height: 30,
+                    padding: 0,
+                    border: 0,
+                    background: 'transparent',
+                    display: 'grid',
+                    placeItems: 'center',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span
+                    style={{
+                      display: 'block',
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      backgroundColor: option.hex,
+                      border: active
+                        ? '2px solid var(--sf-color-text, #0d0d0d)'
+                        : '1px solid rgba(13, 13, 13, 0.28)',
+                      boxShadow: active
+                        ? '0 0 0 3px var(--sf-color-surface, #fcf9f8)'
+                        : undefined,
+                    }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {showSizeSwatches && sizeOptions.length > 1 && (
+        <div>
+          <Text
+            size="xs"
+            style={{
+              fontFamily: 'var(--font-jetbrains-mono), JetBrains Mono, monospace',
+              textTransform: 'uppercase',
+              fontSize: 12,
+              letterSpacing: '0.05em',
+              marginBottom: 6,
+            }}
+          >
+            Talle
+          </Text>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {sizeOptions.map((size) => {
+              const active = selectedVariant?.size?.trim() === size;
+              return (
+                <button
+                  key={size}
+                  type="button"
+                  aria-label={`Talle ${size}`}
+                  aria-pressed={active}
+                  onClick={() => selectSize(size)}
+                  style={{
+                    minWidth: 38,
+                    height: 32,
+                    padding: '0 10px',
+                    border: '1px solid var(--sf-color-text, #0d0d0d)',
+                    backgroundColor: active
+                      ? 'var(--sf-color-text, #0d0d0d)'
+                      : 'transparent',
+                    color: active
+                      ? 'var(--sf-color-surface, #fcf9f8)'
+                      : 'var(--sf-color-text, #0d0d0d)',
+                    fontFamily: 'var(--font-jetbrains-mono), JetBrains Mono, monospace',
+                    fontSize: 11,
+                    letterSpacing: '0.04em',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {size}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
       <Select
         label="Variante"
         value={selectedVariantId}

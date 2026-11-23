@@ -1851,49 +1851,6 @@
         ]
       }
     },
-    "/admin/products/{id}/images/{imageId}": {
-      "delete": {
-        "operationId": "AdminProductController_removeImage",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "imageId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProductImageResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "admin-catalog"
-        ]
-      }
-    },
     "/admin/products/{id}/images/reorder": {
       "patch": {
         "operationId": "AdminProductController_reorderImages",
@@ -1924,6 +1881,100 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminProductDetailDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-catalog"
+        ]
+      }
+    },
+    "/admin/products/{id}/images/{imageId}": {
+      "patch": {
+        "operationId": "AdminProductController_updateImage",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "imageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductImageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductImageResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-catalog"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminProductController_removeImage",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "imageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductImageResponseDto"
                 }
               }
             }
@@ -2312,7 +2363,16 @@
     "/admin/assets/upload": {
       "post": {
         "operationId": "AssetsController_upload",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "purpose",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -8241,6 +8301,34 @@
         ]
       }
     },
+    "/admin/storefront/versions/{id}": {
+      "get": {
+        "operationId": "AdminStorefrontController_version",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-storefront"
+        ]
+      }
+    },
     "/admin/storefront/versions/{id}/restore": {
       "post": {
         "operationId": "AdminStorefrontController_restore",
@@ -9660,6 +9748,11 @@
           "color": {
             "type": "string"
           },
+          "colorHex": {
+            "type": "string",
+            "nullable": true,
+            "description": "Color de la variante en formato HEX"
+          },
           "garmentType": {
             "type": "string"
           },
@@ -9717,6 +9810,11 @@
           "sortOrder": {
             "type": "number"
           },
+          "productVariantId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Variante a la que pertenece la imagen"
+          },
           "url": {
             "type": "string"
           },
@@ -9755,6 +9853,22 @@
           },
           "description": {
             "type": "string"
+          },
+          "videoUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL de video externo del producto"
+          },
+          "videoUrls": {
+            "description": "URLs de video del producto",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "variantVideos": {
+            "type": "object",
+            "description": "Videos asociados a variantes"
           },
           "metaTitle": {
             "type": "string"
@@ -9857,6 +9971,22 @@
           },
           "description": {
             "type": "string"
+          },
+          "videoUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL de video externo del producto"
+          },
+          "videoUrls": {
+            "description": "URLs de video del producto",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "variantVideos": {
+            "type": "object",
+            "description": "Videos asociados a variantes"
           },
           "metaTitle": {
             "type": "string"
@@ -10179,6 +10309,22 @@
           "description": {
             "type": "string"
           },
+          "videoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "videoUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "variantVideos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "categoryId": {
             "type": "string",
             "format": "uuid"
@@ -10245,6 +10391,11 @@
           "color": {
             "type": "string"
           },
+          "colorHex": {
+            "type": "string",
+            "nullable": true,
+            "description": "Color de la variante en formato HEX"
+          },
           "garmentType": {
             "type": "string"
           },
@@ -10294,6 +10445,22 @@
           },
           "description": {
             "type": "string"
+          },
+          "videoUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL de video externo del producto"
+          },
+          "videoUrls": {
+            "description": "URLs de video del producto",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "variantVideos": {
+            "type": "object",
+            "description": "Videos asociados a variantes"
           },
           "metaTitle": {
             "type": "string"
@@ -10393,6 +10560,22 @@
           "description": {
             "type": "string"
           },
+          "videoUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL de video externo del producto"
+          },
+          "videoUrls": {
+            "description": "URLs de video del producto",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "variantVideos": {
+            "type": "object",
+            "description": "Videos asociados a variantes"
+          },
           "metaTitle": {
             "type": "string"
           },
@@ -10460,6 +10643,22 @@
           },
           "description": {
             "type": "string"
+          },
+          "videoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "videoUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "variantVideos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "categoryId": {
             "type": "string",
@@ -10582,6 +10781,17 @@
           "imageIds"
         ]
       },
+      "UpdateProductImageDto": {
+        "type": "object",
+        "properties": {
+          "productVariantId": {
+            "type": "string",
+            "nullable": true,
+            "description": "null desasocia la imagen de toda variante.",
+            "format": "uuid"
+          }
+        }
+      },
       "CreateProductVariantDto": {
         "type": "object",
         "properties": {
@@ -10593,6 +10803,11 @@
           },
           "color": {
             "type": "string"
+          },
+          "colorHex": {
+            "type": "string",
+            "nullable": true,
+            "pattern": "^#[0-9A-Fa-f]{6}$"
           },
           "garmentType": {
             "type": "string"
@@ -10630,6 +10845,11 @@
           },
           "color": {
             "type": "string"
+          },
+          "colorHex": {
+            "type": "string",
+            "nullable": true,
+            "pattern": "^#[0-9A-Fa-f]{6}$"
           },
           "garmentType": {
             "type": "string"
@@ -10741,6 +10961,11 @@
           },
           "color": {
             "type": "string"
+          },
+          "colorHex": {
+            "type": "string",
+            "nullable": true,
+            "description": "Color de la variante en formato HEX"
           },
           "garmentType": {
             "type": "string"
@@ -10874,6 +11099,7 @@
             "enum": [
               "CATALOG_IMAGE",
               "CUSTOM_DESIGN_ASSET",
+              "PRODUCT_VIDEO",
               "PRINT_FILE",
               "REVIEW_IMAGE"
             ],
@@ -14464,7 +14690,7 @@
           },
           "domain": {
             "type": "string",
-            "example": "acme.nova.app"
+            "example": "acme.nova.com"
           },
           "adminEmail": {
             "type": "string",

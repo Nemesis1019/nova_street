@@ -350,6 +350,10 @@ model Product {
   name            String
   slug            String          @unique
   description     String?
+  videoUrl        String?
+  videoUrls       String[]        @default([])
+  /// Videos asociados a una variante: [{ url, productVariantId }]
+  variantVideos   Json?
   metaTitle       String?
   metaDescription String?
   categoryId      String?         @db.Uuid
@@ -373,6 +377,7 @@ model ProductVariant {
   sku                    String    @unique
   size                   String?
   color                  String?
+  colorHex               String?
   garmentType            String?
   stockMode              StockMode @default(MADE_TO_ORDER)
   productionLeadTimeDays Int       @default(7)
@@ -863,6 +868,7 @@ enum RefundStatus {
 enum AssetPurpose {
   CATALOG_IMAGE
   CUSTOM_DESIGN_ASSET
+  PRODUCT_VIDEO
   PRINT_FILE
   REVIEW_IMAGE
 }
